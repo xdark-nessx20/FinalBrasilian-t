@@ -10,6 +10,8 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
+import co.edu.unimagdalena.finalbrasiliant.domain.enums.DynamicPricing;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
