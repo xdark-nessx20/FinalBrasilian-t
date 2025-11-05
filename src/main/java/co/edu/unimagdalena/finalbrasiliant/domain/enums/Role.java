@@ -1,4 +1,4 @@
-package co.edu.unimagdalena.finalbrasiliant.domain.entities;
+package co.edu.unimagdalena.finalbrasiliant.domain.enums;
 
 public enum Role {
 	PASSENGER,

@@ -4,6 +4,7 @@ import java.time.OffsetDateTime;
 
 import org.hibernate.annotations.CreationTimestamp;
 
+import co.edu.unimagdalena.finalbrasiliant.domain.enums.Role;
 import jakarta.persistence.*;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
