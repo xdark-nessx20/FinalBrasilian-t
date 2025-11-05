@@ -39,6 +39,5 @@ public class Seat {
 	
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false)
-	@Builder.Default
-	private SeatType type = SeatType.STANDARD;
+	private SeatType type;
 }
