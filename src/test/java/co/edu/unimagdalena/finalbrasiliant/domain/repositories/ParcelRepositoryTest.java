@@ -28,7 +28,6 @@ class ParcelRepositoryTest extends AbstractRepository {
     private RouteRepository routeRepository;
 
     private Stop stop1;
-    private Stop stop2;
     private Stop stop3;
     private Parcel parcel1;
     private Parcel parcel2;
@@ -58,7 +57,7 @@ class ParcelRepositoryTest extends AbstractRepository {
                 .lng(-74.0817)
                 .build());
 
-        stop2 = stopRepository.save(Stop.builder()
+        Stop stop2 = stopRepository.save(Stop.builder()
                 .route(route)
                 .name("Peaje La Línea")
                 .stopOrder(2)
@@ -104,8 +103,8 @@ class ParcelRepositoryTest extends AbstractRepository {
                                 String receiverName, String receiverPhone, String deliveryOTP) {
         return parcelRepository.save(Parcel.builder()
                 .code(code)
-                .from(from)
-                .to(to)
+                .fromStop(from)
+                .toStop(to)
                 .price(price)
                 .status(status)
                 .senderName(senderName)

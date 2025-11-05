@@ -1,6 +1,9 @@
 package co.edu.unimagdalena.finalbrasiliant.domain.repositories;
 
 import co.edu.unimagdalena.finalbrasiliant.domain.entities.*;
+import co.edu.unimagdalena.finalbrasiliant.domain.enums.PaymentMethod;
+import co.edu.unimagdalena.finalbrasiliant.domain.enums.Role;
+import co.edu.unimagdalena.finalbrasiliant.domain.enums.TicketStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,21 +68,20 @@ class BaggageRepositoryTest extends AbstractRepository {
         Bus bus = busRepository.save(Bus.builder()
                 .plate("ABC123")
                 .capacity(45)
-                .status(true)
                 .build());
 
         Trip trip = createTrip(route, bus);
 
         Stop stop1 = stopRepository.save(Stop.builder()
                 .name("Terminal Bogotá")
-                .city("Bogotá")
-                .address("Calle 20 #10-50")
+                .route(route)
+                .stopOrder(1)
                 .build());
 
         Stop stop2 = stopRepository.save(Stop.builder()
                 .name("Terminal Medellín")
                 .route(route)
-                .stopOrder(1)
+                .stopOrder(2)
                 .build());
 
         passenger1 = createUser("Ana López", "ana@example.com", "3001234567");
@@ -115,7 +117,6 @@ class BaggageRepositoryTest extends AbstractRepository {
                 .date(LocalDate.now())
                 .departureAt(now.plusDays(1))
                 .arrivalETA(now.plusDays(1).plusHours(6))
-                .status(TripStatus.SCHEDULED)
                 .build());
     }
 
@@ -124,12 +125,11 @@ class BaggageRepositoryTest extends AbstractRepository {
         return ticketRepository.save(Ticket.builder()
                 .trip(trip)
                 .passenger(passenger)
-                .from(from)
-                .to(to)
+                .fromStop(from)
+                .toStop(to)
                 .seatNumber(seatNumber)
                 .price(price)
                 .paymentMethod(PaymentMethod.CARD)
-                .status(TicketStatus.SOLD)
                 .qrCode("QR_" + seatNumber)
                 .build());
     }
@@ -204,7 +204,7 @@ class BaggageRepositoryTest extends AbstractRepository {
                             .satisfies(ticket -> {
                                 assertThat(ticket.getId()).isEqualTo(ticket1.getId());
                                 assertThat(ticket.getSeatNumber()).isEqualTo("A12");
-                                assertThat(ticket.getStatus()).isEqualTo(TicketStatus.CONFIRMED);
+                                assertThat(ticket.getStatus()).isEqualTo(TicketStatus.SOLD);
                             });
                 });
     }

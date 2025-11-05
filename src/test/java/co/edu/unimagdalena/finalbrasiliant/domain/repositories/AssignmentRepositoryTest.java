@@ -1,6 +1,8 @@
 package co.edu.unimagdalena.finalbrasiliant.domain.repositories;
 
 import co.edu.unimagdalena.finalbrasiliant.domain.entities.*;
+import co.edu.unimagdalena.finalbrasiliant.domain.enums.Role;
+import co.edu.unimagdalena.finalbrasiliant.domain.enums.TripStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,7 +51,6 @@ class AssignmentRepositoryTest extends AbstractRepository {
 
         now = OffsetDateTime.now();
 
-        // Crear dependencias para trips
         Route route1 = routeRepository.save(Route.builder()
                 .origin("Bogotá")
                 .destination("Medellín")
@@ -67,13 +68,11 @@ class AssignmentRepositoryTest extends AbstractRepository {
         Bus bus1 = busRepository.save(Bus.builder()
                 .plate("ABC123")
                 .capacity(45)
-                .status(true)
                 .build());
 
         Bus bus2 = busRepository.save(Bus.builder()
                 .plate("XYZ789")
                 .capacity(50)
-                .status(true)
                 .build());
 
         driver1 = createUser("Juan Pérez", "juan@example.com", "3001234567", Role.DRIVER);
