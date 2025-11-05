@@ -1,0 +1,53 @@
+package co.edu.unimagdalena.finalbrasiliant.domain.repositories;
+
+import co.edu.unimagdalena.finalbrasiliant.domain.enums.PaymentMethod;
+import co.edu.unimagdalena.finalbrasiliant.domain.entities.Ticket;
+import co.edu.unimagdalena.finalbrasiliant.domain.enums.TicketStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import java.math.BigDecimal;
+import java.time.OffsetDateTime;
+import java.util.List;
+import java.util.Optional;
+
+public interface TicketRepository extends JpaRepository<Ticket,Long> {
+    Optional<Ticket> findByTrip_IdAndSeatNumber(Long tripId, String seatNumber);
+
+    @EntityGraph(attributePaths = {"fromStop", "toStop", "passenger", "trip"})
+    @Query("SELECT T FROM Ticket T WHERE T.qrCode = :qrCode")
+    Optional<Ticket> findByQrCode(String qrCode);
+
+    Page<Ticket> findByPaymentMethod(PaymentMethod paymentMethod, Pageable pageable);
+    Page<Ticket> findByStatus(TicketStatus status, Pageable pageable);
+    Page<Ticket> findByCreatedAtBetween(OffsetDateTime start, OffsetDateTime end, Pageable pageable);
+    @Query("""
+        SELECT T FROM Ticket T
+        WHERE (:fromId IS NULL OR T.fromStop.id = :fromId) AND (:toId IS NULL OR T.toStop.id = :toId)
+    """)
+    Page<Ticket> findAllByStretch(@Param("fromId") Long fromId, @Param("toId") Long toId, Pageable pageable);
+
+    List<Ticket> findByPassenger_Id(Long passengerId);
+    List<Ticket> findByTrip_Id(Long tripId);
+
+    @Query("""
+        SELECT COUNT(DISTINCT T) FROM Ticket T
+        WHERE T.status = :status AND (:start IS NULL OR T.createdAt >= :start)
+            AND (:end IS NULL OR T.createdAt <= :end)
+    """)
+    long countByStatusAndOptionalDateRange(@Param("status") TicketStatus status, @Param("start") OffsetDateTime start,
+                                           @Param("end") OffsetDateTime end);
+
+    @Query("SELECT SUM(T.price) FROM Ticket T WHERE T.status = :status")
+    BigDecimal sumPriceByStatus(@Param("status") TicketStatus status);
+
+    @Query("""
+        SELECT SUM(T.price) FROM Ticket T
+        WHERE T.passenger.id = :passengerId AND T.status = 'SOLD'
+    """)
+    BigDecimal sumPriceByPassenger_Id(@Param("passengerId") Long passengerId);
+}

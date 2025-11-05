@@ -28,7 +28,7 @@ public class Ticket {
     @JoinColumn(name = "trip_id")
     private Trip trip;
 
-    @ManyToOne(optional = false)
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "passenger_id")
     private User passenger;
 
