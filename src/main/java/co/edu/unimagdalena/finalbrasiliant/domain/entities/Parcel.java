@@ -36,7 +36,8 @@ public class Parcel {
     private BigDecimal price;
 
     @Enumerated(EnumType.STRING)
-    private ParcelStatus status;
+    @Builder.Default
+    private ParcelStatus status = ParcelStatus.CREATED;
 
     //Sender and receiver may be not users, so aja...
     @Column(nullable = false, name = "sender_name")
