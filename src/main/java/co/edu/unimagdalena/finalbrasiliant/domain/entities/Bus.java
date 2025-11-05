@@ -10,6 +10,8 @@ import lombok.NoArgsConstructor;
 import java.util.HashSet;
 import java.util.Set;
 
+import co.edu.unimagdalena.finalbrasiliant.domain.enums.BusStatus;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -32,7 +34,10 @@ public class Bus {
     @Column(nullable = false)
     @Builder.Default
     private Set<String> amenities =  new HashSet<>();
-
+    
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private Boolean status;
+    @Builder.Default
+    private BusStatus status = BusStatus.AVAILABLE;
+
 }

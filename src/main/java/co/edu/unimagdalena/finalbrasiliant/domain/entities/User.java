@@ -35,7 +35,8 @@ public class User {
 
 	@Column(nullable = false)
     @Enumerated(EnumType.STRING)
-    private Role role;
+	@Builder.Default
+    private Role role = Role.PASSENGER;
 	
 	@Column(nullable = false)
 	private Boolean status;

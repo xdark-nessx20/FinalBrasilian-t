@@ -52,6 +52,7 @@ public class Trip {
 	
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false)
-	private TripStatus status;
+	@Builder.Default
+	private TripStatus status = TripStatus.SCHEDULED;
 
 }
