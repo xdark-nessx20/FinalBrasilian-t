@@ -55,7 +55,8 @@ public class Ticket {
     private PaymentMethod paymentMethod;
 
     @Enumerated(EnumType.STRING)
-    private TicketStatus status;
+    @Builder.Default
+    private TicketStatus status = TicketStatus.SOLD;
 
     @Column(name = "qr_code", nullable = false)
     private String qrCode;
