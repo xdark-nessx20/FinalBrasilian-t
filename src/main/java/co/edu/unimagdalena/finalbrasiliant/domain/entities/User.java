@@ -38,7 +38,8 @@ public class User {
     private Role role;
 	
 	@Column(nullable = false)
-	private Boolean status;
+	@Builder.Default
+	private Boolean status = true;
 	
 	@Column(nullable = false)
 	private String passwordHash;
