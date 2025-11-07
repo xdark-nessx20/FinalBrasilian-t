@@ -3,12 +3,13 @@ package co.edu.unimagdalena.finalbrasiliant.api.dto;
 import java.io.Serializable;
 
 import co.edu.unimagdalena.finalbrasiliant.domain.enums.SeatType;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 public class SeatDTO {
 	public record SeatCreateRequest(
 			@NotNull Long bus_id,
-			@NotNull String number,
+			@NotBlank String number,
 			@NotNull SeatType type
 	    ) implements Serializable {}
 

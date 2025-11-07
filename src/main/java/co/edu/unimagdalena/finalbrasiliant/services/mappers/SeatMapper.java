@@ -12,7 +12,7 @@ import co.edu.unimagdalena.finalbrasiliant.domain.entities.Seat;
 public interface SeatMapper {
     
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "bus.id", source = "bus_id")
+    @Mapping(target = "bus.id", ignore = true)
     Seat toEntity(SeatCreateRequest request);
 
     @Mapping(target = "bus_id", source = "bus.id")

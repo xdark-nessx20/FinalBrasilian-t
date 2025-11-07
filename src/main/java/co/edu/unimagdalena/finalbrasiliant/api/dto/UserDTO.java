@@ -3,11 +3,12 @@ package co.edu.unimagdalena.finalbrasiliant.api.dto;
 import java.io.Serializable;
 
 import co.edu.unimagdalena.finalbrasiliant.domain.enums.Role;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 public class UserDTO {
-	public record userCreateRequest(@NotNull String userName, @NotNull String email, 
-			@NotNull String phone, @NotNull Role role, @NotNull String passwordHash) implements Serializable{};
+	public record userCreateRequest(@NotBlank String userName, @NotBlank String email, 
+			@NotBlank String phone, @NotNull Role role, @NotBlank String passwordHash) implements Serializable{};
 			
 	public record userUpdateRequest(String userName, String email, 
 			String phone, Role role, 
