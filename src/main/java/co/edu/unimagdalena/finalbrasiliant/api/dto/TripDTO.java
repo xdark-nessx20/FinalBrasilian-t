@@ -1,6 +1,6 @@
 package co.edu.unimagdalena.finalbrasiliant.api.dto;
 
-import jakarta.annotation.Nonnull;
+import jakarta.validation.constraints.NotNull;
 
 import java.io.Serializable;
 import java.time.LocalDate;
@@ -11,16 +11,16 @@ import co.edu.unimagdalena.finalbrasiliant.domain.enums.TripStatus;
 public class TripDTO {
 
     public record TripCreateRequest(
-        @Nonnull Long routeId,
-        @Nonnull Long busId,
-        @Nonnull LocalDate date,
-        @Nonnull OffsetDateTime departureAt,
-        @Nonnull OffsetDateTime arrivalETA
+        @NotNull Long route_id,
+        @NotNull Long bus_id,
+        @NotNull LocalDate date,
+        @NotNull OffsetDateTime departureAt,
+        @NotNull OffsetDateTime arrivalETA
     ) implements Serializable {}
 
     public record TripUpdateRequest(
-        Long routeId,
-        Long busId,
+        Long route_id,
+        Long bus_id,
         LocalDate date,
         OffsetDateTime departureAt,
         OffsetDateTime arrivalETA,
@@ -29,8 +29,8 @@ public class TripDTO {
 
     public record TripResponse(
         Long id,
-        Long routeId,
-        Long busId,
+        Long route_id,
+        Long bus_id,
         LocalDate date,
         OffsetDateTime departureAt,
         OffsetDateTime arrivalETA,
