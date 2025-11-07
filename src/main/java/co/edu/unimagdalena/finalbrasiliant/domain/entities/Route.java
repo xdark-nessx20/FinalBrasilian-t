@@ -25,10 +25,10 @@ public class Route {
     @Column(name = "route_id")
     private Long id;
 	
-	@Column(nullable = false, name = "route_code")
+	@Column(nullable = false, name = "route_code", unique = true)
 	private String code;
 	
-	@Column(nullable = false, name = "route_name")
+	@Column(nullable = false, name = "route_name", unique = true)
 	private String routeName;
 	
 	@Column(nullable = false)
