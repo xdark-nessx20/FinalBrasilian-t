@@ -16,5 +16,5 @@ public class UserDTO {
 	
 	public record userResponse(Long id, String userName, String email, 
 			String phone, Role role, 
-			Boolean status, String passwordHash) implements Serializable{};
+			Boolean status) implements Serializable{};
 }

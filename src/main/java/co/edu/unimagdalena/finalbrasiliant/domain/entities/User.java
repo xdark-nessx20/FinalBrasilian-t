@@ -8,6 +8,7 @@ import co.edu.unimagdalena.finalbrasiliant.domain.enums.Role;
 import jakarta.persistence.*;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.Email;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -27,6 +28,7 @@ public class User {
 	@Column(nullable = false, name = "user_name")
 	private String userName;	
 	
+	@Email
 	@Column(nullable = false, unique = true)
     private String email;
 	
