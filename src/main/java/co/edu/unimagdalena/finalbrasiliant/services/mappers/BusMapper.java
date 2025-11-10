@@ -8,6 +8,7 @@ import org.mapstruct.*;
 public interface BusMapper {
 
     @Mapping(target = "id", ignore = true)
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     Bus toEntity(BusCreateRequest request);
 
     BusResponse toResponse(Bus entity);

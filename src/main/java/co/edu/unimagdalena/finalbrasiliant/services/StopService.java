@@ -18,5 +18,4 @@ public interface StopService {
     List<StopResponse> listByRouteAndOrderRange(Long routeId, Integer startOrder, Integer endOrder);
     long countByRoute(Long routeId);
     boolean existsByRouteAndName(Long routeId, String name);
-
 }

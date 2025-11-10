@@ -13,7 +13,7 @@ public interface FareRuleMapper {
     @Mapping(target = "route", ignore = true)
     @Mapping(target = "fromStop", ignore = true)
     @Mapping(target = "toStop", ignore = true)
-    FareRule toEntity(FareRuleRequest request);
+    FareRule toEntity(FareRuleCreateRequest request);
 
     @Mapping(target = "route", source = "route")
     @Mapping(target = "fromStop", source = "fromStop")

@@ -1,6 +1,7 @@
 package co.edu.unimagdalena.finalbrasiliant.api.dto;
 
 import co.edu.unimagdalena.finalbrasiliant.domain.enums.BusStatus;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -11,8 +12,8 @@ import java.util.Set;
 public class BusDTOs {
 
     public record BusCreateRequest(@NotBlank @Size(min = 6,max = 10) String plate,
-                                   @Size(min = 10) Integer capacity, Set<String> amenities,
-                                   @NotNull BusStatus status) implements Serializable {}
+                                   @Min(10) Integer capacity, Set<String> amenities,
+                                   BusStatus status) implements Serializable {}
 
     public record BusUpdateRequest(@NotBlank @Size(min = 6,max = 10) String plate,
                                    @Size(min = 10) Integer capacity , Set<String> amenities,
