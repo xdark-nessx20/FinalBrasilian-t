@@ -10,18 +10,18 @@ import java.time.OffsetDateTime;
 import java.util.List;
 
 public interface SeatHoldRepository extends JpaRepository<SeatHold, Long> {
-    List<SeatHold> findByUser_Id(Long userId);
+    List<SeatHold> findByPassenger_Id(Long userId);
     List<SeatHold> findByTrip_Id(Long tripId);
     List<SeatHold> findByStatus(SeatHoldStatus status);
-    List<SeatHold> findByTripIdAndUserIdAndStatus(Long tripId, Long userId, SeatHoldStatus status);
+    List<SeatHold> findByTrip_IdAndPassenger_IdAndStatus(Long tripId, Long userId, SeatHoldStatus status);
     boolean existsByTripIdAndSeatNumberAndStatus(Long tripId, String seatNumber, SeatHoldStatus status);
     long countByTripIdAndStatus(Long tripId, SeatHoldStatus status);
 
     // Buscar holds expirados
     @Query("""
-        SELECT sh FROM SeatHold sh 
-        WHERE sh.status = 'HOLD' 
-        AND sh.expiresAt < :now
+        SELECT sh FROM SeatHold sh
+        WHERE sh.status = 'HOLD'
+        AND sh.expiresAt <= :now
     """)
     List<SeatHold> findExpiredHolds(@Param("now") OffsetDateTime now);
 

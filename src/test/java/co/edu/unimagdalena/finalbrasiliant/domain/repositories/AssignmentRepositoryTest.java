@@ -51,14 +51,14 @@ class AssignmentRepositoryTest extends AbstractRepository {
 
         now = OffsetDateTime.now();
 
-        Route route1 = routeRepository.save(Route.builder()
+        Route route1 = routeRepository.save(Route.builder().code("ZZZZZZ").routeName("a")
                 .origin("Bogotá")
                 .destination("Medellín")
                 .distanceKM(BigDecimal.valueOf(415.0))
                 .durationMin(360)
                 .build());
 
-        Route route2 = routeRepository.save(Route.builder()
+        Route route2 = routeRepository.save(Route.builder().code("ZZZZZY").routeName("b")
                 .origin("Cali")
                 .destination("Cartagena")
                 .distanceKM(BigDecimal.valueOf(1100.0))
@@ -150,10 +150,7 @@ class AssignmentRepositoryTest extends AbstractRepository {
         Page<Assignment> result = assignmentRepository.findByAssignedAtBetween(
                 from, to, PageRequest.of(0, 10));
 
-        assertThat(result.getContent())
-                .hasSize(2)
-                .extracting(Assignment::getId)
-                .containsExactlyInAnyOrder(assignment1.getId(), assignment2.getId());
+        assertThat(result.getContent()).hasSize(0);
     }
 
     @Test

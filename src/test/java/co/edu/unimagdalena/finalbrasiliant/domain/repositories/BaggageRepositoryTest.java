@@ -58,7 +58,7 @@ class BaggageRepositoryTest extends AbstractRepository {
         routeRepository.deleteAll();
         busRepository.deleteAll();
 
-        Route route = routeRepository.save(Route.builder()
+        Route route = routeRepository.save(Route.builder().code("ZZZZZZ").routeName("a")
                 .origin("Bogotá")
                 .destination("Medellín")
                 .distanceKM(BigDecimal.valueOf(415.0))

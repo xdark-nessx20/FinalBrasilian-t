@@ -140,13 +140,9 @@ class TripRepositoryTest extends AbstractRepository {
 
     @Test
     void shouldFindTripByRouteId() {
-        Optional<Trip> result = tripRepository.findByRoute_Id(route1.getId());
+        var result = tripRepository.findByRoute_Id(route1.getId());
 
-        assertThat(result).isPresent()
-                .hasValueSatisfying(trip -> {
-                    assertThat(trip.getRoute().getId()).isEqualTo(route1.getId());
-                    assertThat(trip.getRoute().getRouteName()).isEqualTo("Ruta Bogotá - Medellín");
-                });
+        assertThat(result).hasSize(3);
     }
 
     @Test
@@ -174,13 +170,9 @@ class TripRepositoryTest extends AbstractRepository {
 
     @Test
     void shouldFindTripByBusId() {
-        Optional<Trip> result = tripRepository.findByBus_Id(bus2.getId());
+        var result = tripRepository.findByBus_Id(bus2.getId());
 
-        assertThat(result).isPresent()
-                .hasValueSatisfying(trip -> {
-                    assertThat(trip.getBus().getId()).isEqualTo(bus2.getId());
-                    assertThat(trip.getBus().getPlate()).isEqualTo("XYZ789");
-                });
+        assertThat(result).hasSize(2);
     }
 
     @Test

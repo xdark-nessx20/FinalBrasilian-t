@@ -43,6 +43,7 @@ class ParcelRepositoryTest extends AbstractRepository {
         routeRepository.deleteAll();
 
         Route route = routeRepository.save(Route.builder()
+                .code("ZZZZ").routeName("a")
                 .origin("Bogotá")
                 .destination("Medellín")
                 .distanceKM(BigDecimal.valueOf(415.0))
@@ -82,7 +83,7 @@ class ParcelRepositoryTest extends AbstractRepository {
                 "Ana López", "3001111111", "OTP67890");
 
         parcel3 = createParcel("PARCEL003", stop2, stop3, new BigDecimal("20000.00"),
-                ParcelStatus.CREATED, "juan perez", "3002222222",
+                ParcelStatus.CREATED, "juan pérez", "3002222222",
                 "Pedro Sánchez", "3003333333", "OTP11111");
 
         parcel4 = createParcel("PARCEL004", stop1, stop3, new BigDecimal("30000.00"),
@@ -90,7 +91,7 @@ class ParcelRepositoryTest extends AbstractRepository {
                 "maría garcía", "3005555555", "OTP22222");
 
         parcel5 = createParcel("PARCEL005", stop1, stop2, new BigDecimal("18000.00"),
-                ParcelStatus.FAILED, "JUAN PEREZ", "3006666666",
+                ParcelStatus.FAILED, "JUAN PÉREZ", "3006666666",
                 "Sofia Torres", "3007777777", "OTP33333");
 
         parcel6 = createParcel("PARCEL006", stop1, stop3, new BigDecimal("35000.00"),
@@ -129,7 +130,7 @@ class ParcelRepositoryTest extends AbstractRepository {
 
     @Test
     void shouldFindParcelsBySenderNameIgnoringCase() {
-        List<Parcel> result = parcelRepository.findBySenderNameIgnoringCase("juan perez");
+        List<Parcel> result = parcelRepository.findBySenderNameIgnoringCase("juan pérez");
 
         assertThat(result)
                 .hasSize(3)
