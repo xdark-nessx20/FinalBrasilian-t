@@ -31,7 +31,13 @@ public class TripServiceImpl implements TripService {
 	@Transactional
 	@Override
 	public TripResponse create(TripCreateRequest request) {
-	    Trip trip = tripMapper.toEntity(request);
+		var bus = busRepo.findById(request.bus_id())
+				.orElseThrow(() -> new NotFoundException("Bus %d not found".formatted(request.bus_id())));
+		var route = routeRepo.findById(request.route_id())
+			    .orElseThrow(() -> new NotFoundException("Route %d not found".formatted(request.route_id())));
+		Trip trip = tripMapper.toEntity(request);
+		trip.setBus(bus);
+		trip.setRoute(route);
 	    Trip saved = tripRepo.save(trip);
 	    return tripMapper.toResponse(saved);
 	}
@@ -46,6 +52,11 @@ public class TripServiceImpl implements TripService {
     @Transactional
     public TripResponse update(Long id, TripUpdateRequest request) {
         var trip = tripRepo.findById(id).orElseThrow(() -> new NotFoundException("trip %d not found.".formatted(id)));
+        if (request.bus_id() != null) {
+            var bus = busRepo.findById(request.bus_id())
+                .orElseThrow(() -> new NotFoundException("Bus %d not found".formatted(request.bus_id())));
+            trip.setBus(bus);
+        }
         tripMapper.patch(trip, request);
         return tripMapper.toResponse(tripRepo.save(trip));
     }
@@ -94,7 +105,7 @@ public class TripServiceImpl implements TripService {
 	public Page<TripResponse> getByDepartureBetween(OffsetDateTime start, OffsetDateTime end, Pageable page){
 		Page<Trip> trips = tripRepo.findAllByDepartureAtBetween(start, end, page);
 		if(trips.isEmpty()) {
-			throw new NotFoundException("No trips found between %s and %d".formatted(start, end));
+			throw new NotFoundException("No trips found between %s and %s".formatted(start, end));
 		}
 		return trips.map(tripMapper::toResponse);
 	}
@@ -126,6 +137,7 @@ public class TripServiceImpl implements TripService {
 		return trips.stream().map(tripMapper::toResponse).toList();
 	}
 	
+	@Override
 	public Page<TripResponse> getByDate(LocalDate date, Pageable page){
 		Page<Trip> trips = tripRepo.findAllByDate(date, page);
 		if(trips.isEmpty()) {
