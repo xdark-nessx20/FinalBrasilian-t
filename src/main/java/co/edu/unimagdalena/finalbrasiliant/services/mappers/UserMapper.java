@@ -19,5 +19,5 @@ public interface UserMapper {
 	
 	@Mapping(target = "id", ignore = true)
 	@Mapping(target = "createdAt", ignore = true)
-	void updateEntityFromRequest(userUpdateRequest request, @MappingTarget User user);
+	void patch(@MappingTarget User user, userUpdateRequest request);
 }

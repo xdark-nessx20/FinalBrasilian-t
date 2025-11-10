@@ -23,5 +23,5 @@ public interface TripMapper {
 	@Mapping(target = "id", ignore = true)
     @Mapping(target = "bus.id", source = "bus_id")
 	@Mapping(target = "route.id", source = "route_id")
-	void updateEntityFromRequest(TripUpdateRequest request, @MappingTarget Trip trip);
+	void patch(@MappingTarget Trip trip, TripUpdateRequest request);
 }

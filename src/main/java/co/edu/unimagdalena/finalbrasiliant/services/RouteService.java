@@ -3,7 +3,7 @@ package co.edu.unimagdalena.finalbrasiliant.services;
 import java.math.BigDecimal;
 import java.util.List;
 
-import org.springframework.boot.autoconfigure.data.web.SpringDataWebProperties.Pageable;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Page;
 
 import co.edu.unimagdalena.finalbrasiliant.api.dto.RouteDTO.*;

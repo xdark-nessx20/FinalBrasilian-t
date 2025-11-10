@@ -1,5 +1,7 @@
 package co.edu.unimagdalena.finalbrasiliant.services.impl;
 
-public class RouteServiceImpl {
+import co.edu.unimagdalena.finalbrasiliant.services.RouteService;
+
+public class RouteServiceImpl implements RouteService {
 
 }
