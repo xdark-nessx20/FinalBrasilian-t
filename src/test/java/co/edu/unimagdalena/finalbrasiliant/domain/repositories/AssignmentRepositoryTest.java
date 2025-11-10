@@ -124,7 +124,7 @@ class AssignmentRepositoryTest extends AbstractRepository {
 
     @Test
     void shouldFindAssignmentByTripId() {
-        Optional<Assignment> result = assignmentRepository.findByTripId(trip1.getId());
+        Optional<Assignment> result = assignmentRepository.findByTrip_Id(trip1.getId());
 
         assertThat(result).isPresent();
         assertThat(result.get())
@@ -134,7 +134,7 @@ class AssignmentRepositoryTest extends AbstractRepository {
 
     @Test
     void shouldFindAllAssignmentsByDriverId() {
-        List<Assignment> result = assignmentRepository.findAllByDriverId(driver1.getId());
+        List<Assignment> result = assignmentRepository.findAllByDriver_Id(driver1.getId());
 
         assertThat(result)
                 .hasSize(2)

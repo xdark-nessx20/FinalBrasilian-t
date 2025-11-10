@@ -74,9 +74,9 @@ class AssignmentServiceImplTest {
         when(tripRepo.findById(1L)).thenReturn(Optional.of(trip));
         when(assignmentRepo.findByTrip_Id(1L)).thenReturn(Optional.empty());
         when(userRepo.findById(2L)).thenReturn(Optional.of(driver));
-        when(assignmentRepo.driverHasAnotherAssigment(2L, departureAt)).thenReturn(false);
+        when(assignmentRepo.driverHasAnotherAssignment(2L, departureAt)).thenReturn(false);
         when(userRepo.findById(3L)).thenReturn(Optional.of(dispatcher));
-        when(assignmentRepo.dispatcherHasAnotherAssigment(3L, departureAt)).thenReturn(false);
+        when(assignmentRepo.dispatcherHasAnotherAssignment(3L, departureAt)).thenReturn(false);
 
         when(assignmentRepo.save(any(Assignment.class))).thenAnswer(inv -> {
             Assignment a = inv.getArgument(0);
@@ -162,7 +162,7 @@ class AssignmentServiceImplTest {
         when(tripRepo.findById(1L)).thenReturn(Optional.of(trip));
         when(assignmentRepo.findByTrip_Id(1L)).thenReturn(Optional.empty());
         when(userRepo.findById(2L)).thenReturn(Optional.of(driver));
-        when(assignmentRepo.driverHasAnotherAssigment(2L, departureAt)).thenReturn(true);
+        when(assignmentRepo.driverHasAnotherAssignment(2L, departureAt)).thenReturn(true);
 
         // When / Then
         assertThatThrownBy(() -> service.create(request))
@@ -183,7 +183,7 @@ class AssignmentServiceImplTest {
         when(tripRepo.findById(1L)).thenReturn(Optional.of(trip));
         when(assignmentRepo.findByTrip_Id(1L)).thenReturn(Optional.empty());
         when(userRepo.findById(2L)).thenReturn(Optional.of(driver));
-        when(assignmentRepo.driverHasAnotherAssigment(2L, departureAt)).thenReturn(false);
+        when(assignmentRepo.driverHasAnotherAssignment(2L, departureAt)).thenReturn(false);
         when(userRepo.findById(99L)).thenReturn(Optional.empty());
 
         // When / Then
@@ -206,9 +206,9 @@ class AssignmentServiceImplTest {
         when(tripRepo.findById(1L)).thenReturn(Optional.of(trip));
         when(assignmentRepo.findByTrip_Id(1L)).thenReturn(Optional.empty());
         when(userRepo.findById(2L)).thenReturn(Optional.of(driver));
-        when(assignmentRepo.driverHasAnotherAssigment(2L, departureAt)).thenReturn(false);
+        when(assignmentRepo.driverHasAnotherAssignment(2L, departureAt)).thenReturn(false);
         when(userRepo.findById(3L)).thenReturn(Optional.of(dispatcher));
-        when(assignmentRepo.dispatcherHasAnotherAssigment(3L, departureAt)).thenReturn(true);
+        when(assignmentRepo.dispatcherHasAnotherAssignment(3L, departureAt)).thenReturn(true);
 
         // When / Then
         assertThatThrownBy(() -> service.create(request))

@@ -39,13 +39,13 @@ public class AssignmentServiceImpl implements AssignmentService {
         var driver = userRepo.findById(request.driverId()).orElseThrow(
                 () -> new NotFoundException("Driver %d not found.".formatted(request.driverId()))
         );
-        if (assignmentRepo.driverHasAnotherAssigment(driver.getId(), trip.getDepartureAt()))
+        if (assignmentRepo.driverHasAnotherAssignment(driver.getId(), trip.getDepartureAt()))
             throw new AlreadyExistsException("Driver %d already has been assigned to another trip.".formatted(driver.getId()));
 
         var dispatcher = userRepo.findById(request.dispatcherId()).orElseThrow(
                 () -> new NotFoundException("Dispatcher %d not found.".formatted(request.dispatcherId()))
         );
-        if (assignmentRepo.dispatcherHasAnotherAssigment(dispatcher.getId(), trip.getDepartureAt()))
+        if (assignmentRepo.dispatcherHasAnotherAssignment(dispatcher.getId(), trip.getDepartureAt()))
             throw new AlreadyExistsException("Dispatcher %d already has been assigned to another trip.".formatted(dispatcher.getId()));
 
         var saved = assignmentRepo.save(Assignment.builder().trip(trip).driver(driver)
