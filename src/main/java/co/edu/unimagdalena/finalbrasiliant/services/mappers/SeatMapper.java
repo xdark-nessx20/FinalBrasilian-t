@@ -20,5 +20,5 @@ public interface SeatMapper {
     
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "bus.id", source = "bus_id")
-    void updateEntityFromRequest(SeatUpdateRequest request, @MappingTarget Seat seat);
+    void patch(@MappingTarget Seat seat, SeatUpdateRequest request);
 }

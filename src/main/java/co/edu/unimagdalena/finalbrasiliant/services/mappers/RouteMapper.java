@@ -17,5 +17,5 @@ public interface RouteMapper {
     RouteResponse toResponse(Route route);
     
     @Mapping(target = "id", ignore = true)
-    void updateEntityFromRequest(RouteUpdateRequest request, @MappingTarget Route route);
+    void patch(@MappingTarget Route route, RouteUpdateRequest request);
 }
