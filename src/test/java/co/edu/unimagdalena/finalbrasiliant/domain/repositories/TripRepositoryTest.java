@@ -141,16 +141,6 @@ class TripRepositoryTest extends AbstractRepository {
                 .build());
     }
 
-    @Test
-    void shouldFindTripByRouteId() {
-        Optional<Trip> result = tripRepository.findByRoute_Id(route1.getId());
-
-        assertThat(result).isPresent()
-                .hasValueSatisfying(trip -> {
-                    assertThat(trip.getRoute().getId()).isEqualTo(route1.getId());
-                    assertThat(trip.getRoute().getRouteName()).isEqualTo("Ruta Bogotá - Medellín");
-                });
-    }
 
     @Test
     void shouldFindAllTripsByRouteId() {
@@ -175,17 +165,6 @@ class TripRepositoryTest extends AbstractRepository {
                 .hasSize(2)
                 .extracting(Trip::getId)
                 .containsExactlyInAnyOrder(trip3.getId(), trip5.getId());
-    }
-
-    @Test
-    void shouldFindTripByBusId() {
-        Optional<Trip> result = tripRepository.findByBus_Id(bus2.getId());
-
-        assertThat(result).isPresent()
-                .hasValueSatisfying(trip -> {
-                    assertThat(trip.getBus().getId()).isEqualTo(bus2.getId());
-                    assertThat(trip.getBus().getPlate()).isEqualTo("XYZ789");
-                });
     }
 
     @Test

@@ -17,9 +17,7 @@ public interface TripService {
 	TripResponse update(Long id, TripUpdateRequest request);
 	void delete(Long id);
 	
-	TripResponse getByRouteId(Long route_id);
 	Page<TripResponse> getAllByRouteId(Long route_id, Pageable page);
-    TripResponse getByBusId(Long bus_id);
     Page<TripResponse> getAllByBusId(Long bus_id, Pageable page);
     Page<TripResponse> getByDepartureBetween(OffsetDateTime start, OffsetDateTime end, Pageable page);
     Page<TripResponse> getByArrivalBetween(OffsetDateTime start, OffsetDateTime end, Pageable page);

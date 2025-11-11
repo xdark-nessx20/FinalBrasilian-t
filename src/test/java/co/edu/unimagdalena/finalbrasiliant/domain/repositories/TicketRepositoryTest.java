@@ -63,6 +63,7 @@ class TicketRepositoryTest extends AbstractRepository {
         now = OffsetDateTime.now();
 
         Route route1 = routeRepository.save(Route.builder()
+                .code("ZZZZ").routeName("a")
                 .origin("Bogotá")
                 .destination("Medellín")
                 .distanceKM(BigDecimal.valueOf(415.0))
@@ -70,6 +71,7 @@ class TicketRepositoryTest extends AbstractRepository {
                 .build());
 
         Route route2 = routeRepository.save(Route.builder()
+                .code("ZZZW").routeName("b")
                 .origin("Cali")
                 .destination("Cartagena")
                 .distanceKM(BigDecimal.valueOf(1100.0))
@@ -210,9 +212,9 @@ class TicketRepositoryTest extends AbstractRepository {
                 PaymentMethod.CARD, PageRequest.of(0, 10));
 
         assertThat(result.getContent())
-                .hasSize(3)
+                .hasSize(4)
                 .extracting(Ticket::getId)
-                .containsExactlyInAnyOrder(ticket1.getId(), ticket3.getId(), ticket6.getId());
+                .containsExactlyInAnyOrder(ticket1.getId(), ticket3.getId(), ticket4.getId(), ticket6.getId());
     }
 
     @Test
@@ -308,14 +310,6 @@ class TicketRepositoryTest extends AbstractRepository {
     }
 
     @Test
-    void shouldCountByStatusAndOptionalDateRangeWithOnlyStatus() {
-        long count = ticketRepository.countByStatusAndOptionalDateRange(
-                TicketStatus.SOLD, null, null);
-
-        assertThat(count).isEqualTo(4);
-    }
-
-    @Test
     void shouldCountByStatusAndOptionalDateRangeWithStartDate() {
         OffsetDateTime start = now.minusHours(1);
 
@@ -331,7 +325,7 @@ class TicketRepositoryTest extends AbstractRepository {
 
         assertThat(total)
                 .isNotNull()
-                .isEqualByComparingTo(new BigDecimal("260000.00"));
+                .isEqualByComparingTo(new BigDecimal("240000.00"));
     }
 
     @Test

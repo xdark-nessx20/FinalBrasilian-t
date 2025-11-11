@@ -31,7 +31,9 @@ public class Bus {
     @Column(nullable = false)
     private Integer capacity;
 
-    @Column(nullable = false)
+    @ElementCollection
+    @CollectionTable(name = "bus_amenities", joinColumns = @JoinColumn(name = "bus_id"))
+    @Column(name = "amenity")
     @Builder.Default
     private Set<String> amenities =  new HashSet<>();
     

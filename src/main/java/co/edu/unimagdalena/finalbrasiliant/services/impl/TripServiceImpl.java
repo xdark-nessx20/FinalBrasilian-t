@@ -67,13 +67,6 @@ public class TripServiceImpl implements TripService {
         tripRepo.deleteById(id);
     }
 	
-	@Override
-	public TripResponse getByRouteId(Long route_id) {
-		routeRepo.findById(route_id).orElseThrow(() -> new NotFoundException("route %s not found".formatted(route_id)));
-		return tripRepo.findByRoute_Id(route_id)
-				.map(tripMapper::toResponse)
-				.orElseThrow(() -> new NotFoundException("trip with route %s not found".formatted(route_id)));
-	}
 	
 	@Override
 	public Page<TripResponse> getAllByRouteId(Long route_id, Pageable page){
@@ -83,15 +76,7 @@ public class TripServiceImpl implements TripService {
 		}
 		return trips.map(tripMapper::toResponse);
 	}
-	
-	@Override
-	public TripResponse getByBusId(Long bus_id) {
-		busRepo.findById(bus_id).orElseThrow(() -> new NotFoundException("Bus %s not found".formatted(bus_id)));
-		return tripRepo.findByBus_Id(bus_id)
-				.map(tripMapper::toResponse)
-				.orElseThrow(() -> new NotFoundException("trip with bus %s not found".formatted(bus_id)));
-	}
-	
+		
 	@Override
 	public Page<TripResponse> getAllByBusId(Long bus_id, Pageable page){
 		Page<Trip> trips = tripRepo.findAllByBus_Id(bus_id, page);

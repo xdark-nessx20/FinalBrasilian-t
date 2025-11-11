@@ -169,35 +169,6 @@ class TripServiceImplTest {
     }
 
     @Test
-    void shouldGetTripByRouteId() {
-        // Given
-        var bus = Bus.builder().id(1L).build();
-        var route = Route.builder().id(5L).build();
-
-        var trip = Trip.builder()
-                .id(10L)
-                .bus(bus)
-                .route(route)
-                .date(LocalDate.of(2025, 11, 15))
-                .departureAt(OffsetDateTime.now())
-                .arrivalETA(OffsetDateTime.now().plusHours(3))
-                .status(TripStatus.SCHEDULED)
-                .build();
-
-        when(routeRepo.findById(5L)).thenReturn(Optional.of(route));
-        when(tripRepo.findByRoute_Id(5L)).thenReturn(Optional.of(trip));
-
-        // When
-        var response = service.getByRouteId(5L);
-
-        // Then
-        assertThat(response.id()).isEqualTo(10L);
-        assertThat(response.route_id()).isEqualTo(5L);
-        verify(routeRepo).findById(5L);
-        verify(tripRepo).findByRoute_Id(5L);
-    }
-
-    @Test
     void shouldGetAllTripsByRouteId() {
         // Given
         Pageable pageable = PageRequest.of(0, 10);
@@ -234,35 +205,6 @@ class TripServiceImplTest {
         assertThat(result.getTotalElements()).isEqualTo(2);
         assertThat(result.getContent()).hasSize(2);
         assertThat(result.getContent()).allMatch(t -> t.route_id() == 5L);
-    }
-
-    @Test
-    void shouldGetTripByBusId() {
-        // Given
-        var bus = Bus.builder().id(3L).build();
-        var route = Route.builder().id(1L).build();
-
-        var trip = Trip.builder()
-                .id(10L)
-                .bus(bus)
-                .route(route)
-                .date(LocalDate.of(2025, 11, 15))
-                .departureAt(OffsetDateTime.now())
-                .arrivalETA(OffsetDateTime.now().plusHours(3))
-                .status(TripStatus.SCHEDULED)
-                .build();
-
-        when(busRepo.findById(3L)).thenReturn(Optional.of(bus));
-        when(tripRepo.findByBus_Id(3L)).thenReturn(Optional.of(trip));
-
-        // When
-        var response = service.getByBusId(3L);
-
-        // Then
-        assertThat(response.id()).isEqualTo(10L);
-        assertThat(response.bus_id()).isEqualTo(3L);
-        verify(busRepo).findById(3L);
-        verify(tripRepo).findByBus_Id(3L);
     }
 
     @Test

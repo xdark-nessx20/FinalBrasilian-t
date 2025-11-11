@@ -13,9 +13,7 @@ import co.edu.unimagdalena.finalbrasiliant.domain.entities.Trip;
 import co.edu.unimagdalena.finalbrasiliant.domain.enums.TripStatus;
 
 public interface TripRepository extends JpaRepository<Trip, Long> {
-    Optional<Trip> findByRoute_Id(Long routeId);
     Page<Trip> findAllByRoute_Id(Long routeId, Pageable page);
-    Optional<Trip> findByBus_Id(Long busId);
     Page<Trip> findAllByBus_Id(Long busId, Pageable page);
     Page<Trip> findAllByDepartureAtBetween(OffsetDateTime start, OffsetDateTime end, Pageable page);
     Page<Trip> findAllByArrivalETABetween(OffsetDateTime start, OffsetDateTime end, Pageable page);

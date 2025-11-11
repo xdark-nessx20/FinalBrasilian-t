@@ -18,7 +18,6 @@ public interface BusRepository extends JpaRepository<Bus, Long> {
     List<Bus> findByStatus(BusStatus status);
     List<Bus> findByCapacityGreaterThanEqual(Integer capacity);
     Page<Bus> findByStatus(BusStatus status, Pageable pageable);
-    long countByStatusTrue();
 
     // Buscar buses por varias amenidades especificadas
     @Query("""
