@@ -1,6 +1,7 @@
 package co.edu.unimagdalena.finalbrasiliant.api.dto;
 
 import java.io.Serializable;
+import java.time.OffsetDateTime;
 
 import co.edu.unimagdalena.finalbrasiliant.domain.enums.Role;
 import jakarta.validation.constraints.NotBlank;
@@ -16,5 +17,5 @@ public class UserDTO {
 	
 	public record userResponse(Long id, String userName, String email, 
 			String phone, Role role, 
-			Boolean status) implements Serializable{};
+			Boolean status, OffsetDateTime createdAt) implements Serializable{};
 }
