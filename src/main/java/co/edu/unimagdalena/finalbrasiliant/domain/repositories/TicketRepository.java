@@ -35,9 +35,9 @@ public interface TicketRepository extends JpaRepository<Ticket,Long> {
     List<Ticket> findByTrip_Id(Long tripId);
 
     @Query("""
-        SELECT COUNT(DISTINCT T) FROM Ticket T
-        WHERE T.status = :status AND (:start IS NULL OR T.createdAt >= :start)
-            AND (:end IS NULL OR T.createdAt <= :end)
+        SELECT COUNT(DISTINCT t) FROM Ticket t
+        WHERE t.status = :status AND (COALESCE(:start, NULL) IS NULL OR t.createdAt >= :start)
+            AND (COALESCE(:end, NULL) IS NULL OR t.createdAt <= :end)
     """)
     long countByStatusAndOptionalDateRange(@Param("status") TicketStatus status, @Param("start") OffsetDateTime start,
                                            @Param("end") OffsetDateTime end);

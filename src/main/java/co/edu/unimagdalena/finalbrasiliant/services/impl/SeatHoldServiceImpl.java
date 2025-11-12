@@ -146,7 +146,7 @@ public class SeatHoldServiceImpl implements SeatHoldService {
         userRepo.findById(passengerId)
                 .orElseThrow(() -> new NotFoundException("Passenger %d not found".formatted(passengerId)));
 
-        return seatHoldRepo.findByTripIdAndUserIdAndStatus(tripId, passengerId, status)
+        return seatHoldRepo.findByTrip_IdAndPassenger_IdAndStatus(tripId, passengerId, status)
                 .stream()
                 .map(mapper::toResponse)
                 .toList();

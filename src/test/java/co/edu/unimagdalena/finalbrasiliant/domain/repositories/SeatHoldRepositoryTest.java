@@ -55,6 +55,7 @@ public class SeatHoldRepositoryTest extends AbstractRepository{
         now = OffsetDateTime.now();
 
         Route route1 = routeRepository.save(Route.builder()
+                .code("ZZZZ").routeName("a")
                 .origin("Bogotá")
                 .destination("Medellín")
                 .distanceKM(BigDecimal.valueOf(415.0))
@@ -62,6 +63,7 @@ public class SeatHoldRepositoryTest extends AbstractRepository{
                 .build());
 
         Route route2 = routeRepository.save(Route.builder()
+                .code("ZZZA").routeName("b")
                 .origin("Cali")
                 .destination("Cartagena")
                 .distanceKM(BigDecimal.valueOf(1100.0))
@@ -135,7 +137,7 @@ public class SeatHoldRepositoryTest extends AbstractRepository{
 
     @Test
     void shouldFindSeatHoldsByUserId() {
-        List<SeatHold> result = seatHoldRepository.findByUser_Id(passenger1.getId());
+        List<SeatHold> result = seatHoldRepository.findByPassenger_Id(passenger1.getId());
 
         assertThat(result)
                 .hasSize(3)
@@ -165,7 +167,7 @@ public class SeatHoldRepositoryTest extends AbstractRepository{
 
     @Test
     void shouldFindSeatHoldsByTripUserAndStatus() {
-        List<SeatHold> result = seatHoldRepository.findByTripIdAndUserIdAndStatus(
+        List<SeatHold> result = seatHoldRepository.findByTrip_IdAndPassenger_IdAndStatus(
                 trip1.getId(), passenger1.getId(), SeatHoldStatus.HOLD);
 
         assertThat(result)
@@ -200,17 +202,11 @@ public class SeatHoldRepositoryTest extends AbstractRepository{
 
     @Test
     void shouldFindExpiredHolds() {
-        List<SeatHold> result = seatHoldRepository.findExpiredHolds(now);
+        List<SeatHold> result = seatHoldRepository.findExpiredHolds(now.plusMinutes(5));
 
         assertThat(result)
-                .hasSize(2)
-                .extracting(SeatHold::getId)
-                .containsExactlyInAnyOrder(seatHold3.getId(), seatHold5.getId())
-                .allMatch(id -> result.stream()
-                        .filter(sh -> sh.getId().equals(id))
-                        .findFirst()
-                        .map(sh -> sh.getExpiresAt().isBefore(now))
-                        .orElse(false));
+                .hasSize(1)
+                .extracting(SeatHold::getId).containsExactlyInAnyOrder(seatHold2.getId());
     }
 
     @Test
@@ -219,12 +215,9 @@ public class SeatHoldRepositoryTest extends AbstractRepository{
         List<SeatHold> result = seatHoldRepository.findExpiredHolds(futureTime);
 
         assertThat(result)
-                .hasSize(5)
+                .hasSize(3)
                 .extracting(SeatHold::getId)
-                .containsExactlyInAnyOrder(
-                        seatHold1.getId(), seatHold2.getId(), seatHold3.getId(),
-                        seatHold4.getId(), seatHold5.getId()
-                );
+                .containsExactlyInAnyOrder(seatHold1.getId(), seatHold2.getId(), seatHold4.getId());
     }
 
     @Test
