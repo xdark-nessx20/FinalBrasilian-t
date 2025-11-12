@@ -144,7 +144,7 @@ class TripRepositoryTest extends AbstractRepository {
 
     @Test
     void shouldFindAllTripsByRouteId() {
-        Pageable pageable = PageRequest.of(0, 10);
+    	Pageable pageable = PageRequest.of(0, 10);
         Page<Trip> resultPage = tripRepository.findAllByRoute_Id(route1.getId(), pageable);
 
         assertThat(resultPage)

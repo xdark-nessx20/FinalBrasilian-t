@@ -1,7 +1,6 @@
 package co.edu.unimagdalena.finalbrasiliant.domain.entities;
 
-import java.time.LocalDate;
-import java.time.OffsetDateTime;
+
 
 import co.edu.unimagdalena.finalbrasiliant.domain.enums.SeatType;
 import jakarta.persistence.Column;
