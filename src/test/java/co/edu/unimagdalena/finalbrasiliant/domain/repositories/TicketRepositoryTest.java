@@ -241,22 +241,18 @@ class TicketRepositoryTest extends AbstractRepository {
 
     @Test
     void shouldFindTicketsByStretchWithBothStops() {
-        Page<Ticket> result = ticketRepository.findAllByStretch(
-                stop1.getId(), stop3.getId(), PageRequest.of(0, 10));
+        var result = ticketRepository.findAllByStretch(stop1.getId(), stop3.getId());
 
-        assertThat(result.getContent())
-                .hasSize(4)
+        assertThat(result).hasSize(4)
                 .extracting(Ticket::getId)
                 .containsExactlyInAnyOrder(ticket1.getId(), ticket4.getId(), ticket5.getId(), ticket6.getId());
     }
 
     @Test
     void shouldFindTicketsByStretchWithOnlyFromStop() {
-        Page<Ticket> result = ticketRepository.findAllByStretch(
-                stop1.getId(), null, PageRequest.of(0, 10));
+        var result = ticketRepository.findAllByStretch(stop1.getId(), null);
 
-        assertThat(result.getContent())
-                .hasSize(5)
+        assertThat(result).hasSize(5)
                 .extracting(Ticket::getId)
                 .containsExactlyInAnyOrder(
                         ticket1.getId(), ticket2.getId(),
@@ -266,10 +262,9 @@ class TicketRepositoryTest extends AbstractRepository {
 
     @Test
     void shouldFindTicketsByStretchWithOnlyToStop() {
-        Page<Ticket> result = ticketRepository.findAllByStretch(
-                null, stop3.getId(), PageRequest.of(0, 10));
+        var result = ticketRepository.findAllByStretch(null, stop3.getId());
 
-        assertThat(result.getContent())
+        assertThat(result)
                 .hasSize(5)
                 .extracting(Ticket::getId)
                 .containsExactlyInAnyOrder(
