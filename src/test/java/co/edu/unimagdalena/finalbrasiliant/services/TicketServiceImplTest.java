@@ -97,7 +97,7 @@ class TicketServiceImplTest {
         assertThat(response.paymentMethod()).isEqualTo(PaymentMethod.CARD);
         assertThat(response.passenger().id()).isEqualTo(2L);
 
-        verify(ticketRepo, times(2)).save(any(Ticket.class)); // save() se llama 2 veces (crear + QR)
+        verify(ticketRepo, times(2)).save(any(Ticket.class)); // save() se llama 2 veces
     }
 
     @Test
@@ -392,5 +392,311 @@ class TicketServiceImplTest {
         assertThatThrownBy(() -> service.getByTripSeat(99L, "A12"))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessageContaining("Trip 99 not found");
+    }
+
+    @Test
+    void shouldThrowNotFoundExceptionWhenTripHasNoBus() {
+        // Given
+        var trip = Trip.builder().id(1L).bus(null).build();
+        when(tripRepo.findById(1L)).thenReturn(Optional.of(trip));
+
+        // When / Then
+        assertThatThrownBy(() -> service.getByTripSeat(1L, "A12"))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessageContaining("Trip 1 hasn't bus assigned yet");
+    }
+
+    @Test
+    void shouldThrowNotFoundExceptionWhenSeatNotFoundInBus() {
+        // Given
+        var bus = Bus.builder().id(1L).build();
+        var trip = Trip.builder().id(1L).bus(bus).build();
+
+        when(tripRepo.findById(1L)).thenReturn(Optional.of(trip));
+        when(seatRepo.findByNumberAndBus_Id("Z99", 1L)).thenReturn(Optional.empty());
+
+        // When / Then
+        assertThatThrownBy(() -> service.getByTripSeat(1L, "Z99"))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessageContaining("Seat number Z99 not found");
+    }
+
+    @Test
+    void shouldThrowNotFoundExceptionWhenTicketNotFoundForTripSeat() {
+        // Given
+        var bus = Bus.builder().id(1L).build();
+        var trip = Trip.builder().id(1L).bus(bus).build();
+        var seat = Seat.builder().id(1L).number("A12").build();
+
+        when(tripRepo.findById(1L)).thenReturn(Optional.of(trip));
+        when(seatRepo.findByNumberAndBus_Id("A12", 1L)).thenReturn(Optional.of(seat));
+        when(ticketRepo.findByTrip_IdAndSeatNumber(1L, "A12")).thenReturn(Optional.empty());
+
+        // When / Then
+        assertThatThrownBy(() -> service.getByTripSeat(1L, "A12"))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessageContaining("Ticket 1 not found");
+    }
+
+    @Test
+    void shouldListTicketsByStatus() {
+        // Given
+        Pageable pageable = PageRequest.of(0, 10);
+
+        var bus = Bus.builder().id(1L).plate("ABC123").build();
+        var trip = Trip.builder().id(1L).bus(bus).departureAt(OffsetDateTime.now()).build();
+        var passenger = User.builder().id(2L).userName("Juan").phone("3001234567").build();
+        var fromStop = Stop.builder().id(3L).name("Bogotá").stopOrder(1).build();
+        var toStop = Stop.builder().id(4L).name("Medellín").stopOrder(3).build();
+
+        var ticket1 = Ticket.builder()
+                .id(1L)
+                .trip(trip)
+                .passenger(passenger)
+                .seatNumber("A12")
+                .fromStop(fromStop)
+                .toStop(toStop)
+                .status(TicketStatus.SOLD)
+                .build();
+
+        var ticket2 = Ticket.builder()
+                .id(2L)
+                .trip(trip)
+                .passenger(passenger)
+                .seatNumber("A13")
+                .fromStop(fromStop)
+                .toStop(toStop)
+                .status(TicketStatus.SOLD)
+                .build();
+
+        var page = new PageImpl<>(List.of(ticket1, ticket2));
+        when(ticketRepo.findByStatus(TicketStatus.SOLD, pageable)).thenReturn(page);
+
+        // When
+        var result = service.listByStatus(TicketStatus.SOLD, pageable);
+
+        // Then
+        assertThat(result.getTotalElements()).isEqualTo(2);
+        assertThat(result.getContent()).hasSize(2);
+        assertThat(result.getContent()).allMatch(t -> t.status() == TicketStatus.SOLD);
+    }
+
+    @Test
+    void shouldListTicketsByPaymentMethod() {
+        // Given
+        Pageable pageable = PageRequest.of(0, 10);
+
+        var bus = Bus.builder().id(1L).plate("ABC123").build();
+        var trip = Trip.builder().id(1L).bus(bus).departureAt(OffsetDateTime.now()).build();
+        var passenger = User.builder().id(2L).userName("Juan").phone("3001234567").build();
+        var fromStop = Stop.builder().id(3L).name("Bogotá").stopOrder(1).build();
+        var toStop = Stop.builder().id(4L).name("Medellín").stopOrder(3).build();
+
+        var ticket1 = Ticket.builder()
+                .id(1L)
+                .trip(trip)
+                .passenger(passenger)
+                .seatNumber("A12")
+                .fromStop(fromStop)
+                .toStop(toStop)
+                .paymentMethod(PaymentMethod.CARD)
+                .build();
+
+        var page = new PageImpl<>(List.of(ticket1));
+        when(ticketRepo.findByPaymentMethod(PaymentMethod.CARD, pageable)).thenReturn(page);
+
+        // When
+        var result = service.listByPaymentMethod(PaymentMethod.CARD, pageable);
+
+        // Then
+        assertThat(result.getTotalElements()).isEqualTo(1);
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().get(0).paymentMethod()).isEqualTo(PaymentMethod.CARD);
+    }
+
+    @Test
+    void shouldThrowIllegalArgumentExceptionWhenEndBeforeStart() {
+        // Given
+        OffsetDateTime start = OffsetDateTime.now();
+        OffsetDateTime end = start.minusDays(1);
+        Pageable pageable = PageRequest.of(0, 10);
+
+        // When / Then
+        assertThatThrownBy(() -> service.listByCreatedAt(start, end, pageable))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("End time can't be before start time");
+    }
+
+    @Test
+    void shouldListTicketsByPassenger() {
+        // Given
+        var bus = Bus.builder().id(1L).plate("ABC123").build();
+        var trip = Trip.builder().id(1L).bus(bus).departureAt(OffsetDateTime.now()).build();
+        var passenger = User.builder().id(2L).userName("Juan").phone("3001234567").build();
+        var fromStop = Stop.builder().id(3L).name("Bogotá").stopOrder(1).build();
+        var toStop = Stop.builder().id(4L).name("Medellín").stopOrder(3).build();
+
+        var ticket1 = Ticket.builder()
+                .id(1L)
+                .trip(trip)
+                .passenger(passenger)
+                .seatNumber("A12")
+                .fromStop(fromStop)
+                .toStop(toStop)
+                .build();
+
+        var ticket2 = Ticket.builder()
+                .id(2L)
+                .trip(trip)
+                .passenger(passenger)
+                .seatNumber("A13")
+                .fromStop(fromStop)
+                .toStop(toStop)
+                .build();
+
+        when(userRepo.findById(2L)).thenReturn(Optional.of(passenger));
+        when(ticketRepo.findByPassenger_Id(2L)).thenReturn(List.of(ticket1, ticket2));
+
+        // When
+        var result = service.listByPassenger(2L);
+
+        // Then
+        assertThat(result).hasSize(2);
+        assertThat(result).allMatch(t -> t.passenger().id().equals(2L));
+    }
+
+    @Test
+    void shouldThrowNotFoundExceptionWhenPassengerNotExistsForList() {
+        // Given
+        when(userRepo.findById(99L)).thenReturn(Optional.empty());
+
+        // When / Then
+        assertThatThrownBy(() -> service.listByPassenger(99L))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessageContaining("Passenger 99 not found");
+    }
+
+    @Test
+    void shouldListTicketsByTrip() {
+        // Given
+        var bus = Bus.builder().id(1L).plate("ABC123").build();
+        var trip = Trip.builder().id(1L).bus(bus).departureAt(OffsetDateTime.now()).build();
+        var passenger = User.builder().id(2L).userName("Juan").phone("3001234567").build();
+        var fromStop = Stop.builder().id(3L).name("Bogotá").stopOrder(1).build();
+        var toStop = Stop.builder().id(4L).name("Medellín").stopOrder(3).build();
+
+        var ticket1 = Ticket.builder()
+                .id(1L)
+                .trip(trip)
+                .passenger(passenger)
+                .seatNumber("A12")
+                .fromStop(fromStop)
+                .toStop(toStop)
+                .build();
+
+        var ticket2 = Ticket.builder()
+                .id(2L)
+                .trip(trip)
+                .passenger(passenger)
+                .seatNumber("A13")
+                .fromStop(fromStop)
+                .toStop(toStop)
+                .build();
+
+        when(tripRepo.findById(1L)).thenReturn(Optional.of(trip));
+        when(ticketRepo.findByTrip_Id(1L)).thenReturn(List.of(ticket1, ticket2));
+
+        // When
+        var result = service.listByTrip(1L);
+
+        // Then
+        assertThat(result).hasSize(2);
+        assertThat(result).allMatch(t -> t.trip().id().equals(1L));
+    }
+
+    @Test
+    void shouldThrowNotFoundExceptionWhenTripNotExistsForList() {
+        // Given
+        when(tripRepo.findById(99L)).thenReturn(Optional.empty());
+
+        // When / Then
+        assertThatThrownBy(() -> service.listByTrip(99L))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessageContaining("Trip 99 not found");
+    }
+
+    @Test
+    void shouldListTicketsByStretch() {
+        // Given
+        var fromStop = Stop.builder().id(1L).name("Bogotá").stopOrder(1).build();
+        var toStop = Stop.builder().id(3L).name("Medellín").stopOrder(3).build();
+
+        var bus = Bus.builder().id(1L).plate("ABC123").build();
+        var trip = Trip.builder().id(1L).bus(bus).departureAt(OffsetDateTime.now()).build();
+        var passenger = User.builder().id(2L).userName("Juan").phone("3001234567").build();
+
+        var ticket1 = Ticket.builder()
+                .id(1L)
+                .trip(trip)
+                .passenger(passenger)
+                .seatNumber("A12")
+                .fromStop(fromStop)
+                .toStop(toStop)
+                .build();
+
+        when(stopRepo.findById(1L)).thenReturn(Optional.of(fromStop));
+        when(stopRepo.findById(3L)).thenReturn(Optional.of(toStop));
+        when(ticketRepo.findAllByStretch(1L, 3L)).thenReturn(List.of(ticket1));
+
+        // When
+        var result = service.listByStretch(1L, 3L);
+
+        // Then
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).fromStop().id()).isEqualTo(1L);
+        assertThat(result.get(0).toStop().id()).isEqualTo(3L);
+    }
+
+    @Test
+    void shouldThrowNotFoundExceptionWhenFromStopNotExistsForStretch() {
+        // Given
+        when(stopRepo.findById(99L)).thenReturn(Optional.empty());
+
+        // When / Then
+        assertThatThrownBy(() -> service.listByStretch(99L, 3L))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessageContaining("Stop 99 not found");
+    }
+
+    @Test
+    void shouldThrowNotFoundExceptionWhenToStopNotExistsForStretch() {
+        // Given
+        var fromStop = Stop.builder().id(1L).build();
+        when(stopRepo.findById(1L)).thenReturn(Optional.of(fromStop));
+        when(stopRepo.findById(99L)).thenReturn(Optional.empty());
+
+        // When / Then
+        assertThatThrownBy(() -> service.listByStretch(1L, 99L))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessageContaining("Stop 99 not found");
+    }
+
+    @Test
+    void shouldSetTicketsToNoShowWhenScheduledMethodRuns() {
+        // Given
+        var ticket1 = Ticket.builder()
+                .id(1L)
+                .status(TicketStatus.SOLD)
+                .build();
+
+        var ticket2 = Ticket.builder()
+                .id(2L)
+                .status(TicketStatus.SOLD)
+                .build();
+
+        when(ticketRepo.findByPassengerNoShow()).thenReturn(List.of(ticket1, ticket2));
+
+        // When
+        service.setTicketsNoShow();
     }
 }
