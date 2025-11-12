@@ -10,6 +10,9 @@ import co.edu.unimagdalena.finalbrasiliant.domain.repositories.BusRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -46,7 +49,7 @@ class TripRepositoryTest extends AbstractRepository {
         tripRepository.deleteAll();
         routeRepository.deleteAll();
         busRepository.deleteAll();
-        
+
         baseTime = OffsetDateTime.now();
 
         route1 = routeRepository.save(Route.builder()
@@ -126,8 +129,8 @@ class TripRepositoryTest extends AbstractRepository {
     }
 
     private Trip createTrip(Route route, Bus bus, LocalDate date,
-                           OffsetDateTime departureAt, OffsetDateTime arrivalETA,
-                           TripStatus status) {
+                            OffsetDateTime departureAt, OffsetDateTime arrivalETA,
+                            TripStatus status) {
         return tripRepository.save(Trip.builder()
                 .route(route)
                 .bus(bus)
@@ -138,41 +141,30 @@ class TripRepositoryTest extends AbstractRepository {
                 .build());
     }
 
-    @Test
-    void shouldFindTripByRouteId() {
-        var result = tripRepository.findByRoute_Id(route1.getId());
-
-        assertThat(result).hasSize(3);
-    }
 
     @Test
     void shouldFindAllTripsByRouteId() {
-        List<Trip> result = tripRepository.findAllByRoute_Id(route1.getId());
+    	Pageable pageable = PageRequest.of(0, 10);
+        Page<Trip> resultPage = tripRepository.findAllByRoute_Id(route1.getId(), pageable);
 
-        assertThat(result)
+        assertThat(resultPage)
                 .hasSize(3)
                 .extracting(Trip::getId)
                 .containsExactlyInAnyOrder(trip1.getId(), trip2.getId(), trip4.getId());
 
-        assertThat(result)
+        assertThat(resultPage)
                 .allSatisfy(trip -> assertThat(trip.getRoute().getId()).isEqualTo(route1.getId()));
     }
 
     @Test
     void shouldFindAllTripsBySecondRoute() {
-        List<Trip> result = tripRepository.findAllByRoute_Id(route2.getId());
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Trip> resultPage = tripRepository.findAllByRoute_Id(route1.getId(), pageable);
 
-        assertThat(result)
+        assertThat(resultPage)
                 .hasSize(2)
                 .extracting(Trip::getId)
                 .containsExactlyInAnyOrder(trip3.getId(), trip5.getId());
-    }
-
-    @Test
-    void shouldFindTripByBusId() {
-        var result = tripRepository.findByBus_Id(bus2.getId());
-
-        assertThat(result).hasSize(2);
     }
 
     @Test
@@ -180,26 +172,30 @@ class TripRepositoryTest extends AbstractRepository {
         OffsetDateTime start = baseTime.plusHours(1);
         OffsetDateTime end = baseTime.plusHours(5);
 
-        List<Trip> result = tripRepository.findAllByDepartureAtBetween(start, end);
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Trip> resultPage = tripRepository.findAllByDepartureAtBetween(start, end, pageable);
 
-        assertThat(result)
+        assertThat(resultPage.getContent())
                 .hasSize(1)
                 .extracting(Trip::getId)
                 .containsExactly(trip1.getId());
 
-        assertThat(result.get(0).getDepartureAt())
+        Trip trip = resultPage.getContent().get(0);
+        assertThat(trip.getDepartureAt())
                 .isAfterOrEqualTo(start)
                 .isBeforeOrEqualTo(end);
     }
+
 
     @Test
     void shouldFindMultipleTripsInDepartureRange() {
         OffsetDateTime start = baseTime.plusHours(1);
         OffsetDateTime end = baseTime.plusHours(11);
 
-        List<Trip> result = tripRepository.findAllByDepartureAtBetween(start, end);
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Trip> resultPage = tripRepository.findAllByDepartureAtBetween(start, end, pageable);
 
-        assertThat(result)
+        assertThat(resultPage)
                 .hasSize(2)
                 .extracting(Trip::getId)
                 .containsExactlyInAnyOrder(trip1.getId(), trip4.getId());
@@ -209,49 +205,54 @@ class TripRepositoryTest extends AbstractRepository {
     void shouldFindAllTripsByArrivalETABetween() {
         OffsetDateTime start = baseTime.plusHours(7);
         OffsetDateTime end = baseTime.plusHours(10);
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Trip> resultPage = tripRepository.findAllByArrivalETABetween(start, end, pageable);
 
-        List<Trip> result = tripRepository.findAllByArrivalETABetween(start, end);
-
-        assertThat(result)
+        assertThat(resultPage)
                 .hasSize(1)
                 .extracting(Trip::getId)
                 .containsExactly(trip1.getId());
 
-        assertThat(result.get(0).getArrivalETA())
+        Trip trip = resultPage.getContent().get(0);
+        assertThat(trip.getArrivalETA())
                 .isAfterOrEqualTo(start)
                 .isBeforeOrEqualTo(end);
     }
 
     @Test
     void shouldFindAllTripsByStatusScheduled() {
-        List<Trip> result = tripRepository.findAllByStatus(TripStatus.SCHEDULED);
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Trip> resultPage = tripRepository.findAllByStatus(TripStatus.SCHEDULED, pageable);
 
-        assertThat(result)
+        assertThat(resultPage)
                 .hasSize(2)
                 .extracting(Trip::getId)
                 .containsExactlyInAnyOrder(trip1.getId(), trip2.getId());
 
-        assertThat(result)
+        assertThat(resultPage)
                 .allSatisfy(trip -> assertThat(trip.getStatus()).isEqualTo(TripStatus.SCHEDULED));
     }
 
     @Test
     void shouldFindAllTripsByStatusBoarding() {
-        List<Trip> result = tripRepository.findAllByStatus(TripStatus.BOARDING);
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Trip> resultPage = tripRepository.findAllByStatus(TripStatus.BOARDING, pageable);
 
-        assertThat(result)
+        assertThat(resultPage)
                 .hasSize(1)
                 .extracting(Trip::getId)
                 .containsExactly(trip3.getId());
 
-        assertThat(result.get(0).getStatus()).isEqualTo(TripStatus.BOARDING);
+        assertThat(resultPage)
+                .allSatisfy(trip -> assertThat(trip.getStatus()).isEqualTo(TripStatus.BOARDING));
     }
 
     @Test
     void shouldFindAllTripsByStatusDeparted() {
-        List<Trip> result = tripRepository.findAllByStatus(TripStatus.DEPARTED);
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Trip> resultPage = tripRepository.findAllByStatus(TripStatus.DEPARTED, pageable);
 
-        assertThat(result)
+        assertThat(resultPage)
                 .hasSize(1)
                 .extracting(Trip::getId)
                 .containsExactly(trip4.getId());
@@ -259,9 +260,10 @@ class TripRepositoryTest extends AbstractRepository {
 
     @Test
     void shouldFindAllTripsByStatusCancelled() {
-        List<Trip> result = tripRepository.findAllByStatus(TripStatus.CANCELLED);
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Trip> resultPage = tripRepository.findAllByStatus(TripStatus.CANCELLED, pageable);
 
-        assertThat(result)
+        assertThat(resultPage)
                 .hasSize(1)
                 .extracting(Trip::getId)
                 .containsExactly(trip5.getId());
@@ -297,22 +299,24 @@ class TripRepositoryTest extends AbstractRepository {
 
     @Test
     void shouldFindAllTripsByDate() {
-        List<Trip> result = tripRepository.findAllByDate(LocalDate.now());
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Trip> resultPage = tripRepository.findAllByDate(LocalDate.now(), pageable);
 
-        assertThat(result)
+        assertThat(resultPage)
                 .hasSize(2)
                 .extracting(Trip::getId)
                 .containsExactlyInAnyOrder(trip1.getId(), trip4.getId());
 
-        assertThat(result)
+        assertThat(resultPage)
                 .allSatisfy(trip -> assertThat(trip.getDate()).isEqualTo(LocalDate.now()));
     }
 
     @Test
     void shouldFindTripsByFutureDate() {
-        List<Trip> result = tripRepository.findAllByDate(LocalDate.now().plusDays(1));
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Trip> resultPage = tripRepository.findAllByDate(LocalDate.now().plusDays(1), pageable);
 
-        assertThat(result)
+        assertThat(resultPage)
                 .hasSize(1)
                 .extracting(Trip::getId)
                 .containsExactly(trip2.getId());

@@ -12,6 +12,7 @@ import java.util.List;
 
 public interface SeatRepository extends JpaRepository<Seat, Long>{
 	List<Seat> findAllByBus_Id(Long busId);
-	Optional<Seat> findByNumberAndBus_Id(String number, Long busId);
+	Optional<Seat> findByNumberAndBus_Id(String number, Long bus_id);
 	List<Seat> findAllByType(SeatType type);
+	Optional<Seat> findByNumberAndTrip_id(String number, Long trip_id);
 }
