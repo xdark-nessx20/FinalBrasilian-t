@@ -69,7 +69,7 @@ class AssignmentServiceImplTest {
                 .userName("Carlos Dispatcher")
                 .build();
 
-        var request = new AssignmentCreateRequest(1L, 2L, 3L, true);
+        var request = new AssignmentCreateRequest(1L, 2L,  true);
 
         when(tripRepo.findById(1L)).thenReturn(Optional.of(trip));
         when(assignmentRepo.findByTrip_Id(1L)).thenReturn(Optional.empty());
@@ -86,7 +86,7 @@ class AssignmentServiceImplTest {
         });
 
         // When
-        var response = service.create(request);
+        var response = service.create(1L, request);
 
         // Then
         assertThat(response.id()).isEqualTo(10L);
@@ -104,11 +104,11 @@ class AssignmentServiceImplTest {
     @Test
     void shouldThrowNotFoundExceptionWhenTripNotExists() {
         // Given
-        var request = new AssignmentCreateRequest(99L, 2L, 3L, true);
+        var request = new AssignmentCreateRequest(99L, 2L,  true);
         when(tripRepo.findById(99L)).thenReturn(Optional.empty());
 
         // When / Then
-        assertThatThrownBy(() -> service.create(request))
+        assertThatThrownBy(() -> service.create(99L, request))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessageContaining("Trip 99 not found");
 
@@ -120,13 +120,13 @@ class AssignmentServiceImplTest {
         // Given
         var trip = Trip.builder().id(1L).build();
         var existingAssignment = Assignment.builder().id(5L).trip(trip).build();
-        var request = new AssignmentCreateRequest(1L, 2L, 3L, true);
+        var request = new AssignmentCreateRequest(1L, 2L,  true);
 
         when(tripRepo.findById(1L)).thenReturn(Optional.of(trip));
         when(assignmentRepo.findByTrip_Id(1L)).thenReturn(Optional.of(existingAssignment));
 
         // When / Then
-        assertThatThrownBy(() -> service.create(request))
+        assertThatThrownBy(() -> service.create(1L, request))
                 .isInstanceOf(AlreadyExistsException.class)
                 .hasMessageContaining("Trip 1 already has an assignment");
 
@@ -137,14 +137,14 @@ class AssignmentServiceImplTest {
     void shouldThrowNotFoundExceptionWhenDriverNotExists() {
         // Given
         var trip = Trip.builder().id(1L).departureAt(OffsetDateTime.now()).build();
-        var request = new AssignmentCreateRequest(1L, 99L, 3L, true);
+        var request = new AssignmentCreateRequest(1L, 99L,  true);
 
         when(tripRepo.findById(1L)).thenReturn(Optional.of(trip));
         when(assignmentRepo.findByTrip_Id(1L)).thenReturn(Optional.empty());
         when(userRepo.findById(99L)).thenReturn(Optional.empty());
 
         // When / Then
-        assertThatThrownBy(() -> service.create(request))
+        assertThatThrownBy(() -> service.create(1L, request))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessageContaining("Driver 99 not found");
 
@@ -157,7 +157,7 @@ class AssignmentServiceImplTest {
         OffsetDateTime departureAt = OffsetDateTime.now().plusDays(1);
         var trip = Trip.builder().id(1L).departureAt(departureAt).build();
         var driver = User.builder().id(2L).userName("Juan").build();
-        var request = new AssignmentCreateRequest(1L, 2L, 3L, true);
+        var request = new AssignmentCreateRequest(1L, 2L,  true);
 
         when(tripRepo.findById(1L)).thenReturn(Optional.of(trip));
         when(assignmentRepo.findByTrip_Id(1L)).thenReturn(Optional.empty());
@@ -165,7 +165,7 @@ class AssignmentServiceImplTest {
         when(assignmentRepo.driverHasAnotherAssignment(2L, departureAt)).thenReturn(true);
 
         // When / Then
-        assertThatThrownBy(() -> service.create(request))
+        assertThatThrownBy(() -> service.create(1L, request))
                 .isInstanceOf(AlreadyExistsException.class)
                 .hasMessageContaining("Driver 2 already has been assigned to another trip");
 
@@ -178,7 +178,7 @@ class AssignmentServiceImplTest {
         OffsetDateTime departureAt = OffsetDateTime.now().plusDays(1);
         var trip = Trip.builder().id(1L).departureAt(departureAt).build();
         var driver = User.builder().id(2L).build();
-        var request = new AssignmentCreateRequest(1L, 2L, 99L, true);
+        var request = new AssignmentCreateRequest(1L, 2L,  true);
 
         when(tripRepo.findById(1L)).thenReturn(Optional.of(trip));
         when(assignmentRepo.findByTrip_Id(1L)).thenReturn(Optional.empty());
@@ -187,7 +187,7 @@ class AssignmentServiceImplTest {
         when(userRepo.findById(99L)).thenReturn(Optional.empty());
 
         // When / Then
-        assertThatThrownBy(() -> service.create(request))
+        assertThatThrownBy(() -> service.create(1L, request))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessageContaining("Dispatcher 99 not found");
 
@@ -201,7 +201,7 @@ class AssignmentServiceImplTest {
         var trip = Trip.builder().id(1L).departureAt(departureAt).build();
         var driver = User.builder().id(2L).build();
         var dispatcher = User.builder().id(3L).build();
-        var request = new AssignmentCreateRequest(1L, 2L, 3L, true);
+        var request = new AssignmentCreateRequest(1L, 2L,  true);
 
         when(tripRepo.findById(1L)).thenReturn(Optional.of(trip));
         when(assignmentRepo.findByTrip_Id(1L)).thenReturn(Optional.empty());
@@ -211,7 +211,7 @@ class AssignmentServiceImplTest {
         when(assignmentRepo.dispatcherHasAnotherAssignment(3L, departureAt)).thenReturn(true);
 
         // When / Then
-        assertThatThrownBy(() -> service.create(request))
+        assertThatThrownBy(() -> service.create(1L, request))
                 .isInstanceOf(AlreadyExistsException.class)
                 .hasMessageContaining("Dispatcher 3 already has been assigned to another trip");
 
