@@ -22,7 +22,7 @@ public class Stop {
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "route_id")
-    private Route route; // cada parada pertenece a una ruta
+    private Route route;
 
     @Column(nullable = false)
     private String name;

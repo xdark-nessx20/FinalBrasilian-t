@@ -36,8 +36,7 @@ public interface TicketRepository extends JpaRepository<Ticket,Long> {
 
     @Query("""
         SELECT COUNT(DISTINCT t) FROM Ticket t
-        WHERE t.status = :status
-            AND (COALESCE(:start, NULL) IS NULL OR t.createdAt >= :start)
+        WHERE t.status = :status AND (COALESCE(:start, NULL) IS NULL OR t.createdAt >= :start)
             AND (COALESCE(:end, NULL) IS NULL OR t.createdAt <= :end)
     """)
     long countByStatusAndOptionalDateRange(@Param("status") TicketStatus status, @Param("start") OffsetDateTime start,
