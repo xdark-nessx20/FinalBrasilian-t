@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -59,12 +60,13 @@ public class TicketServiceImpl implements TicketService {
         ticket.setFromStop(fromStop);
         ticket.setToStop(toStop);
         ticket.setPassenger(passenger);
+        ticket.setQrCode(generateQRCode());
 
-        var saved = ticketRepo.save(ticket);
-        //Just for local demo in React front-end
-        saved.setQrCode("http://localhost:3000/tickets/%d".formatted(saved.getId()));
+        return mapper.toResponse(ticketRepo.save(ticket));
+    }
 
-        return mapper.toResponse(ticketRepo.save(saved));
+    private String generateQRCode(){
+        return "TKT-" + UUID.randomUUID().toString().substring(0, 11).toUpperCase();
     }
 
     @Override
@@ -100,9 +102,10 @@ public class TicketServiceImpl implements TicketService {
     }
 
     @Override
-    //This method could be removed
     public TicketResponse getByQRCode(String qrCode) {
-        return null;
+        return ticketRepo.findByQrCode(qrCode).map(mapper::toResponse).orElseThrow(
+                () -> new NotFoundException("Ticket '%s' not found".formatted(qrCode))
+        );
     }
 
     @Override
@@ -145,11 +148,14 @@ public class TicketServiceImpl implements TicketService {
     }
 
     @Override
-    @Scheduled(fixedRate = 60000, initialDelay = 30000) //This will execute for each minute after 30 seconds of starting the app
+    //This will execute for each minute after 30 seconds of starting the app
+    @Scheduled(fixedRate = 60000, initialDelay = 30000)
+    @Transactional
     public void setTicketsNoShow() {
         var noShow = ticketRepo.findByPassengerNoShow();
         if (noShow.isEmpty()) return;
-        noShow.forEach(t -> mapper.patch(t, new TicketUpdateRequest(null, null, null, TicketStatus.NO_SHOW)));
-        //And... what now?
+
+        noShow.forEach(t -> t.setStatus(TicketStatus.NO_SHOW));
+        ticketRepo.saveAll(noShow);
     }
 }

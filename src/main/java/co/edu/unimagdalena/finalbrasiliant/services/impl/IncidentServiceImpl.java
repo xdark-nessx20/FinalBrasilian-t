@@ -4,6 +4,9 @@ import co.edu.unimagdalena.finalbrasiliant.api.dto.IncidentDTOs.*;
 import co.edu.unimagdalena.finalbrasiliant.domain.enums.EntityType;
 import co.edu.unimagdalena.finalbrasiliant.domain.enums.IncidentType;
 import co.edu.unimagdalena.finalbrasiliant.domain.repositories.IncidentRepository;
+import co.edu.unimagdalena.finalbrasiliant.domain.repositories.ParcelRepository;
+import co.edu.unimagdalena.finalbrasiliant.domain.repositories.TicketRepository;
+import co.edu.unimagdalena.finalbrasiliant.domain.repositories.TripRepository;
 import co.edu.unimagdalena.finalbrasiliant.exceptions.AlreadyExistsException;
 import co.edu.unimagdalena.finalbrasiliant.exceptions.NotFoundException;
 import co.edu.unimagdalena.finalbrasiliant.services.IncidentService;
@@ -22,6 +25,9 @@ import java.util.List;
 public class IncidentServiceImpl implements IncidentService {
 
     private final IncidentRepository incidentRepo;
+    private final TicketRepository ticketRepo;
+    private final ParcelRepository parcelRepo;
+    private final TripRepository tripRepo;
     private final IncidentMapper mapper;
 
     @Override
@@ -30,6 +36,24 @@ public class IncidentServiceImpl implements IncidentService {
         //This is just in case an entity only can have one incident.
         if (incidentRepo.findByEntityTypeAndEntityId(request.entityType(), request.entityId()).isPresent())
             throw new AlreadyExistsException("Already exists an Incident for the %s with id %d".formatted(request.entityType().name(), request.entityId()));
+
+        var id = request.entityId();
+        switch (request.entityType()) {
+            case TICKET -> {
+                var ticket = ticketRepo.findById(id);
+                if (ticket.isEmpty()) throw new NotFoundException("No Ticket found with id %d".formatted(id));
+            }
+            case PARCEL -> {
+                var parcel = parcelRepo.findById(id);
+                if (parcel.isEmpty()) throw new NotFoundException("No Parcel found with id %d".formatted(id));
+            }
+            case TRIP -> {
+                var trip = tripRepo.findById(id);
+                if (trip.isEmpty()) throw new NotFoundException("No Trip found with id %d".formatted(id));
+            }
+            default -> {}
+        }
+
         return mapper.toResponse(incidentRepo.save(mapper.toEntity(request)));
     }
 

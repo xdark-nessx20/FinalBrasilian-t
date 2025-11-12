@@ -750,7 +750,7 @@ class TicketServiceImplTest {
         var request = new TicketCreateRequest(
                 1L, 2L, "A12", 3L, 4L,
                 new BigDecimal("50000.00"),
-                PaymentMethod.CREDIT_CARD
+                PaymentMethod.CASH
         );
 
         when(tripRepo.findById(1L)).thenReturn(Optional.of(trip));
