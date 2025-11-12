@@ -698,5 +698,95 @@ class TicketServiceImplTest {
 
         // When
         service.setTicketsNoShow();
+        // Then
+        verify(ticketRepo).findByPassengerNoShow();
+        verify(mapper, times(2)).patch(any(Ticket.class), any(TicketUpdateRequest.class));
+        
+        // Verificar que se llamó patch con TicketStatus.NO_SHOW
+        verify(mapper).patch(eq(ticket1), argThat(req -> 
+            req.status() == TicketStatus.NO_SHOW &&
+            req.seatNumber() == null &&
+            req.price() == null &&
+            req.paymentMethod() == null
+        ));
+        
+        verify(mapper).patch(eq(ticket2), argThat(req -> 
+            req.status() == TicketStatus.NO_SHOW &&
+            req.seatNumber() == null &&
+            req.price() == null &&
+            req.paymentMethod() == null
+        ));
+    }
+
+    @Test
+    void shouldDoNothingWhenNoTicketsToSetNoShow() {
+        // Given
+        when(ticketRepo.findByPassengerNoShow()).thenReturn(List.of());
+
+        // When
+        service.setTicketsNoShow();
+
+        // Then
+        verify(ticketRepo).findByPassengerNoShow();
+        verify(mapper, never()).patch(any(), any());
+    }
+
+    @Test
+    void shouldCreateTicketWhenPassengerHoldsSameSeat() {
+        // Given
+        var trip = Trip.builder().id(1L).build();
+        var fromStop = Stop.builder().id(3L).stopOrder(1).build();
+        var toStop = Stop.builder().id(4L).stopOrder(3).build();
+        var passenger = User.builder().id(2L).userName("Juan").phone("3001234567").build();
+        
+        var seatHold = SeatHold.builder()
+                .id(1L)
+                .trip(trip)
+                .passenger(passenger)
+                .seatNumber("A12")
+                .status(SeatHoldStatus.HOLD)
+                .build();
+
+        var request = new TicketCreateRequest(
+                1L, 2L, "A12", 3L, 4L,
+                new BigDecimal("50000.00"),
+                PaymentMethod.CREDIT_CARD
+        );
+
+        when(tripRepo.findById(1L)).thenReturn(Optional.of(trip));
+        when(stopRepo.findById(3L)).thenReturn(Optional.of(fromStop));
+        when(stopRepo.findById(4L)).thenReturn(Optional.of(toStop));
+        when(ticketRepo.existsOverlap(1L, "A12", 1, 3)).thenReturn(false);
+        when(userRepo.findById(2L)).thenReturn(Optional.of(passenger));
+        when(seatHoldRepo.existsByTripIdAndSeatNumberAndStatus(1L, "A12", SeatHoldStatus.HOLD))
+                .thenReturn(true);
+        when(seatHoldRepo.findByTrip_IdAndPassenger_IdAndStatus(1L, 2L, SeatHoldStatus.HOLD))
+                .thenReturn(List.of(seatHold)); // Este pasajero SÍ tiene hold en A12
+
+        when(ticketRepo.save(any(Ticket.class))).thenAnswer(inv -> {
+            Ticket t = inv.getArgument(0);
+            t.setId(10L);
+            t.setCreatedAt(OffsetDateTime.now());
+            t.setStatus(TicketStatus.SOLD);
+            return t;
+        });
+
+        // When
+        var response = service.create(request);
+
+        // Then
+        assertThat(response.id()).isEqualTo(10L);
+        assertThat(response.seatNumber()).isEqualTo("A12");
+        
+        verify(ticketRepo, times(2)).save(any(Ticket.class));
+    }
+
+    @Test
+    void shouldGetByQRCodeReturnNull() {
+        // When
+        var result = service.getByQRCode("QR123");
+
+        // Then
+        assertThat(result).isNull();
     }
 }
