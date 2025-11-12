@@ -19,7 +19,6 @@ class BaggageMapperTest {
     void toEntity_shouldMapCreateRequest() {
         // Given
         var request = new BaggageCreateRequest(
-                5L,
                 new BigDecimal("15.50"),
                 new BigDecimal("25000.00")
         );

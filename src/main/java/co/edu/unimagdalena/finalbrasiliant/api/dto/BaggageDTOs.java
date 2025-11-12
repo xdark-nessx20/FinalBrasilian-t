@@ -8,7 +8,7 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 
 public class BaggageDTOs {
-    public record BaggageCreateRequest(@NotNull Long ticketId, @NotNull @Positive BigDecimal weightKg,
+    public record BaggageCreateRequest(@NotNull @Positive BigDecimal weightKg,
                                        @NotNull @PositiveOrZero BigDecimal fee) implements Serializable {}
 
     public record BaggageUpdateRequest(@PositiveOrZero BigDecimal fee) implements Serializable {}

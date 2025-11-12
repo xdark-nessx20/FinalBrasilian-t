@@ -28,8 +28,8 @@ public class BaggageServiceImpl implements BaggageService {
 
     @Override
     @Transactional
-    public BaggageResponse create(BaggageCreateRequest request) {
-        var ticket = ticketRepo.findById(request.ticketId()).orElseThrow(() -> new NotFoundException("Ticket %d not found".formatted(request.ticketId())));
+    public BaggageResponse create(Long ticketId, BaggageCreateRequest request) {
+        var ticket = ticketRepo.findById(ticketId).orElseThrow(() -> new NotFoundException("Ticket %d not found".formatted(ticketId)));
         var baggage = mapper.toEntity(request);
         baggage.setTicket(ticket);
         baggage.setTagCode(generateTagCode());
@@ -72,6 +72,12 @@ public class BaggageServiceImpl implements BaggageService {
     public List<BaggageResponse> listByPassenger(Long passengerId) {
         userRepo.findById(passengerId).orElseThrow(() -> new NotFoundException("Passenger %d not found".formatted(passengerId)));
         return baggageRepo.findByTicket_Passenger_Id(passengerId).stream().map(mapper::toResponse).toList();
+    }
+
+    @Override
+    public List<BaggageResponse> listByTicket(Long ticketId) {
+        ticketRepo.findById(ticketId).orElseThrow(() -> new NotFoundException("Ticket %d not found".formatted(ticketId)));
+        return baggageRepo.findByTicket_Id(ticketId).stream().map((mapper::toResponse)).toList();
     }
 
     @Override
