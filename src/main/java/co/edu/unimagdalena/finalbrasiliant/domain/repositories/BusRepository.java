@@ -18,15 +18,14 @@ public interface BusRepository extends JpaRepository<Bus, Long> {
     List<Bus> findByStatus(BusStatus status);
     List<Bus> findByCapacityGreaterThanEqual(Integer capacity);
     Page<Bus> findByStatus(BusStatus status, Pageable pageable);
-    long countByStatusTrue();
 
     // Buscar buses por varias amenidades especificadas
     @Query("""
-        SELECT b FROM Bus b 
+        SELECT b FROM Bus b
         WHERE SIZE(b.amenities) >= :amenitiesCount
         AND (
-            SELECT COUNT(a) FROM Bus b2 
-            JOIN b2.amenities a 
+            SELECT COUNT(a) FROM Bus b2
+            JOIN b2.amenities a
             WHERE b2.id = b.id AND a IN :amenities
         ) = :amenitiesCount
     """)

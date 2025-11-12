@@ -29,15 +29,15 @@ public interface TicketRepository extends JpaRepository<Ticket,Long> {
         SELECT T FROM Ticket T
         WHERE (:fromId IS NULL OR T.fromStop.id = :fromId) AND (:toId IS NULL OR T.toStop.id = :toId)
     """)
-    Page<Ticket> findAllByStretch(@Param("fromId") Long fromId, @Param("toId") Long toId, Pageable pageable);
+    List<Ticket> findAllByStretch(@Param("fromId") Long fromId, @Param("toId") Long toId);
 
     List<Ticket> findByPassenger_Id(Long passengerId);
     List<Ticket> findByTrip_Id(Long tripId);
 
     @Query("""
-        SELECT COUNT(DISTINCT T) FROM Ticket T
-        WHERE T.status = :status AND (:start IS NULL OR T.createdAt >= :start)
-            AND (:end IS NULL OR T.createdAt <= :end)
+        SELECT COUNT(DISTINCT t) FROM Ticket t
+        WHERE t.status = :status AND (COALESCE(:start, NULL) IS NULL OR t.createdAt >= :start)
+            AND (COALESCE(:end, NULL) IS NULL OR t.createdAt <= :end)
     """)
     long countByStatusAndOptionalDateRange(@Param("status") TicketStatus status, @Param("start") OffsetDateTime start,
                                            @Param("end") OffsetDateTime end);
@@ -50,4 +50,19 @@ public interface TicketRepository extends JpaRepository<Ticket,Long> {
         WHERE T.passenger.id = :passengerId AND T.status = 'SOLD'
     """)
     BigDecimal sumPriceByPassenger_Id(@Param("passengerId") Long passengerId);
+
+    @Query("""
+        SELECT CASE WHEN COUNT(T) > 0 THEN TRUE ELSE FALSE END
+        FROM Ticket T LEFT JOIN Stop FS ON FS.id = T.fromStop.id LEFT JOIN Stop TS ON TS.id = T.toStop.id
+        WHERE T.trip.id = :tripId AND T.seatNumber = :seatNumber AND T.status IN ('SOLD', 'USED')
+            AND ((:fromStopOrder BETWEEN FS.stopOrder AND TS.stopOrder) OR (:toStopOrder BETWEEN FS.stopOrder AND TS.stopOrder))
+    """)
+    boolean existsOverlap(@Param("tripId") Long tripId, @Param("seatNumber") String seatNumber,
+                          @Param("fromStopOrder") Integer fromStopOrder, @Param("toStopOrder") Integer toStopOrder);
+
+    @Query("""
+        SELECT T FROM Ticket T JOIN Trip Tr ON Tr.id = T.id
+        WHERE T.status = 'SOLD' AND (FUNCTION('EXTRACT', 'EPOCH', (CURRENT_TIMESTAMP - Tr.departureAt)) /60) <= 5
+    """)
+    List<Ticket> findByPassengerNoShow();
 }

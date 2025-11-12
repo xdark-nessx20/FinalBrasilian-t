@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface IncidentRepository extends JpaRepository<Incident,Long> {
     Page<Incident> findByCreatedAtBetweenOrderByCreatedAtDesc(OffsetDateTime from, OffsetDateTime to, Pageable pageable);
@@ -17,4 +18,5 @@ public interface IncidentRepository extends JpaRepository<Incident,Long> {
     List<Incident> findByEntityTypeAndType(EntityType entityType, IncidentType type);
     long countByType(IncidentType type);
     long countByEntityType(EntityType entityType);
+    Optional<Incident> findByEntityTypeAndEntityId(EntityType entityType, Long entityId);
 }

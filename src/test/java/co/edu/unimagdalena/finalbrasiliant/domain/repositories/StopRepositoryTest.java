@@ -35,6 +35,7 @@ public class StopRepositoryTest extends AbstractRepository{
         routeRepository.deleteAll();
 
         route1 = routeRepository.save(Route.builder()
+                .code("ZZZZ").routeName("a")
                 .origin("Bogotá")
                 .destination("Medellín")
                 .distanceKM(BigDecimal.valueOf(415.0))
@@ -42,6 +43,7 @@ public class StopRepositoryTest extends AbstractRepository{
                 .build());
 
         route2 = routeRepository.save(Route.builder()
+                .code("ZZZS").routeName("b")
                 .origin("Cali")
                 .destination("Cartagena")
                 .distanceKM(BigDecimal.valueOf(1100.0))

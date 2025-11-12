@@ -1,6 +1,5 @@
 package co.edu.unimagdalena.finalbrasiliant.domain.entities;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 
