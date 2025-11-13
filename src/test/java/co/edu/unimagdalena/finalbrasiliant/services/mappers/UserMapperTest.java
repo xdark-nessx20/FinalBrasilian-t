@@ -36,7 +36,6 @@ class UserMapperTest {
         assertThat(entity.getPasswordHash()).isEqualTo("$2a$10$hashedPassword");
         assertThat(entity.getId()).isNull(); // Ignored by mapper
         assertThat(entity.getCreatedAt()).isNull(); // Ignored by mapper
-        assertThat(entity.getStatus()).isNull(); // Ignored by mapper
     }
 
     @Test

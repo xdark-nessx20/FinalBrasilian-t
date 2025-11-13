@@ -10,7 +10,7 @@ import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 
 public class TicketDTOs {
-    public record TicketCreateRequest(@NotNull Long tripId, @NotNull Long passengerId, @NotNull String seatNumber,
+    public record TicketCreateRequest(@NotNull Long passengerId, @NotNull String seatNumber,
                                       @NotNull Long fromStopId, @NotNull Long toStopId, @NotNull @Positive BigDecimal price,
                                       @NotNull PaymentMethod paymentMethod) implements Serializable {}
 

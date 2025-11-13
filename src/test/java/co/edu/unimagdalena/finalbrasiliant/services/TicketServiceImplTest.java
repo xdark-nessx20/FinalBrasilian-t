@@ -66,7 +66,7 @@ class TicketServiceImplTest {
         var passenger = User.builder().id(2L).userName("Juan").phone("3001234567").build();
 
         var request = new TicketCreateRequest(
-                1L, 2L, "A12", 3L, 4L,
+                2L, "A12", 3L, 4L,
                 new BigDecimal("50000.00"),
                 PaymentMethod.CARD
         );
@@ -88,7 +88,7 @@ class TicketServiceImplTest {
         });
 
         // When
-        var response = service.create(request);
+        var response = service.create(1L, request);
 
         // Then
         assertThat(response.id()).isEqualTo(10L);
@@ -104,7 +104,7 @@ class TicketServiceImplTest {
     void shouldThrowNotFoundExceptionWhenTripNotExists() {
         // Given
         var request = new TicketCreateRequest(
-                99L, 2L, "A12", 3L, 4L,
+                2L, "A12", 3L, 4L,
                 new BigDecimal("50000.00"),
                 PaymentMethod.CARD
         );
@@ -112,7 +112,7 @@ class TicketServiceImplTest {
         when(tripRepo.findById(99L)).thenReturn(Optional.empty());
 
         // When / Then
-        assertThatThrownBy(() -> service.create(request))
+        assertThatThrownBy(() -> service.create(99L, request))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessageContaining("Trip 99 not found");
 
@@ -124,7 +124,7 @@ class TicketServiceImplTest {
         // Given
         var trip = Trip.builder().id(1L).build();
         var request = new TicketCreateRequest(
-                1L, 2L, "A12", 99L, 4L,
+                2L, "A12", 99L, 4L,
                 new BigDecimal("50000.00"),
                 PaymentMethod.CARD
         );
@@ -133,7 +133,7 @@ class TicketServiceImplTest {
         when(stopRepo.findById(99L)).thenReturn(Optional.empty());
 
         // When / Then
-        assertThatThrownBy(() -> service.create(request))
+        assertThatThrownBy(() -> service.create(1L, request))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessageContaining("Stop 99 not found");
 
@@ -146,7 +146,7 @@ class TicketServiceImplTest {
         var trip = Trip.builder().id(1L).build();
         var fromStop = Stop.builder().id(3L).stopOrder(1).build();
         var request = new TicketCreateRequest(
-                1L, 2L, "A12", 3L, 99L,
+                2L, "A12", 3L, 99L,
                 new BigDecimal("50000.00"),
                 PaymentMethod.CARD
         );
@@ -156,7 +156,7 @@ class TicketServiceImplTest {
         when(stopRepo.findById(99L)).thenReturn(Optional.empty());
 
         // When / Then
-        assertThatThrownBy(() -> service.create(request))
+        assertThatThrownBy(() -> service.create(1L, request))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessageContaining("Stop 99 not found");
 
@@ -171,7 +171,7 @@ class TicketServiceImplTest {
         var toStop = Stop.builder().id(4L).stopOrder(3).build();
 
         var request = new TicketCreateRequest(
-                1L, 2L, "A12", 3L, 4L,
+                2L, "A12", 3L, 4L,
                 new BigDecimal("50000.00"),
                 PaymentMethod.CARD
         );
@@ -182,7 +182,7 @@ class TicketServiceImplTest {
         when(ticketRepo.existsOverlap(1L, "A12", 1, 3)).thenReturn(true);
 
         // When / Then
-        assertThatThrownBy(() -> service.create(request))
+        assertThatThrownBy(() -> service.create(1L, request))
                 .isInstanceOf(AlreadyExistsException.class)
                 .hasMessageContaining("Already exists a Ticket for the A12 seat");
 
@@ -197,7 +197,7 @@ class TicketServiceImplTest {
         var toStop = Stop.builder().id(4L).stopOrder(3).build();
 
         var request = new TicketCreateRequest(
-                1L, 99L, "A12", 3L, 4L,
+                99L, "A12", 3L, 4L,
                 new BigDecimal("50000.00"),
                 PaymentMethod.CARD
         );
@@ -209,7 +209,7 @@ class TicketServiceImplTest {
         when(userRepo.findById(99L)).thenReturn(Optional.empty());
 
         // When / Then
-        assertThatThrownBy(() -> service.create(request))
+        assertThatThrownBy(() -> service.create(1L, request))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessageContaining("Passenger 99 not found");
 
@@ -225,7 +225,7 @@ class TicketServiceImplTest {
         var passenger = User.builder().id(2L).build();
 
         var request = new TicketCreateRequest(
-                1L, 2L, "A12", 3L, 4L,
+                2L, "A12", 3L, 4L,
                 new BigDecimal("50000.00"),
                 PaymentMethod.CARD
         );
@@ -241,7 +241,7 @@ class TicketServiceImplTest {
                 .thenReturn(List.of()); // No tiene holds este pasajero
 
         // When / Then
-        assertThatThrownBy(() -> service.create(request))
+        assertThatThrownBy(() -> service.create(1L, request))
                 .isInstanceOf(AlreadyExistsException.class)
                 .hasMessageContaining("The seat A12 is hold by another passenger");
 
@@ -511,7 +511,7 @@ class TicketServiceImplTest {
         // Then
         assertThat(result.getTotalElements()).isEqualTo(1);
         assertThat(result.getContent()).hasSize(1);
-        assertThat(result.getContent().get(0).paymentMethod()).isEqualTo(PaymentMethod.CARD);
+        assertThat(result.getContent().getFirst().paymentMethod()).isEqualTo(PaymentMethod.CARD);
     }
 
     @Test
@@ -653,8 +653,8 @@ class TicketServiceImplTest {
 
         // Then
         assertThat(result).hasSize(1);
-        assertThat(result.get(0).fromStop().id()).isEqualTo(1L);
-        assertThat(result.get(0).toStop().id()).isEqualTo(3L);
+        assertThat(result.getFirst().fromStop().id()).isEqualTo(1L);
+        assertThat(result.getFirst().toStop().id()).isEqualTo(3L);
     }
 
     @Test
@@ -748,7 +748,7 @@ class TicketServiceImplTest {
                 .build();
 
         var request = new TicketCreateRequest(
-                1L, 2L, "A12", 3L, 4L,
+                2L, "A12", 3L, 4L,
                 new BigDecimal("50000.00"),
                 PaymentMethod.CASH
         );
@@ -772,7 +772,7 @@ class TicketServiceImplTest {
         });
 
         // When
-        var response = service.create(request);
+        var response = service.create(1L, request);
 
         // Then
         assertThat(response.id()).isEqualTo(10L);

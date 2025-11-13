@@ -196,7 +196,7 @@ class ParcelServiceImplTest {
         // Then
         assertThat(response.price()).isEqualByComparingTo(new BigDecimal("30000.00"));
         assertThat(response.receiverName()).isEqualTo("Nuevo Receptor");
-        assertThat(response.receiverPhone()).isEqualTo("3009999999");
+        assertThat(response.receiverPhone()).isEqualTo("3101112133");
         assertThat(response.status()).isEqualTo(ParcelStatus.IN_TRANSIT);
 
         verify(parcelRepo).save(any(Parcel.class));

@@ -35,9 +35,9 @@ public class TicketServiceImpl implements TicketService {
 
     @Override
     @Transactional
-    public TicketResponse create(TicketCreateRequest request) {
-        var trip = tripRepo.findById(request.tripId()).orElseThrow(
-                () -> new NotFoundException("Trip %d not found".formatted(request.tripId())));
+    public TicketResponse create(Long tripId, TicketCreateRequest request) {
+        var trip = tripRepo.findById(tripId).orElseThrow(
+                () -> new NotFoundException("Trip %d not found".formatted(tripId)));
         var fromStop = stopRepo.findById(request.fromStopId()).orElseThrow(
                 () -> new NotFoundException("Stop %d not found".formatted(request.fromStopId())));
         var toStop = stopRepo.findById(request.toStopId()).orElseThrow(
@@ -79,6 +79,9 @@ public class TicketServiceImpl implements TicketService {
     public TicketResponse update(Long id, TicketUpdateRequest request) {
         var ticket = ticketRepo.findById(id).orElseThrow(() -> new NotFoundException("Ticket %d not found".formatted(id)));
         mapper.patch(ticket, request);
+
+        //I gotta add the logic for refunds.
+
         return mapper.toResponse(ticketRepo.save(ticket));
     }
 
@@ -121,7 +124,7 @@ public class TicketServiceImpl implements TicketService {
     @Override
     public Page<TicketResponse> listByCreatedAt(OffsetDateTime start, OffsetDateTime end, Pageable pageable) {
         if (end.isBefore(start)) throw new IllegalArgumentException("End time can't be before start time");
-        return null;
+        return ticketRepo.findByCreatedAtBetween(start, end, pageable).map(mapper::toResponse);
     }
 
     @Override
@@ -138,12 +141,11 @@ public class TicketServiceImpl implements TicketService {
 
     @Override
     public List<TicketResponse> listByStretch(Long fromId, Long toId) {
-        stopRepo.findById(fromId).orElseThrow(
-                () -> new NotFoundException("Stop %d not found".formatted(fromId))
-        );
-        stopRepo.findById(toId).orElseThrow(
-                () -> new NotFoundException("Stop %d not found".formatted(toId))
-        );
+        if (fromId == null && toId == null) throw new IllegalArgumentException("From id and To id can't be null");
+
+        if (fromId != null) stopRepo.findById(fromId).orElseThrow(() -> new NotFoundException("Stop %d not found".formatted(fromId)));
+        if (toId != null) stopRepo.findById(toId).orElseThrow(() -> new NotFoundException("Stop %d not found".formatted(toId)));
+
         return ticketRepo.findAllByStretch(fromId, toId).stream().map((mapper::toResponse)).toList();
     }
 
