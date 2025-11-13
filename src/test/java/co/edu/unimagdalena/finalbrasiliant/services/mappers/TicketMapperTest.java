@@ -90,7 +90,7 @@ class TicketMapperTest {
                 .build();
 
         // When
-        var response = mapper.toResponse(ticket);
+        var response = mapper.toResponse(ticket, false);
 
         // Then
         assertThat(response.id()).isEqualTo(10L);

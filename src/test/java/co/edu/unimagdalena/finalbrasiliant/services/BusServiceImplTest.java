@@ -120,9 +120,9 @@ public class BusServiceImplTest {
                 .id(10L)
                 .plate("ABC123")
                 .capacity(45)
-                .amenities(Set.of("WiFi"))
                 .status(BusStatus.AVAILABLE)
                 .build();
+        bus.getAmenities().add("Wifi");
 
         var updateRequest = new BusUpdateRequest("XYZ789", 50, Set.of("AC"), BusStatus.MAINTENANCE);
 

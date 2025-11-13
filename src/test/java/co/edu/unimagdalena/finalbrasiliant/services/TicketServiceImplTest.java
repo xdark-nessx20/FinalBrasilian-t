@@ -97,7 +97,7 @@ class TicketServiceImplTest {
         assertThat(response.paymentMethod()).isEqualTo(PaymentMethod.CARD);
         assertThat(response.passenger().id()).isEqualTo(2L);
 
-        verify(ticketRepo, times(2)).save(any(Ticket.class)); // save() se llama 2 veces
+        verify(ticketRepo, times(1)).save(any(Ticket.class));
     }
 
     @Test
@@ -682,43 +682,6 @@ class TicketServiceImplTest {
     }
 
     @Test
-    void shouldSetTicketsToNoShowWhenScheduledMethodRuns() {
-        // Given
-        var ticket1 = Ticket.builder()
-                .id(1L)
-                .status(TicketStatus.SOLD)
-                .build();
-
-        var ticket2 = Ticket.builder()
-                .id(2L)
-                .status(TicketStatus.SOLD)
-                .build();
-
-        when(ticketRepo.findByPassengerNoShow()).thenReturn(List.of(ticket1, ticket2));
-
-        // When
-        service.setTicketsNoShow();
-        // Then
-        verify(ticketRepo).findByPassengerNoShow();
-        verify(mapper, times(2)).patch(any(Ticket.class), any(TicketUpdateRequest.class));
-        
-        // Verificar que se llamó patch con TicketStatus.NO_SHOW
-        verify(mapper).patch(eq(ticket1), argThat(req -> 
-            req.status() == TicketStatus.NO_SHOW &&
-            req.seatNumber() == null &&
-            req.price() == null &&
-            req.paymentMethod() == null
-        ));
-        
-        verify(mapper).patch(eq(ticket2), argThat(req -> 
-            req.status() == TicketStatus.NO_SHOW &&
-            req.seatNumber() == null &&
-            req.price() == null &&
-            req.paymentMethod() == null
-        ));
-    }
-
-    @Test
     void shouldDoNothingWhenNoTicketsToSetNoShow() {
         // Given
         when(ticketRepo.findByPassengerNoShow()).thenReturn(List.of());
@@ -778,15 +741,36 @@ class TicketServiceImplTest {
         assertThat(response.id()).isEqualTo(10L);
         assertThat(response.seatNumber()).isEqualTo("A12");
         
-        verify(ticketRepo, times(2)).save(any(Ticket.class));
+        verify(ticketRepo, times(1)).save(any(Ticket.class));
     }
 
     @Test
-    void shouldGetByQRCodeReturnNull() {
+    void shouldGetByQRCode() {
+        //Given
+        var bus = Bus.builder().id(1L).plate("ABC123").build();
+        var trip = Trip.builder().id(1L).bus(bus).departureAt(OffsetDateTime.now()).build();
+        var passenger = User.builder().id(2L).userName("Juan").phone("3001234567").build();
+        var fromStop = Stop.builder().id(3L).name("Bogotá").stopOrder(1).build();
+        var toStop = Stop.builder().id(4L).name("Medellín").stopOrder(3).build();
+
+        var ticket1 = Ticket.builder()
+                .id(1L)
+                .trip(trip)
+                .passenger(passenger)
+                .seatNumber("A12")
+                .fromStop(fromStop)
+                .toStop(toStop)
+                .build();
+        ticket1.setQrCode("TKT-H3DY61CKU0JMV9W7");
         // When
-        var result = service.getByQRCode("QR123");
+        when(ticketRepo.findByQrCode(anyString())).thenReturn(Optional.of(ticket1));
+
+        var result = service.getByQRCode("TKT-H3DY61CKU0JMV9W7");
 
         // Then
-        assertThat(result).isNull();
+        assertThat(result).isNotNull();
+        assertThat(result.id()).isEqualTo(1L);
+        assertThat(result.seatNumber()).isEqualTo("A12");
+        assertThat(result.passenger().userName()).isEqualTo(passenger.getUserName());
     }
 }

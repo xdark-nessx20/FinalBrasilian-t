@@ -19,7 +19,7 @@ public class TicketDTOs {
 
     public record TicketResponse(Long id, TripSummary trip, UserSummary passenger, String seatNumber, StopSummary fromStop,
                                  StopSummary toStop, BigDecimal price, OffsetDateTime createdAt, PaymentMethod paymentMethod,
-                                 TicketStatus status) implements Serializable {}
+                                 TicketStatus status, String qrCode) implements Serializable {}
 
     public record TripSummary(Long id, String busPlate, OffsetDateTime departureAt) implements Serializable {}
     public record UserSummary(Long id, String userName, String phone) implements Serializable {}

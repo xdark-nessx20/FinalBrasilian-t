@@ -11,8 +11,8 @@ import co.edu.unimagdalena.finalbrasiliant.domain.entities.Trip;
 @Mapper(componentModel = "spring", nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
 public interface TripMapper {
 	@Mapping(target = "id", ignore = true)
-    @Mapping(target = "bus.id", ignore = true)
-	@Mapping(target = "route.id", ignore = true)
+    @Mapping(target = "bus", ignore = true)
+	@Mapping(target = "route", ignore = true)
 	@Mapping(target = "status", ignore = true)
 	Trip toEntity(TripCreateRequest request);
 	
@@ -21,7 +21,7 @@ public interface TripMapper {
 	TripResponse toResponse(Trip trip);
 	
 	@Mapping(target = "id", ignore = true)
-    @Mapping(target = "bus.id", source = "bus_id")
-	@Mapping(target = "route.id", source = "route_id")
+    @Mapping(target = "bus", ignore = true)
+	@Mapping(target = "route", ignore = true)
 	void patch(@MappingTarget Trip trip, TripUpdateRequest request);
 }
