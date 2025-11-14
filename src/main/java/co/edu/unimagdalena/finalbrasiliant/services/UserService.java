@@ -15,7 +15,7 @@ public interface UserService {
 	UserResponse update(Long id, UserUpdateRequest request);
 	void delete(Long id);
 	
-	List<UserResponse> getAllByUserName(String userName);
+	UserResponse getByUserName(String userName);
     UserResponse getByEmail(String email);
     UserResponse getByPhone(String phone);
     Page<UserResponse> getByCreatedAtBetween(OffsetDateTime start, OffsetDateTime end, Pageable pageable);

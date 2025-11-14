@@ -160,20 +160,15 @@ class UserServiceImplTest {
                 .createdAt(OffsetDateTime.now())
                 .build();
 
-        when(userRepo.findByUserName("pedro_martinez")).thenReturn(List.of(user));
+        when(userRepo.findByUserName("pedro_martinez")).thenReturn(Optional.of(user));
 
         // When
-        var response = service.getAllByUserName("pedro_martinez");
+        var response = service.getByUserName("pedro_martinez");
 
         // Then
-        assertThat(response)
-                .hasSize(1)
-                .first()
-                .satisfies(userResponse -> {
-                    assertThat(userResponse.id()).isEqualTo(1L);
-                    assertThat(userResponse.userName()).isEqualTo("pedro_martinez");
-                    assertThat(userResponse.email()).isEqualTo("pedro.martinez@example.com");
-                });
+        assertThat(response.id()).isEqualTo(1L);
+        assertThat(response.userName()).isEqualTo("pedro_martinez");
+        assertThat(response.email()).isEqualTo("pedro.martinez@example.com");
     }
 
     @Test

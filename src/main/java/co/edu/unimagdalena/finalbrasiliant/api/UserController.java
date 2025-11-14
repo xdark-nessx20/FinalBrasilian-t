@@ -53,8 +53,8 @@ public class UserController {
     }
 
     @GetMapping("/by-name")
-    public ResponseEntity<List<UserResponse>> getByUserName(@RequestParam String userName) {
-        return ResponseEntity.ok(service.getAllByUserName(userName));
+    public ResponseEntity<UserResponse> getByUserName(@RequestParam String userName) {
+        return ResponseEntity.ok(service.getByUserName(userName));
     }
     
     @GetMapping("/by-email")

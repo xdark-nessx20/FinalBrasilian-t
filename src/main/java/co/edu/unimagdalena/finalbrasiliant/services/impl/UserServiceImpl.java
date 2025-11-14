@@ -50,14 +50,11 @@ public class UserServiceImpl implements UserService {
     public void delete(Long id) {
         userRepo.deleteById(id);
     }
-	
+
 	@Override
-	public List<UserResponse> getAllByUserName(String userName) {
-		List<User> users = userRepo.findByUserName(userName);
-		if (users.isEmpty()) {
-		    throw new NotFoundException("No users found with name  %s".formatted(userName));
-		}
-		return users.stream().map(userMapper::toResponse).toList();
+	public UserResponse getByUserName(String userName) {
+		return userRepo.findByUserName(userName).map(userMapper::toResponse).orElseThrow(
+				()-> new NotFoundException("user with the name %s not found".formatted(userName)));
 	}
 	
 	@Override
