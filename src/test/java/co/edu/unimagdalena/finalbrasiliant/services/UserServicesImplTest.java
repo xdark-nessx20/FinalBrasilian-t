@@ -40,7 +40,7 @@ class UserServiceImplTest {
     @Test
     void shouldCreateAndReturnResponse() {
         // Given
-        var request = new userCreateRequest(
+        var request = new UserCreateRequest(
                 "juan_perez",
                 "juan.perez@example.com",
                 "3001234567",
@@ -113,7 +113,7 @@ class UserServiceImplTest {
                 .createdAt(OffsetDateTime.now())
                 .build();
 
-        var updateRequest = new userUpdateRequest(
+        var updateRequest = new UserUpdateRequest(
                 "carlos_gomez_updated",
                 "carlos.nuevo@example.com",
                 "3002222222",
@@ -160,15 +160,20 @@ class UserServiceImplTest {
                 .createdAt(OffsetDateTime.now())
                 .build();
 
-        when(userRepo.findByUserName("pedro_martinez")).thenReturn(Optional.of(user));
+        when(userRepo.findByUserName("pedro_martinez")).thenReturn(List.of(user));
 
         // When
-        var response = service.getByUserName("pedro_martinez");
+        var response = service.getAllByUserName("pedro_martinez");
 
         // Then
-        assertThat(response.id()).isEqualTo(1L);
-        assertThat(response.userName()).isEqualTo("pedro_martinez");
-        assertThat(response.email()).isEqualTo("pedro.martinez@example.com");
+        assertThat(response)
+                .hasSize(1)
+                .first()
+                .satisfies(userResponse -> {
+                    assertThat(userResponse.id()).isEqualTo(1L);
+                    assertThat(userResponse.userName()).isEqualTo("pedro_martinez");
+                    assertThat(userResponse.email()).isEqualTo("pedro.martinez@example.com");
+                });
     }
 
     @Test

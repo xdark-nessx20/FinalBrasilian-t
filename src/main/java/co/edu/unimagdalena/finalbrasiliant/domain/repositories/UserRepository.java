@@ -14,7 +14,7 @@ import java.time.OffsetDateTime;
 
 
 public interface UserRepository extends JpaRepository<User, Long> {
-	Optional<User> findByUserName(String userName);
+	List<User> findByUserName(String userName);
 	Optional<User> findByEmail(String email);
 	Optional<User> findByPhone(String Phone);
 	Page<User> findAllByCreatedAtBetween(OffsetDateTime start, OffsetDateTime end, Pageable pageable);

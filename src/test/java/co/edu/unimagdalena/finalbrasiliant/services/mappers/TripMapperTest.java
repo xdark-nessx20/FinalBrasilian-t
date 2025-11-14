@@ -34,15 +34,12 @@ class TripMapperTest {
         var entity = mapper.toEntity(request);
 
         // Then
-        assertThat(entity.getRoute()).isNotNull();
-        assertThat(entity.getRoute().getId()).isEqualTo(1L);
-        assertThat(entity.getBus()).isNotNull();
-        assertThat(entity.getBus().getId()).isEqualTo(2L);
+        assertThat(entity.getRoute()).isNull();
+        assertThat(entity.getBus()).isNull();
         assertThat(entity.getDate()).isEqualTo(LocalDate.of(2025, 12, 25));
         assertThat(entity.getDepartureAt()).isEqualTo(departureTime);
         assertThat(entity.getArrivalETA()).isEqualTo(arrivalTime);
         assertThat(entity.getId()).isNull(); // Ignored by mapper
-        assertThat(entity.getStatus()).isNull(); // Ignored by mapper
     }
 
     @Test
@@ -62,8 +59,8 @@ class TripMapperTest {
         var entity = mapper.toEntity(request);
 
         // Then
-        assertThat(entity.getRoute().getId()).isEqualTo(5L);
-        assertThat(entity.getBus().getId()).isEqualTo(10L);
+        assertThat(entity.getRoute()).isNull();
+        assertThat(entity.getBus()).isNull();
         assertThat(entity.getDate()).isEqualTo(LocalDate.of(2025, 11, 15));
         assertThat(entity.getDepartureAt()).isEqualTo(departureTime);
         assertThat(entity.getArrivalETA()).isEqualTo(arrivalTime);

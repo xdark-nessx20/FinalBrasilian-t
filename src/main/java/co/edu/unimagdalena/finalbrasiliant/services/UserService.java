@@ -10,15 +10,15 @@ import co.edu.unimagdalena.finalbrasiliant.api.dto.UserDTO.*;
 import co.edu.unimagdalena.finalbrasiliant.domain.enums.Role;
 
 public interface UserService {
-	userResponse create(userCreateRequest request);
-	userResponse get(Long id);
-	userResponse update(Long id, userUpdateRequest request);
+	UserResponse create(UserCreateRequest request);
+	UserResponse get(Long id);
+	UserResponse update(Long id, UserUpdateRequest request);
 	void delete(Long id);
 	
-	userResponse getByUserName(String userName);
-    userResponse getByEmail(String email);
-    userResponse getByPhone(String phone);
-    Page<userResponse> getByCreatedAtBetween(OffsetDateTime start, OffsetDateTime end, Pageable pageable);
-    List<userResponse> getByRole(Role role);
-    Page<userResponse> getByStatus(Boolean status, Pageable pageable);
+	List<UserResponse> getAllByUserName(String userName);
+    UserResponse getByEmail(String email);
+    UserResponse getByPhone(String phone);
+    Page<UserResponse> getByCreatedAtBetween(OffsetDateTime start, OffsetDateTime end, Pageable pageable);
+    List<UserResponse> getByRole(Role role);
+    Page<UserResponse> getByStatus(Boolean status, Pageable pageable);
 }

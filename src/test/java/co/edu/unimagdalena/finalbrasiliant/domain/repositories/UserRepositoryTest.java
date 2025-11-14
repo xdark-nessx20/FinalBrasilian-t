@@ -76,10 +76,12 @@ class UserRepositoryTest extends AbstractRepository {
 
     @Test
     void shouldFindUserByUserName() {
-        Optional<User> result = userRepository.findByUserName("Juan Pérez");
+        List<User> result = userRepository.findByUserName("Juan Pérez");
 
-        assertThat(result).isPresent()
-                .hasValueSatisfying(user -> {
+        assertThat(result)
+                .hasSize(1)
+                .first()
+                .satisfies(user -> {
                     assertThat(user.getId()).isEqualTo(user1.getId());
                     assertThat(user.getUserName()).isEqualTo("Juan Pérez");
                     assertThat(user.getEmail()).isEqualTo("juan.perez@example.com");
