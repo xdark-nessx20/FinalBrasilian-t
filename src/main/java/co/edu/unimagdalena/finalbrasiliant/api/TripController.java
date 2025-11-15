@@ -30,79 +30,85 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequiredArgsConstructor
 @Validated
-@RequestMapping("/api/v1/trips")
+@RequestMapping("/api/v1")
 public class TripController {
 	private final TripService service;
 	
-	 @PostMapping
-	    public ResponseEntity<TripResponse> createTrip(
-	            @Valid @RequestBody TripCreateRequest request,
-	            UriComponentsBuilder uriBuilder) {
-	        var body = service.create(request);
-	        var location = uriBuilder.path("/api/v1/trips/{id}")
-	                                 .buildAndExpand(body.id())
-	                                 .toUri();
-	        return ResponseEntity.created(location).body(body);
+	@PostMapping("/routes/{routeId}/trips")
+	public ResponseEntity<TripResponse> createTrip(
+	        @PathVariable Long routeId,
+	        @Valid @RequestBody TripCreateRequest request,
+	        UriComponentsBuilder uriBuilder) {
+	    var body = service.create(routeId, request);
+	    var location = uriBuilder.path("/api/v1/routes/{routeId}/trips/{id}")
+	                             .buildAndExpand(routeId, body.id())
+	                             .toUri();
+	    return ResponseEntity.created(location).body(body);
+	}
+
+
+	 @GetMapping("/trips/{tripId}")
+	 public ResponseEntity<TripResponse> get(@PathVariable Long tripId) {
+		 return ResponseEntity.ok(service.get(tripId));
 	    }
 
-	    @GetMapping("/{id}")
-	    public ResponseEntity<TripResponse> get(@PathVariable Long id) {
-	        return ResponseEntity.ok(service.get(id));
-	    }
-
-	    @PatchMapping("/{id}")
-	    public ResponseEntity<TripResponse> update(
-	            @PathVariable Long id,
+	 @PatchMapping("/trips/{tripId}")
+	 public ResponseEntity<TripResponse> update(
+	            @PathVariable Long routeId,
+	            @PathVariable Long tripId,
 	            @Valid @RequestBody TripUpdateRequest request) {
-	        return ResponseEntity.ok(service.update(id, request));
+		 return ResponseEntity.ok(service.update(tripId, request));
 	    }
 
-	    @DeleteMapping("/{id}")
-	    public ResponseEntity<Void> delete(@PathVariable Long id) {
-	        service.delete(id);
-	        return ResponseEntity.noContent().build();
+	 @DeleteMapping("/trips/{tripId}")
+	 public ResponseEntity<Void> delete(@PathVariable Long tripId) {
+		 service.delete(tripId);
+	     return ResponseEntity.noContent().build();
 	    }
 	
-	    @GetMapping("/by-route/{routeId}")
-	    public ResponseEntity<Page<TripResponse>> getByRouteId(@PathVariable Long routeId, Pageable pageable) {
-	        var page = service.getAllByRouteId(routeId, pageable);
-	        return ResponseEntity.ok(page);
+	 @GetMapping("/routes/{routeId}/trips")
+	 public ResponseEntity<Page<TripResponse>> getByRouteId(@PathVariable Long routeId, Pageable pageable) {
+	     var page = service.getAllByRouteId(routeId, pageable);
+	     return ResponseEntity.ok(page);
 	    }
 	    
-	    @GetMapping("/by-bus/{busId}")
-	    public ResponseEntity<Page<TripResponse>> getByBusId(@PathVariable Long busId, Pageable pageable) {
-	        var page = service.getAllByBusId(busId, pageable);
-	        return ResponseEntity.ok(page);
+	 @GetMapping("/trips/by-bus/{busId}")
+	 public ResponseEntity<Page<TripResponse>> getByBusId(@PathVariable Long busId, Pageable pageable) {
+		 var page = service.getAllByBusId(busId, pageable);
+	     return ResponseEntity.ok(page);
 	    }
 	    
-	    @GetMapping("/by-departure")
-	    public ResponseEntity<Page<TripResponse>> getByDepartureBetween(@RequestParam OffsetDateTime start, 
-	    		@RequestParam OffsetDateTime end, Pageable pageable) {
-	        var page = service.getByDepartureBetween(start, end, pageable);
-	        return ResponseEntity.ok(page);
+	 @GetMapping("/trips/by-departure")
+	 public ResponseEntity<Page<TripResponse>> getByDepartureBetween(@RequestParam OffsetDateTime start, 
+			@RequestParam OffsetDateTime end,
+			Pageable pageable) {
+	     var page = service.getByDepartureBetween(start, end, pageable);
+	     return ResponseEntity.ok(page);
 	    }
-	    
-	    @GetMapping("/by-arrival")
-	    public ResponseEntity<Page<TripResponse>> getByArrivalBetween(@RequestParam OffsetDateTime start, 
-	    		@RequestParam OffsetDateTime end, Pageable pageable) {
-	        var page = service.getByArrivalBetween(start, end, pageable);
-	        return ResponseEntity.ok(page);
+
+	 @GetMapping("/trips/by-arrival")
+	 public ResponseEntity<Page<TripResponse>> getByArrivalBetween(@RequestParam OffsetDateTime start,
+			 @RequestParam OffsetDateTime end, 
+			 Pageable pageable) {
+		 var page = service.getByArrivalBetween(start, end, pageable);
+	     return ResponseEntity.ok(page);
 	    }
-	    
-	    @GetMapping("/by-status")
-	    public ResponseEntity<Page<TripResponse>> getByStatus(@RequestParam TripStatus status, Pageable pageable) {
-	        var page = service.getByStatus(status, pageable);
-	        return ResponseEntity.ok(page);
+
+	 @GetMapping("/trips/by-status")
+	 public ResponseEntity<Page<TripResponse>> getByStatus(@RequestParam TripStatus status, Pageable pageable) {
+	     var page = service.getByStatus(status, pageable);
+	     return ResponseEntity.ok(page);
 	    }
-	    
-	    @GetMapping("/search")
-	    public ResponseEntity<List<TripResponse>> getByRouteIdAndStatus(@RequestParam Long routeId, @RequestParam TripStatus status){
-	    	return ResponseEntity.ok(service.getByRouteIdAndStatus(routeId, status));
+
+	 @GetMapping("/trips/search")
+	 public ResponseEntity<List<TripResponse>> getByRouteIdAndStatus(@RequestParam Long routeId, 
+			 @RequestParam TripStatus status) {
+	     return ResponseEntity.ok(service.getByRouteIdAndStatus(routeId, status));
 	    }
-	    
-	    @GetMapping("/by-date")
-	    public ResponseEntity<Page<TripResponse>> getByDate(@RequestParam LocalDate date, Pageable pageable) {
-	        var page = service.getByDate(date, pageable);
-	        return ResponseEntity.ok(page);
+
+	 @GetMapping("/trips/by-date")
+	 public ResponseEntity<Page<TripResponse>> getByDate(@RequestParam LocalDate date, Pageable pageable) {
+	     var page = service.getByDate(date, pageable);
+	     return ResponseEntity.ok(page);
 	    }
 }

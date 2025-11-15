@@ -23,7 +23,6 @@ class TripMapperTest {
         var departureTime = OffsetDateTime.now().plusHours(2);
         var arrivalTime = OffsetDateTime.now().plusHours(6);
         var request = new TripCreateRequest(
-                1L,
                 2L,
                 LocalDate.of(2025, 12, 25),
                 departureTime,
@@ -48,7 +47,6 @@ class TripMapperTest {
         var departureTime = OffsetDateTime.now().plusDays(1);
         var arrivalTime = OffsetDateTime.now().plusDays(1).plusHours(4);
         var request = new TripCreateRequest(
-                5L,
                 10L,
                 LocalDate.of(2025, 11, 15),
                 departureTime,

@@ -86,7 +86,6 @@ class TripControllerIntegrationTest {
         OffsetDateTime arrival = departure.plusHours(2);
 
         TripCreateRequest request = new TripCreateRequest(
-                testRoute.getId(),
                 testBus.getId(),
                 tripDate,
                 departure,
@@ -94,7 +93,7 @@ class TripControllerIntegrationTest {
         );
 
         // When & Then
-        mockMvc.perform(post("/api/v1/trips")
+        mockMvc.perform(post("/api/v1/routes/{routeId}/trips", testRoute.getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -124,7 +123,7 @@ class TripControllerIntegrationTest {
         Trip savedTrip = tripRepository.save(trip);
 
         // When & Then
-        mockMvc.perform(get("/api/v1/trips/{id}", savedTrip.getId()))
+        mockMvc.perform(get("/api/v1/trips/{tripId}", savedTrip.getId()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(savedTrip.getId()))
                 .andExpect(jsonPath("$.route_id").value(testRoute.getId()))
@@ -154,7 +153,7 @@ class TripControllerIntegrationTest {
         OffsetDateTime newArrival = newDeparture.plusHours(2);
 
         TripUpdateRequest updateRequest = new TripUpdateRequest(
-                testRoute.getId(),
+                null,
                 testBus.getId(),
                 newDate,
                 newDeparture,
@@ -163,7 +162,7 @@ class TripControllerIntegrationTest {
         );
 
         // When & Then
-        mockMvc.perform(patch("/api/v1/trips/{id}", savedTrip.getId())
+        mockMvc.perform(patch("/api/v1/trips/{tripId}", savedTrip.getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updateRequest)))
                 .andExpect(status().isOk())
@@ -186,7 +185,7 @@ class TripControllerIntegrationTest {
         Trip savedTrip = tripRepository.save(trip);
 
         // When & Then
-        mockMvc.perform(delete("/api/v1/trips/{id}", savedTrip.getId()))
+        mockMvc.perform(delete("/api/v1/trips/{tripId}", savedTrip.getId()))
                 .andExpect(status().isNoContent());
     }
 
@@ -215,7 +214,7 @@ class TripControllerIntegrationTest {
         tripRepository.save(trip2);
 
         // When & Then
-        mockMvc.perform(get("/api/v1/trips/by-route/{routeId}", testRoute.getId())
+        mockMvc.perform(get("/api/v1/routes/{routeId}/trips", testRoute.getId())
                         .param("page", "0")
                         .param("size", "10"))
                 .andExpect(status().isOk())

@@ -64,15 +64,15 @@ public class SeatController {
     	return ResponseEntity.ok(service.getSeatsByBus(busId));
     }
     
-    @GetMapping("/buses/{busId}/seats/by-number/{number}")
+    @GetMapping("/buses/{busId}/seats/by-number")
     public ResponseEntity<SeatResponse> getSeatByNumberAndBus(
-            @PathVariable Long busId,
+            @RequestParam Long busId,
             @PathVariable String number) {
         return ResponseEntity.ok(service.getSeatByNumberAndBus(number, busId));
     }
     
-    @GetMapping("/seats/by-type/{type}")
-    public ResponseEntity<List<SeatResponse>> getByType(@PathVariable SeatType type) {
+    @GetMapping("/seats/by-tipe")
+    public ResponseEntity<List<SeatResponse>> getByType(@RequestParam SeatType type) {
     	return ResponseEntity.ok(service.getSeatsByType(type));
     }
     
