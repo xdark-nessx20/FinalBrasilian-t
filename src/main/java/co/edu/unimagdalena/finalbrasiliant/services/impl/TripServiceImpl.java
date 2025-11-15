@@ -30,11 +30,11 @@ public class TripServiceImpl implements TripService {
 	
 	@Transactional
 	@Override
-	public TripResponse create(TripCreateRequest request) {
+	public TripResponse create(Long routeId, TripCreateRequest request) {
 		var bus = busRepo.findById(request.bus_id())
 				.orElseThrow(() -> new NotFoundException("Bus %d not found".formatted(request.bus_id())));
-		var route = routeRepo.findById(request.route_id())
-			    .orElseThrow(() -> new NotFoundException("Route %d not found".formatted(request.route_id())));
+		var route = routeRepo.findById(routeId)
+			    .orElseThrow(() -> new NotFoundException("Route %d not found".formatted(routeId)));
 		Trip trip = tripMapper.toEntity(request);
 		trip.setBus(bus);
 		trip.setRoute(route);

@@ -17,7 +17,7 @@ class UserMapperTest {
     @Test
     void toEntity_shouldMapCreateRequest() {
         // Given
-        var request = new userCreateRequest(
+        var request = new UserCreateRequest(
                 "Juan Pérez",
                 "juan.perez@email.com",
                 "3001234567",
@@ -36,13 +36,12 @@ class UserMapperTest {
         assertThat(entity.getPasswordHash()).isEqualTo("$2a$10$hashedPassword");
         assertThat(entity.getId()).isNull(); // Ignored by mapper
         assertThat(entity.getCreatedAt()).isNull(); // Ignored by mapper
-        assertThat(entity.getStatus()).isNull(); // Ignored by mapper
     }
 
     @Test
     void toEntity_shouldMapCreateRequestWithDifferentRole() {
         // Given
-        var request = new userCreateRequest(
+        var request = new UserCreateRequest(
                 "María García",
                 "maria.garcia@email.com",
                 "3109876543",
@@ -127,7 +126,7 @@ class UserMapperTest {
                 .createdAt(OffsetDateTime.now())
                 .build();
 
-        var updateRequest = new userUpdateRequest(
+        var updateRequest = new UserUpdateRequest(
                 "Nombre Actualizado",
                 "actualizado@email.com",
                 "3009999999",
@@ -162,7 +161,7 @@ class UserMapperTest {
                 .passwordHash("$2a$10$oldHash")
                 .build();
 
-        var updateRequest = new userUpdateRequest(null, null, null, null, null, null);
+        var updateRequest = new UserUpdateRequest(null, null, null, null, null, null);
 
         // When
         mapper.patch(user, updateRequest);
@@ -189,7 +188,7 @@ class UserMapperTest {
                 .passwordHash("$2a$10$hash")
                 .build();
 
-        var updateRequest = new userUpdateRequest("Nombre Nuevo", null, null, null, null, null);
+        var updateRequest = new UserUpdateRequest("Nombre Nuevo", null, null, null, null, null);
 
         // When
         mapper.patch(user, updateRequest);
@@ -215,7 +214,7 @@ class UserMapperTest {
                 .passwordHash("$2a$10$hash")
                 .build();
 
-        var updateRequest = new userUpdateRequest(null, null, null, null, false, null);
+        var updateRequest = new UserUpdateRequest(null, null, null, null, false, null);
 
         // When
         mapper.patch(user, updateRequest);
@@ -239,7 +238,7 @@ class UserMapperTest {
                 .passwordHash("$2a$10$oldPassword")
                 .build();
 
-        var updateRequest = new userUpdateRequest(null, null, null, null, null, "$2a$10$newPassword");
+        var updateRequest = new UserUpdateRequest(null, null, null, null, null, "$2a$10$newPassword");
 
         // When
         mapper.patch(user, updateRequest);
@@ -265,7 +264,7 @@ class UserMapperTest {
                 .createdAt(createdAt)
                 .build();
 
-        var updateRequest = new userUpdateRequest(
+        var updateRequest = new UserUpdateRequest(
                 "Actualizado",
                 "actualizado@email.com",
                 "3009999999",

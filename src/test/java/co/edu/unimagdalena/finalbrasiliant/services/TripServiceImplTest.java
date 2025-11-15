@@ -55,8 +55,7 @@ class TripServiceImplTest {
         var route = Route.builder().id(1L).build();
 
         var request = new TripCreateRequest(
-                1L,
-                1L,
+                1L, // bus_id
                 LocalDate.of(2025, 11, 15),
                 OffsetDateTime.now().plusDays(1),
                 OffsetDateTime.now().plusDays(1).plusHours(3)
@@ -73,7 +72,7 @@ class TripServiceImplTest {
         });
 
         // When
-        var response = service.create(request);
+        var response = service.create(1L, request); // routeId as first parameter
 
         // Then
         assertThat(response.id()).isEqualTo(10L);
@@ -136,8 +135,8 @@ class TripServiceImplTest {
                 .build();
 
         var updateRequest = new TripUpdateRequest(
-                null,
-                2L,
+                null, // route_id
+                2L,   // bus_id
                 LocalDate.of(2025, 11, 20),
                 OffsetDateTime.now().plusDays(5),
                 OffsetDateTime.now().plusDays(5).plusHours(4),

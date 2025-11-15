@@ -8,7 +8,7 @@ import java.time.OffsetDateTime;
 import java.util.List;
 
 public interface AssignmentService {
-    AssignmentResponse create(AssignmentCreateRequest request);
+    AssignmentResponse create(Long tripId, AssignmentCreateRequest request);
     AssignmentResponse get(Long id);
     AssignmentResponse update(Long id, AssignmentUpdateRequest request);
     void delete(Long id);

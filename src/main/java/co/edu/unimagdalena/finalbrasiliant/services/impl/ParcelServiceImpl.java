@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -35,7 +36,13 @@ public class ParcelServiceImpl implements ParcelService {
         var parcel = mapper.toEntity(request);
         parcel.setFromStop(fromStop);
         parcel.setToStop(toStop);
+        parcel.setCode(generateCode());
+
         return mapper.toResponse(parcelRepo.save(parcel));
+    }
+
+    private String generateCode(){
+        return "PAR-" + UUID.randomUUID().toString().substring(0, 16).toUpperCase();
     }
 
     @Override
@@ -51,6 +58,9 @@ public class ParcelServiceImpl implements ParcelService {
                 () -> new NotFoundException("Parcel %d not found.".formatted(id))
         );
         mapper.patch(parcel, request);
+        if (parcel.getStatus().equals(ParcelStatus.IN_DELIVERY)) //IN_DELIVERY or READY_FOR_PICKUP?
+            parcel.setDeliveryOTP(UUID.randomUUID().toString().substring(0, 10).toUpperCase());
+
         return mapper.toResponse(parcelRepo.save(parcel));
     }
 
@@ -84,12 +94,11 @@ public class ParcelServiceImpl implements ParcelService {
 
     @Override
     public List<ParcelResponse> listByStretch(Long fromId, Long toId) {
-        stopRepo.findById(fromId).orElseThrow(
-                () -> new NotFoundException("Stop %d not found".formatted(fromId))
-        );
-        stopRepo.findById(toId).orElseThrow(
-                () -> new NotFoundException("Stop %d not found".formatted(toId))
-        );
+        if (fromId == null && toId == null) throw new IllegalArgumentException("fromId and toId can't be null");
+
+        if (fromId != null) stopRepo.findById(fromId).orElseThrow(() -> new NotFoundException("Stop %d not found".formatted(fromId)));
+        if (toId != null) stopRepo.findById(toId).orElseThrow(() -> new NotFoundException("Stop %d not found".formatted(toId)));
+
         return parcelRepo.findAllByStretch(fromId, toId).stream().map(mapper::toResponse).toList();
     }
 

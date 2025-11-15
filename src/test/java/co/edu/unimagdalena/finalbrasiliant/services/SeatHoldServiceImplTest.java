@@ -210,7 +210,7 @@ public class SeatHoldServiceImplTest {
                 .build();
 
         when(userRepo.findById(2L)).thenReturn(Optional.of(passenger));
-        when(seatHoldRepo.findByUser_Id(2L)).thenReturn(List.of(seatHold1));
+        when(seatHoldRepo.findByPassenger_Id(2L)).thenReturn(List.of(seatHold1));
 
         // When
         var result = service.listByPassenger(2L);

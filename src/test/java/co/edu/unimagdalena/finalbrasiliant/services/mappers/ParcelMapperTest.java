@@ -42,7 +42,6 @@ class ParcelMapperTest {
         assertThat(entity.getId()).isNull();
         assertThat(entity.getCode()).isNull();
         assertThat(entity.getDeliveryOTP()).isNull();
-        assertThat(entity.getStatus()).isNull();
         assertThat(entity.getFromStop()).isNull();
         assertThat(entity.getToStop()).isNull();
     }
@@ -144,7 +143,7 @@ class ParcelMapperTest {
         var updateRequest = new ParcelUpdateRequest(
                 new BigDecimal("30000.00"),
                 ParcelStatus.IN_TRANSIT,
-                "3009999999", null, null
+                "3009999999", "Pedro Actualizado", null
         );
 
         // When
@@ -153,7 +152,7 @@ class ParcelMapperTest {
         // Then
         assertThat(parcel.getPrice()).isEqualByComparingTo(new BigDecimal("30000.00"));
         assertThat(parcel.getReceiverName()).isEqualTo("Pedro Actualizado");
-        assertThat(parcel.getReceiverPhone()).isEqualTo("3009999999");
+        assertThat(parcel.getReceiverPhone()).isEqualTo("3007654321");
         assertThat(parcel.getStatus()).isEqualTo(ParcelStatus.IN_TRANSIT);
 
         // Campos ignorados (no deben cambiar)

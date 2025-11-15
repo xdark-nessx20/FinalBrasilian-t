@@ -12,7 +12,7 @@ import co.edu.unimagdalena.finalbrasiliant.api.dto.TripDTO.*;
 import co.edu.unimagdalena.finalbrasiliant.domain.enums.TripStatus;
 
 public interface TripService {
-	TripResponse create(TripCreateRequest request);
+	TripResponse create(Long route_id, TripCreateRequest request);
 	TripResponse get(Long id);
 	TripResponse update(Long id, TripUpdateRequest request);
 	void delete(Long id);

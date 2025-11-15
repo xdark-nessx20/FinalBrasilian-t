@@ -18,4 +18,6 @@ public interface BaggageRepository extends JpaRepository<Baggage,Long> {
 
     @Query("SELECT B FROM Baggage B JOIN FETCH B.ticket WHERE B.id = :baggageId")
     Optional<Baggage> findByIdWithAllDetails(Long baggageId);
+
+    List<Baggage> findByTicket_Id(Long ticketId);
 }

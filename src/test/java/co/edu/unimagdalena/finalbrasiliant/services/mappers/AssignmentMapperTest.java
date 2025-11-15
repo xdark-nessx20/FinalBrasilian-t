@@ -17,7 +17,7 @@ class AssignmentMapperTest {
     @Test
     void toEntity_shouldMapCreateRequestWithCheckListOk() {
         // Given
-        var request = new AssignmentCreateRequest(1L, 2L, 3L, true);
+        var request = new AssignmentCreateRequest(1L, 2L,  true);
 
         // When
         var entity = mapper.toEntity(request);
@@ -32,7 +32,7 @@ class AssignmentMapperTest {
     @Test
     void toEntity_shouldMapCreateRequestWithNullCheckListOk() {
         // Given
-        var request = new AssignmentCreateRequest(1L, 2L, 3L, null);
+        var request = new AssignmentCreateRequest(1L, 2L,  null);
 
         // When
         var entity = mapper.toEntity(request);

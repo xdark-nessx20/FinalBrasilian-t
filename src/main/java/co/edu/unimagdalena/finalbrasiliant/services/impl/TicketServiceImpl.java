@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -34,9 +35,9 @@ public class TicketServiceImpl implements TicketService {
 
     @Override
     @Transactional
-    public TicketResponse create(TicketCreateRequest request) {
-        var trip = tripRepo.findById(request.tripId()).orElseThrow(
-                () -> new NotFoundException("Trip %d not found".formatted(request.tripId())));
+    public TicketResponse create(Long tripId, TicketCreateRequest request) {
+        var trip = tripRepo.findById(tripId).orElseThrow(
+                () -> new NotFoundException("Trip %d not found".formatted(tripId)));
         var fromStop = stopRepo.findById(request.fromStopId()).orElseThrow(
                 () -> new NotFoundException("Stop %d not found".formatted(request.fromStopId())));
         var toStop = stopRepo.findById(request.toStopId()).orElseThrow(
@@ -59,12 +60,13 @@ public class TicketServiceImpl implements TicketService {
         ticket.setFromStop(fromStop);
         ticket.setToStop(toStop);
         ticket.setPassenger(passenger);
+        ticket.setQrCode(generateQRCode());
 
-        var saved = ticketRepo.save(ticket);
-        //Just for local demo in React front-end
-        saved.setQrCode("http://localhost:3000/tickets/%d".formatted(saved.getId()));
+        return mapper.toResponse(ticketRepo.save(ticket));
+    }
 
-        return mapper.toResponse(ticketRepo.save(saved));
+    private String generateQRCode(){
+        return "TKT-" + UUID.randomUUID().toString().substring(0, 11).toUpperCase();
     }
 
     @Override
@@ -77,6 +79,9 @@ public class TicketServiceImpl implements TicketService {
     public TicketResponse update(Long id, TicketUpdateRequest request) {
         var ticket = ticketRepo.findById(id).orElseThrow(() -> new NotFoundException("Ticket %d not found".formatted(id)));
         mapper.patch(ticket, request);
+
+        //I gotta add the logic for refunds.
+
         return mapper.toResponse(ticketRepo.save(ticket));
     }
 
@@ -100,9 +105,10 @@ public class TicketServiceImpl implements TicketService {
     }
 
     @Override
-    //This method could be removed
     public TicketResponse getByQRCode(String qrCode) {
-        return null;
+        return ticketRepo.findByQrCode(qrCode).map(mapper::toResponse).orElseThrow(
+                () -> new NotFoundException("Ticket '%s' not found".formatted(qrCode))
+        );
     }
 
     @Override
@@ -118,7 +124,7 @@ public class TicketServiceImpl implements TicketService {
     @Override
     public Page<TicketResponse> listByCreatedAt(OffsetDateTime start, OffsetDateTime end, Pageable pageable) {
         if (end.isBefore(start)) throw new IllegalArgumentException("End time can't be before start time");
-        return null;
+        return ticketRepo.findByCreatedAtBetween(start, end, pageable).map(mapper::toResponse);
     }
 
     @Override
@@ -135,21 +141,23 @@ public class TicketServiceImpl implements TicketService {
 
     @Override
     public List<TicketResponse> listByStretch(Long fromId, Long toId) {
-        stopRepo.findById(fromId).orElseThrow(
-                () -> new NotFoundException("Stop %d not found".formatted(fromId))
-        );
-        stopRepo.findById(toId).orElseThrow(
-                () -> new NotFoundException("Stop %d not found".formatted(toId))
-        );
+        if (fromId == null && toId == null) throw new IllegalArgumentException("From id and To id can't be null");
+
+        if (fromId != null) stopRepo.findById(fromId).orElseThrow(() -> new NotFoundException("Stop %d not found".formatted(fromId)));
+        if (toId != null) stopRepo.findById(toId).orElseThrow(() -> new NotFoundException("Stop %d not found".formatted(toId)));
+
         return ticketRepo.findAllByStretch(fromId, toId).stream().map((mapper::toResponse)).toList();
     }
 
     @Override
-    @Scheduled(fixedRate = 60000, initialDelay = 30000) //This will execute for each minute after 30 seconds of starting the app
+    //This will execute for each minute after 30 seconds of starting the app
+    @Scheduled(fixedRate = 60000, initialDelay = 30000)
+    @Transactional
     public void setTicketsNoShow() {
         var noShow = ticketRepo.findByPassengerNoShow();
         if (noShow.isEmpty()) return;
-        noShow.forEach(t -> mapper.patch(t, new TicketUpdateRequest(null, null, null, TicketStatus.NO_SHOW)));
-        //And... what now?
+
+        noShow.forEach(t -> t.setStatus(TicketStatus.NO_SHOW));
+        ticketRepo.saveAll(noShow);
     }
 }

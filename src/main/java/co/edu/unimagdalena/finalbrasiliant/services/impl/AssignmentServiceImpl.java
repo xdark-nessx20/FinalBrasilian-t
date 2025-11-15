@@ -29,9 +29,9 @@ public class AssignmentServiceImpl implements AssignmentService {
 
     @Override
     @Transactional
-    public AssignmentResponse create(AssignmentCreateRequest request) {
-        var trip = tripRepo.findById(request.tripId()).orElseThrow(
-                () -> new NotFoundException("Trip %d not found.".formatted(request.tripId()))
+    public AssignmentResponse create(Long tripId, AssignmentCreateRequest request) {
+        var trip = tripRepo.findById(tripId).orElseThrow(
+                () -> new NotFoundException("Trip %d not found.".formatted(tripId))
         );
         if (assignmentRepo.findByTrip_Id(trip.getId()).isPresent())
             throw new AlreadyExistsException("Trip %d already has an assignment. Maybe you wanna update the assignment.".formatted(trip.getId()));

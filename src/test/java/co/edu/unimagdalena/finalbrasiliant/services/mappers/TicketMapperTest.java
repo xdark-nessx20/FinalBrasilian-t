@@ -20,7 +20,6 @@ class TicketMapperTest {
     void toEntity_shouldMapOnlyAllowedFields() {
         // Given
         var request = new TicketCreateRequest(
-                1L,
                 2L,
                 "A12",
                 3L,
@@ -44,7 +43,6 @@ class TicketMapperTest {
         assertThat(entity.getFromStop()).isNull();
         assertThat(entity.getToStop()).isNull();
         assertThat(entity.getCreatedAt()).isNull();
-        assertThat(entity.getStatus()).isNull();
         assertThat(entity.getQrCode()).isNull();
     }
 

@@ -1,6 +1,6 @@
 package co.edu.unimagdalena.finalbrasiliant.domain.enums;
 
 public enum ParcelStatus {
-    CREATED, IN_TRANSIT,
+    CREATED, IN_TRANSIT, IN_DELIVERY,
     DELIVERED, FAILED
 }
