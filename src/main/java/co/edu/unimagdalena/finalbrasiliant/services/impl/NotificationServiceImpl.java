@@ -5,6 +5,7 @@ import co.edu.unimagdalena.finalbrasiliant.domain.enums.PaymentMethod;
 import co.edu.unimagdalena.finalbrasiliant.services.NotificationService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Profile;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -14,6 +15,7 @@ import java.math.BigDecimal;
 @Profile({"dev", "test"})
 public class NotificationServiceImpl implements NotificationService {
     @Override
+    @Async
     public void sendTicketConfirmation(String phoneNumber, String passengerName, Long ticketId, String seatNumber, String qrCode) {
         var message = """
             TICKET BUYING CONFIRMATION
@@ -27,6 +29,17 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
+    public void sendTicketUsed(String phoneNumber, String passengerName, Long ticketId, String route) {
+        var message = """
+            TICKET USED
+            Hello %s, your ticket #%d has been used!
+            Route: %s
+        """.formatted(passengerName, ticketId, route);
+        sendNotif(phoneNumber, NotificationType.TICKET_USED, message);
+    }
+
+    @Override
+    @Async
     public void sendTicketCancellation(String phoneNumber, String passengerName, Long ticketId, BigDecimal refundAmount, PaymentMethod paymentMethod) {
         var message = """
             TICKET CANCELLATION
@@ -38,6 +51,7 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
+    @Async
     public void sendParcelCreated(String phoneNumber, String senderName, String parcelCode, String receiverName) {
         var message = """
             PARCEL CONFIRMED
@@ -48,6 +62,7 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
+    @Async
     public void sendParcelInTransit(String phoneNumber, String receiverName, String parcelCode) {
         var message = """
             PARCEL STATUS UPDATED
@@ -57,6 +72,7 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
+    @Async
     public void sendParcelReadyForPickup(String phoneNumber, String receiverName, String parcelCode, String deliveryOTP, String pickupLocation) {
         var message = """
             PARCEL READY FOR PICKUP
@@ -67,6 +83,7 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
+    @Async
     public void sendParcelDelivered(String phoneNumber, String receiverName, String parcelCode) {
         var message = """
             PARCEL DELIVERED
@@ -76,12 +93,15 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public void sendParcelDeliveryFailed(String phoneNumber, String receiverName, String parcelCode, String reason) {
+    @Async
+    public void sendParcelDeliveryFailed(String phoneNumber, String receiverName, String parcelCode, Long parcelId) {
         var message = """
             PARCEL DELIVERY FAILED
-            Hello %s, your parcel with code '%s' couldn't be delivered
-            because %s
-        """.formatted(receiverName, parcelCode, reason);
+            Hello %s, your parcel with code '%s' couldn't be delivered!
+            For more info, you should search a PARCEL incident for the parcel #%d
+        """.formatted(receiverName, parcelCode, parcelId);
+
+        sendNotif(phoneNumber, NotificationType.PARCEL_DELIVERY_FAIL, message);
     }
 
     private void sendNotif(String phone, NotificationType type, String message){

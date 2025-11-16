@@ -7,6 +7,8 @@ import java.math.BigDecimal;
 public interface NotificationService {
     void sendTicketConfirmation(String phoneNumber, String passengerName, Long ticketId, String seatNumber, String qrCode);
 
+    void sendTicketUsed(String phoneNumber, String passengerName, Long ticketId, String route);
+
     void sendTicketCancellation(String phoneNumber, String passengerName, Long ticketId, BigDecimal refundAmount, PaymentMethod paymentMethod);
 
     void sendParcelCreated(String phoneNumber, String senderName, String parcelCode, String receiverName);
@@ -17,5 +19,5 @@ public interface NotificationService {
 
     void sendParcelDelivered(String phoneNumber, String receiverName, String parcelCode);
 
-    void sendParcelDeliveryFailed(String phoneNumber, String receiverName, String parcelCode, String reason);
+    void sendParcelDeliveryFailed(String phoneNumber, String receiverName, String parcelCode, Long parcelId);
 }

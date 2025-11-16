@@ -4,8 +4,10 @@ import co.edu.unimagdalena.finalbrasiliant.api.dto.TicketDTOs.*;
 import co.edu.unimagdalena.finalbrasiliant.domain.enums.PaymentMethod;
 import co.edu.unimagdalena.finalbrasiliant.domain.enums.SeatHoldStatus;
 import co.edu.unimagdalena.finalbrasiliant.domain.enums.TicketStatus;
+import co.edu.unimagdalena.finalbrasiliant.domain.enums.TripStatus;
 import co.edu.unimagdalena.finalbrasiliant.domain.repositories.*;
 import co.edu.unimagdalena.finalbrasiliant.exceptions.AlreadyExistsException;
+import co.edu.unimagdalena.finalbrasiliant.exceptions.ItCantBeException;
 import co.edu.unimagdalena.finalbrasiliant.exceptions.NotFoundException;
 import co.edu.unimagdalena.finalbrasiliant.services.NotificationService;
 import co.edu.unimagdalena.finalbrasiliant.services.TicketService;
@@ -17,6 +19,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -64,7 +68,10 @@ public class TicketServiceImpl implements TicketService {
         ticket.setPassenger(passenger);
         ticket.setQrCode(generateQRCode());
 
-        return mapper.toResponse(ticketRepo.save(ticket), true);
+        var saved = ticketRepo.save(ticket);
+        notif.sendTicketConfirmation(passenger.getPhone(), passenger.getUserName(), saved.getId(), saved.getSeatNumber(), saved.getQrCode());
+
+        return mapper.toResponse(saved, true);
     }
 
     private String generateQRCode(){
@@ -81,11 +88,29 @@ public class TicketServiceImpl implements TicketService {
     @Transactional
     public TicketResponse update(Long id, TicketUpdateRequest request) {
         var ticket = ticketRepo.findById(id).orElseThrow(() -> new NotFoundException("Ticket %d not found".formatted(id)));
+        if (request.status() != null && ticket.getTrip().getStatus().equals(TripStatus.DEPARTED)
+                && request.status().equals(TicketStatus.CANCELLED))
+            throw new ItCantBeException("You can't cancel your ticket 'cause the trip already departed.");
+
         mapper.patch(ticket, request);
+        var updated = ticketRepo.save(ticket);
+        var passenger = updated.getPassenger();
 
-        //I gotta add the logic for refunds.
+        if (updated.getStatus().equals(TicketStatus.CANCELLED)){
+            var tripDeparture = updated.getTrip().getDepartureAt();
+            var diff = Duration.between(OffsetDateTime.now(), tripDeparture).toHours();
+            BigDecimal percentToRefund;
+            if (diff < 3) percentToRefund = BigDecimal.valueOf(.40);
+            else if (diff < 12) percentToRefund = BigDecimal.valueOf(.50);
+            else if (diff < 24) percentToRefund = BigDecimal.valueOf(.60);
+            else percentToRefund = BigDecimal.valueOf(.70);
 
-        return mapper.toResponse(ticketRepo.save(ticket), false);
+            notif.sendTicketCancellation(passenger.getPhone(), passenger.getUserName(),
+                    id, updated.getPrice().multiply(percentToRefund), updated.getPaymentMethod());
+        } else if (updated.getStatus().equals(TicketStatus.USED))
+            notif.sendTicketUsed(passenger.getPhone(), passenger.getUserName(), id, updated.getTrip().getRoute().getRouteName());
+
+        return mapper.toResponse(updated, false);
     }
 
     @Override

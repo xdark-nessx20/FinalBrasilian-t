@@ -1,10 +1,14 @@
 package co.edu.unimagdalena.finalbrasiliant.services.impl;
 
+import co.edu.unimagdalena.finalbrasiliant.api.dto.IncidentDTOs.IncidentCreateRequest;
 import co.edu.unimagdalena.finalbrasiliant.api.dto.ParcelDTOs.*;
+import co.edu.unimagdalena.finalbrasiliant.domain.enums.EntityType;
+import co.edu.unimagdalena.finalbrasiliant.domain.enums.IncidentType;
 import co.edu.unimagdalena.finalbrasiliant.domain.enums.ParcelStatus;
 import co.edu.unimagdalena.finalbrasiliant.domain.repositories.ParcelRepository;
 import co.edu.unimagdalena.finalbrasiliant.domain.repositories.StopRepository;
 import co.edu.unimagdalena.finalbrasiliant.exceptions.NotFoundException;
+import co.edu.unimagdalena.finalbrasiliant.services.IncidentService;
 import co.edu.unimagdalena.finalbrasiliant.services.NotificationService;
 import co.edu.unimagdalena.finalbrasiliant.services.ParcelService;
 import co.edu.unimagdalena.finalbrasiliant.services.mappers.ParcelMapper;
@@ -25,6 +29,7 @@ public class ParcelServiceImpl implements ParcelService {
     private final StopRepository stopRepo;
     private final ParcelMapper mapper;
     private final NotificationService notif;
+    private final IncidentService incidents;
 
     @Override
     @Transactional
@@ -39,6 +44,8 @@ public class ParcelServiceImpl implements ParcelService {
         parcel.setFromStop(fromStop);
         parcel.setToStop(toStop);
         parcel.setCode(generateCode());
+
+        notif.sendParcelCreated(parcel.getReceiverPhone(), parcel.getSenderName(), parcel.getCode(), parcel.getReceiverName());
 
         return mapper.toResponse(parcelRepo.save(parcel));
     }
@@ -60,11 +67,23 @@ public class ParcelServiceImpl implements ParcelService {
                 () -> new NotFoundException("Parcel %d not found.".formatted(id))
         );
         mapper.patch(parcel, request);
-        if (parcel.getStatus().equals(ParcelStatus.READY_FOR_PICKUP))
-            parcel.setDeliveryOTP(UUID.randomUUID().toString().substring(0, 10).toUpperCase());
-
         var updated = parcelRepo.save(parcel);
-        //Here's when we must send a notification to the receiver
+
+        switch (updated.getStatus()) {
+            case IN_TRANSIT -> notif.sendParcelInTransit(updated.getReceiverPhone(), updated.getReceiverName(),  updated.getCode());
+            case READY_FOR_PICKUP -> {
+                updated.setDeliveryOTP(UUID.randomUUID().toString().substring(0, 10).toUpperCase());
+                notif.sendParcelReadyForPickup(updated.getReceiverPhone(), updated.getReceiverName(),
+                        updated.getCode(), updated.getDeliveryOTP(), updated.getToStop().getName());
+            }
+            case DELIVERED -> notif.sendParcelDelivered(updated.getReceiverPhone(), updated.getReceiverName(), updated.getCode());
+            case FAILED -> {
+                incidents.create(new IncidentCreateRequest(EntityType.PARCEL, updated.getId(),
+                        IncidentType.DELIVERY_FAIL, "OTP failed!"));
+                notif.sendParcelDeliveryFailed(updated.getReceiverPhone(), updated.getReceiverName(), updated.getCode(), updated.getId());
+            }
+            default -> {}
+        }
 
         return mapper.toResponse(updated);
     }
