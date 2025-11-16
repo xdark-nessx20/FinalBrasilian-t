@@ -7,6 +7,7 @@ import co.edu.unimagdalena.finalbrasiliant.domain.enums.TicketStatus;
 import co.edu.unimagdalena.finalbrasiliant.domain.repositories.*;
 import co.edu.unimagdalena.finalbrasiliant.exceptions.AlreadyExistsException;
 import co.edu.unimagdalena.finalbrasiliant.exceptions.NotFoundException;
+import co.edu.unimagdalena.finalbrasiliant.services.NotificationService;
 import co.edu.unimagdalena.finalbrasiliant.services.TicketService;
 import co.edu.unimagdalena.finalbrasiliant.services.mappers.TicketMapper;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +33,7 @@ public class TicketServiceImpl implements TicketService {
     private final SeatRepository seatRepo;
     private final SeatHoldRepository seatHoldRepo;
     private final TicketMapper mapper;
+    private final NotificationService notif;
 
     @Override
     @Transactional

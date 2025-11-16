@@ -5,6 +5,7 @@ import co.edu.unimagdalena.finalbrasiliant.domain.enums.ParcelStatus;
 import co.edu.unimagdalena.finalbrasiliant.domain.repositories.ParcelRepository;
 import co.edu.unimagdalena.finalbrasiliant.domain.repositories.StopRepository;
 import co.edu.unimagdalena.finalbrasiliant.exceptions.NotFoundException;
+import co.edu.unimagdalena.finalbrasiliant.services.NotificationService;
 import co.edu.unimagdalena.finalbrasiliant.services.ParcelService;
 import co.edu.unimagdalena.finalbrasiliant.services.mappers.ParcelMapper;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +24,7 @@ public class ParcelServiceImpl implements ParcelService {
     private final ParcelRepository parcelRepo;
     private final StopRepository stopRepo;
     private final ParcelMapper mapper;
+    private final NotificationService notif;
 
     @Override
     @Transactional
@@ -58,10 +60,13 @@ public class ParcelServiceImpl implements ParcelService {
                 () -> new NotFoundException("Parcel %d not found.".formatted(id))
         );
         mapper.patch(parcel, request);
-        if (parcel.getStatus().equals(ParcelStatus.IN_DELIVERY)) //IN_DELIVERY or READY_FOR_PICKUP?
+        if (parcel.getStatus().equals(ParcelStatus.READY_FOR_PICKUP))
             parcel.setDeliveryOTP(UUID.randomUUID().toString().substring(0, 10).toUpperCase());
 
-        return mapper.toResponse(parcelRepo.save(parcel));
+        var updated = parcelRepo.save(parcel);
+        //Here's when we must send a notification to the receiver
+
+        return mapper.toResponse(updated);
     }
 
     @Override
