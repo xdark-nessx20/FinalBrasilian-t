@@ -448,4 +448,48 @@ class TripServiceImplTest {
         assertThat(result.getContent()).hasSize(2);
         assertThat(result.getContent()).allMatch(t -> t.date().equals(date));
     }
+    
+    @Test
+    void shouldGetTripsByRouteIdAndDate() {
+        // Given
+        Long routeId = 5L;
+        LocalDate date = LocalDate.of(2025, 11, 15);
+        
+        var bus = Bus.builder().id(1L).build();
+        var route = Route.builder().id(routeId).build();
+
+        var trip1 = Trip.builder()
+                .id(1L)
+                .bus(bus)
+                .route(route)
+                .date(date)
+                .departureAt(OffsetDateTime.now())
+                .arrivalETA(OffsetDateTime.now().plusHours(3))
+                .status(TripStatus.SCHEDULED)
+                .build();
+
+        var trip2 = Trip.builder()
+                .id(2L)
+                .bus(bus)
+                .route(route)
+                .date(date)
+                .departureAt(OffsetDateTime.now().plusHours(6))
+                .arrivalETA(OffsetDateTime.now().plusHours(9))
+                .status(TripStatus.DEPARTED)
+                .build();
+
+        when(tripRepo.findAllByRoute_IdAndDate(routeId, date))
+                .thenReturn(List.of(trip1, trip2));
+
+        // When
+        var result = service.getByRouteIdAndDate(routeId, date);
+
+        // Then
+        assertThat(result).hasSize(2);
+        assertThat(result).allMatch(t -> t.route_id() == routeId);
+        assertThat(result).allMatch(t -> t.date().equals(date));
+        assertThat(result.get(0).id()).isEqualTo(1L);
+        assertThat(result.get(1).id()).isEqualTo(2L);
+        verify(tripRepo).findAllByRoute_IdAndDate(routeId, date);
+    }
 }

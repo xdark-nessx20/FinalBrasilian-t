@@ -465,4 +465,73 @@ class TripControllerIntegrationTest {
                 .andExpect(jsonPath("$.content[*].date", everyItem(is(targetDate.toString()))))
                 .andExpect(jsonPath("$.totalElements").value(2));
     }
+    
+    @Test
+    void testGetByRouteIdAndDate_Success() throws Exception {
+        // Given
+        LocalDate targetDate = LocalDate.now();
+
+        Trip trip1 = Trip.builder()
+                .route(testRoute)
+                .bus(testBus)
+                .date(targetDate)
+                .departureAt(OffsetDateTime.now())
+                .arrivalETA(OffsetDateTime.now().plusHours(2))
+                .status(TripStatus.SCHEDULED)
+                .build();
+
+        Trip trip2 = Trip.builder()
+                .route(testRoute)
+                .bus(testBus)
+                .date(targetDate)
+                .departureAt(OffsetDateTime.now().plusHours(4))
+                .arrivalETA(OffsetDateTime.now().plusHours(6))
+                .status(TripStatus.DEPARTED)
+                .build();
+
+        // Trip with different route (should not be included)
+        Route otherRoute = Route.builder()
+                .code("RT002")
+                .routeName("Barranquilla - Cartagena")
+                .origin("Barranquilla")
+                .destination("Cartagena")
+                .distanceKM(new BigDecimal("120.00"))
+                .durationMin(90)
+                .build();
+        otherRoute = routeRepository.save(otherRoute);
+
+        Trip trip3 = Trip.builder()
+                .route(otherRoute)
+                .bus(testBus)
+                .date(targetDate)
+                .departureAt(OffsetDateTime.now())
+                .arrivalETA(OffsetDateTime.now().plusHours(2))
+                .status(TripStatus.SCHEDULED)
+                .build();
+
+        // Trip with different date (should not be included)
+        Trip trip4 = Trip.builder()
+                .route(testRoute)
+                .bus(testBus)
+                .date(LocalDate.now().plusDays(1))
+                .departureAt(OffsetDateTime.now().plusDays(1))
+                .arrivalETA(OffsetDateTime.now().plusDays(1).plusHours(2))
+                .status(TripStatus.SCHEDULED)
+                .build();
+
+        tripRepository.save(trip1);
+        tripRepository.save(trip2);
+        tripRepository.save(trip3);
+        tripRepository.save(trip4);
+
+        // When & Then
+        mockMvc.perform(get("/api/v1/trips/search")
+                        .param("routeId", testRoute.getId().toString())
+                        .param("date", targetDate.toString()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$", hasSize(2)))
+                .andExpect(jsonPath("$[*].route_id", everyItem(is(testRoute.getId().intValue()))))
+                .andExpect(jsonPath("$[*].date", everyItem(is(targetDate.toString()))));
+    }
 }

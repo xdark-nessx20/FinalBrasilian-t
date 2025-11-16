@@ -21,4 +21,5 @@ public interface TripRepository extends JpaRepository<Trip, Long> {
     Page<Trip> findAllByStatus(TripStatus status, Pageable page);
     List<Trip> findAllByRoute_IdAndStatus(Long routeId, TripStatus status);
     Page<Trip> findAllByDate(LocalDate date, Pageable page);
+    List<Trip> findAllByRoute_IdAndDate(Long route_id, LocalDate date);
 }

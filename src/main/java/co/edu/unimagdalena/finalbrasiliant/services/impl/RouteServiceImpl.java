@@ -127,4 +127,13 @@ public class RouteServiceImpl implements RouteService {
 		}
 		return routes.map(routeMapper::toResponse);
 	}
+	
+	@Override
+	public Page<RouteResponse> getAllRoutes(Pageable pageable){
+		Page<Route> routes = routeRepo.findAll(pageable);
+		if (routes.isEmpty()) {
+		    throw new NotFoundException("No routes found");
+		}
+		return routes.map(routeMapper::toResponse);
+	}
 }

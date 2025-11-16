@@ -495,4 +495,49 @@ class RouteControllerIntegrationTest {
                 .andExpect(jsonPath("$.content[*].destination", everyItem(is("Cartagena"))))
                 .andExpect(jsonPath("$.totalElements").value(2));
     }
+    
+    @Test
+    void testGetAllRoutes_Success() throws Exception {
+        // Given
+        Route route1 = Route.builder()
+                .code("RT028")
+                .routeName("Santa Marta - Barranquilla")
+                .origin("Santa Marta")
+                .destination("Barranquilla")
+                .distanceKM(new BigDecimal("95.50"))
+                .durationMin(120)
+                .build();
+
+        Route route2 = Route.builder()
+                .code("RT029")
+                .routeName("Bogotá - Medellín")
+                .origin("Bogotá")
+                .destination("Medellín")
+                .distanceKM(new BigDecimal("415.00"))
+                .durationMin(480)
+                .build();
+
+        Route route3 = Route.builder()
+                .code("RT030")
+                .routeName("Cartagena - Santa Marta")
+                .origin("Cartagena")
+                .destination("Santa Marta")
+                .distanceKM(new BigDecimal("220.00"))
+                .durationMin(240)
+                .build();
+
+        routeRepository.save(route1);
+        routeRepository.save(route2);
+        routeRepository.save(route3);
+
+        // When & Then
+        mockMvc.perform(get("/api/v1/routes")
+                        .param("page", "0")
+                        .param("size", "10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content").isArray())
+                .andExpect(jsonPath("$.content", hasSize(3)))
+                .andExpect(jsonPath("$.totalElements").value(3))
+                .andExpect(jsonPath("$.content[*].code", containsInAnyOrder("RT028", "RT029", "RT030")));
+    }
 }
