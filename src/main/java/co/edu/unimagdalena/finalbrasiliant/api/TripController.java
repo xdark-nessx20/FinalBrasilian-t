@@ -111,4 +111,10 @@ public class TripController {
 	     var page = service.getByDate(date, pageable);
 	     return ResponseEntity.ok(page);
 	    }
+	 
+	 @GetMapping("/trips/search")
+	 public ResponseEntity<List<TripResponse>> getByRouteIdAndDate(@RequestParam Long routeId, 
+			 @RequestParam LocalDate date) {
+	     return ResponseEntity.ok(service.getByRouteIdAndDate(routeId, date));
+	    }
 }

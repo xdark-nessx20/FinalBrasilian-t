@@ -107,4 +107,10 @@ public class RouteController {
         var page = service.getByOriginAndDestination(origin, destination, pageable);
         return ResponseEntity.ok(page);
     }
+    
+    @GetMapping
+    public ResponseEntity<Page<RouteResponse>> getAllRoutes(Pageable pageable) {
+        var page = service.getAllRoutes(pageable);
+        return ResponseEntity.ok(page);
+    }
 }

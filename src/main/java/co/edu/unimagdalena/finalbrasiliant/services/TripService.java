@@ -24,4 +24,5 @@ public interface TripService {
     Page<TripResponse> getByStatus(TripStatus status, Pageable page);
     List<TripResponse> getByRouteIdAndStatus(Long route_id, TripStatus status);
     Page<TripResponse> getByDate(LocalDate date, Pageable page);
+    List<TripResponse> getByRouteIdAndDate(Long route_id, LocalDate date);
 }

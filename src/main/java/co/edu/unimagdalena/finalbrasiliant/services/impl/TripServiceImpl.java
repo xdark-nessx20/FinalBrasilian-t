@@ -130,4 +130,13 @@ public class TripServiceImpl implements TripService {
 		}
 		return trips.map(tripMapper::toResponse);
 	}
+	
+	@Override
+	public List<TripResponse> getByRouteIdAndDate(Long route_id, LocalDate date){
+		List<Trip> trips = tripRepo.findAllByRoute_IdAndDate(route_id, date);
+		if(trips.isEmpty()) {
+			throw new NotFoundException("No trips found in route %s and date %s".formatted(route_id, date));
+		}
+		return trips.stream().map(tripMapper::toResponse).toList();
+	}
 }
