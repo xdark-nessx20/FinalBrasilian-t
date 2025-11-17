@@ -69,7 +69,7 @@ class AssignmentServiceImplTest {
                 .userName("Carlos Dispatcher")
                 .build();
 
-        var request = new AssignmentCreateRequest(1L, 2L,  true);
+        var request = new AssignmentCreateRequest(2L, 3L,  true);
 
         when(tripRepo.findById(1L)).thenReturn(Optional.of(trip));
         when(assignmentRepo.findByTrip_Id(1L)).thenReturn(Optional.empty());
@@ -137,7 +137,7 @@ class AssignmentServiceImplTest {
     void shouldThrowNotFoundExceptionWhenDriverNotExists() {
         // Given
         var trip = Trip.builder().id(1L).departureAt(OffsetDateTime.now()).build();
-        var request = new AssignmentCreateRequest(1L, 99L,  true);
+        var request = new AssignmentCreateRequest(99L, 3L,  true);
 
         when(tripRepo.findById(1L)).thenReturn(Optional.of(trip));
         when(assignmentRepo.findByTrip_Id(1L)).thenReturn(Optional.empty());
@@ -157,7 +157,7 @@ class AssignmentServiceImplTest {
         OffsetDateTime departureAt = OffsetDateTime.now().plusDays(1);
         var trip = Trip.builder().id(1L).departureAt(departureAt).build();
         var driver = User.builder().id(2L).userName("Juan").build();
-        var request = new AssignmentCreateRequest(1L, 2L,  true);
+        var request = new AssignmentCreateRequest(2L, 3L,  true);
 
         when(tripRepo.findById(1L)).thenReturn(Optional.of(trip));
         when(assignmentRepo.findByTrip_Id(1L)).thenReturn(Optional.empty());
@@ -178,7 +178,7 @@ class AssignmentServiceImplTest {
         OffsetDateTime departureAt = OffsetDateTime.now().plusDays(1);
         var trip = Trip.builder().id(1L).departureAt(departureAt).build();
         var driver = User.builder().id(2L).build();
-        var request = new AssignmentCreateRequest(1L, 2L,  true);
+        var request = new AssignmentCreateRequest(2L, 99L,  true);
 
         when(tripRepo.findById(1L)).thenReturn(Optional.of(trip));
         when(assignmentRepo.findByTrip_Id(1L)).thenReturn(Optional.empty());
@@ -201,7 +201,7 @@ class AssignmentServiceImplTest {
         var trip = Trip.builder().id(1L).departureAt(departureAt).build();
         var driver = User.builder().id(2L).build();
         var dispatcher = User.builder().id(3L).build();
-        var request = new AssignmentCreateRequest(1L, 2L,  true);
+        var request = new AssignmentCreateRequest(2L, 3L,  true);
 
         when(tripRepo.findById(1L)).thenReturn(Optional.of(trip));
         when(assignmentRepo.findByTrip_Id(1L)).thenReturn(Optional.empty());

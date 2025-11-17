@@ -4,9 +4,13 @@ import co.edu.unimagdalena.finalbrasiliant.api.dto.TicketDTOs.*;
 import co.edu.unimagdalena.finalbrasiliant.domain.enums.PaymentMethod;
 import co.edu.unimagdalena.finalbrasiliant.domain.enums.SeatHoldStatus;
 import co.edu.unimagdalena.finalbrasiliant.domain.enums.TicketStatus;
+import co.edu.unimagdalena.finalbrasiliant.domain.enums.TripStatus;
 import co.edu.unimagdalena.finalbrasiliant.domain.repositories.*;
 import co.edu.unimagdalena.finalbrasiliant.exceptions.AlreadyExistsException;
+import co.edu.unimagdalena.finalbrasiliant.exceptions.ItCantBeException;
 import co.edu.unimagdalena.finalbrasiliant.exceptions.NotFoundException;
+import co.edu.unimagdalena.finalbrasiliant.services.ConfigService;
+import co.edu.unimagdalena.finalbrasiliant.services.NotificationService;
 import co.edu.unimagdalena.finalbrasiliant.services.TicketService;
 import co.edu.unimagdalena.finalbrasiliant.services.mappers.TicketMapper;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +20,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -31,7 +37,10 @@ public class TicketServiceImpl implements TicketService {
     private final UserRepository userRepo;
     private final SeatRepository seatRepo;
     private final SeatHoldRepository seatHoldRepo;
+    private final FareRuleRepository fareRuleRepo;
     private final TicketMapper mapper;
+    private final NotificationService notif;
+    private final ConfigService configs;
 
     @Override
     @Transactional
@@ -55,14 +64,30 @@ public class TicketServiceImpl implements TicketService {
                 .stream().noneMatch(sh -> sh.getSeatNumber().equals(request.seatNumber())))
             throw new AlreadyExistsException("The seat %s is hold by another passenger.".formatted(request.seatNumber()));
 
+        var fareRule = fareRuleRepo.findByRouteIdAndFromStopIdAndToStopId(
+            trip.getRoute().getId(), fromStop.getId(), toStop.getId()).orElseThrow(
+            () -> new NotFoundException("There's no fare rule from '%s' to '%s'.".formatted(fromStop.getName(), toStop.getName()))
+        );
+
         var ticket = mapper.toEntity(request);
         ticket.setTrip(trip);
         ticket.setFromStop(fromStop);
         ticket.setToStop(toStop);
         ticket.setPassenger(passenger);
+        ticket.setPrice(fareRule.getBasePrice().multiply(
+                BigDecimal.ONE.subtract(fareRule.getDiscounts().getOrDefault(request.type(), BigDecimal.ZERO))
+        ));
         ticket.setQrCode(generateQRCode());
 
-        return mapper.toResponse(ticketRepo.save(ticket));
+        if (ticketRepo.wasNoShowTicket(tripId, ticket.getSeatNumber(),  fromStop.getStopOrder(), toStop.getStopOrder()))
+            ticket.setPrice(ticket.getPrice().multiply(
+                    configs.getValue("ticket.no-show.fee").add(BigDecimal.valueOf(1))
+            ));
+
+        var saved = ticketRepo.save(ticket);
+        notif.sendTicketConfirmation(passenger.getPhone(), passenger.getUserName(), saved.getId(), saved.getSeatNumber(), saved.getQrCode());
+
+        return mapper.toResponse(saved, true);
     }
 
     private String generateQRCode(){
@@ -71,18 +96,37 @@ public class TicketServiceImpl implements TicketService {
 
     @Override
     public TicketResponse get(Long id) {
-        return ticketRepo.findById(id).map(mapper::toResponse).orElseThrow(() -> new NotFoundException("Ticket %d not found".formatted(id)));
+        var ticket = ticketRepo.findById(id).orElseThrow(() -> new NotFoundException("Ticket %d not found".formatted(id)));
+        return mapper.toResponse(ticket, true);
     }
 
     @Override
     @Transactional
     public TicketResponse update(Long id, TicketUpdateRequest request) {
-        var ticket = ticketRepo.findById(id).orElseThrow(() -> new NotFoundException("Ticket %d not found".formatted(id)));
+        var ticket = ticketRepo.findByIdWithAll(id).orElseThrow(() -> new NotFoundException("Ticket %d not found".formatted(id)));
+        if (request.status() != null && ticket.getTrip().getStatus().equals(TripStatus.DEPARTED)
+                && request.status().equals(TicketStatus.CANCELLED))
+            throw new ItCantBeException("You can't cancel your ticket 'cause the trip already departed.");
+
         mapper.patch(ticket, request);
+        var updated = ticketRepo.save(ticket);
+        var passenger = updated.getPassenger();
 
-        //I gotta add the logic for refunds.
+        if (updated.getStatus().equals(TicketStatus.CANCELLED)){
+            var tripDeparture = updated.getTrip().getDepartureAt();
+            var diff = Duration.between(OffsetDateTime.now(), tripDeparture).toHours();
+            BigDecimal percentToRefund;
+            if (diff < 3) percentToRefund = configs.getValue("last.refund.percent");
+            else if (diff < 12) percentToRefund = configs.getValue("third.refund.percent");
+            else if (diff < 24) percentToRefund = configs.getValue("second.refund.percent");
+            else percentToRefund = configs.getValue("initial.refund.percent");
 
-        return mapper.toResponse(ticketRepo.save(ticket));
+            notif.sendTicketCancellation(passenger.getPhone(), passenger.getUserName(),
+                    id, updated.getPrice().multiply(percentToRefund), updated.getPaymentMethod());
+        } else if (updated.getStatus().equals(TicketStatus.USED))
+            notif.sendTicketUsed(passenger.getPhone(), passenger.getUserName(), id, updated.getTrip().getRoute().getRouteName());
+
+        return mapper.toResponse(updated, false);
     }
 
     @Override
@@ -100,43 +144,45 @@ public class TicketServiceImpl implements TicketService {
         seatRepo.findByNumberAndBus_Id(seatNumber, bus.get().getId()).orElseThrow(
                 () -> new NotFoundException("Seat number %s not found".formatted(seatNumber))
         );
-        return ticketRepo.findByTrip_IdAndSeatNumber(tripId, seatNumber).map(mapper::toResponse)
+        var ticket = ticketRepo.findByTrip_IdAndSeatNumber(tripId, seatNumber)
                 .orElseThrow(() -> new NotFoundException("Ticket %d not found".formatted(tripId)));
+        return mapper.toResponse(ticket, false);
+
     }
 
     @Override
     public TicketResponse getByQRCode(String qrCode) {
-        return ticketRepo.findByQrCode(qrCode).map(mapper::toResponse).orElseThrow(
-                () -> new NotFoundException("Ticket '%s' not found".formatted(qrCode))
-        );
+        var ticket = ticketRepo.findByQrCode(qrCode)
+                .orElseThrow(() -> new NotFoundException("Ticket '%s' not found".formatted(qrCode)));
+        return mapper.toResponse(ticket, false);
     }
 
     @Override
     public Page<TicketResponse> listByStatus(TicketStatus status, Pageable pageable) {
-        return ticketRepo.findByStatus(status, pageable).map(mapper::toResponse);
+        return ticketRepo.findByStatus(status, pageable).map(ticket -> mapper.toResponse(ticket, false));
     }
 
     @Override
     public Page<TicketResponse> listByPaymentMethod(PaymentMethod paymentMethod, Pageable pageable) {
-        return ticketRepo.findByPaymentMethod(paymentMethod, pageable).map(mapper::toResponse);
+        return ticketRepo.findByPaymentMethod(paymentMethod, pageable).map(ticket -> mapper.toResponse(ticket, false));
     }
 
     @Override
     public Page<TicketResponse> listByCreatedAt(OffsetDateTime start, OffsetDateTime end, Pageable pageable) {
         if (end.isBefore(start)) throw new IllegalArgumentException("End time can't be before start time");
-        return ticketRepo.findByCreatedAtBetween(start, end, pageable).map(mapper::toResponse);
+        return ticketRepo.findByCreatedAtBetween(start, end, pageable).map(ticket -> mapper.toResponse(ticket, false));
     }
 
     @Override
     public List<TicketResponse> listByPassenger(Long passengerId) {
         userRepo.findById(passengerId).orElseThrow(() -> new NotFoundException("Passenger %d not found".formatted(passengerId)));
-        return ticketRepo.findByPassenger_Id(passengerId).stream().map(mapper::toResponse).toList();
+        return ticketRepo.findByPassenger_Id(passengerId).stream().map(ticket -> mapper.toResponse(ticket, false)).toList();
     }
 
     @Override
     public List<TicketResponse> listByTrip(Long tripId) {
         tripRepo.findById(tripId).orElseThrow(() -> new NotFoundException("Trip %d not found".formatted(tripId)));
-        return ticketRepo.findByTrip_Id(tripId).stream().map((mapper::toResponse)).toList();
+        return ticketRepo.findByTrip_Id(tripId).stream().map(ticket -> mapper.toResponse(ticket, false)).toList();
     }
 
     @Override
@@ -146,7 +192,7 @@ public class TicketServiceImpl implements TicketService {
         if (fromId != null) stopRepo.findById(fromId).orElseThrow(() -> new NotFoundException("Stop %d not found".formatted(fromId)));
         if (toId != null) stopRepo.findById(toId).orElseThrow(() -> new NotFoundException("Stop %d not found".formatted(toId)));
 
-        return ticketRepo.findAllByStretch(fromId, toId).stream().map((mapper::toResponse)).toList();
+        return ticketRepo.findAllByStretch(fromId, toId).stream().map(ticket -> mapper.toResponse(ticket, false)).toList();
     }
 
     @Override

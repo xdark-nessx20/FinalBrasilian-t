@@ -68,7 +68,6 @@ public class BusMapperTest {
                 .id(5L)
                 .plate("XYZ789")
                 .capacity(50)
-                .amenities(Set.of())
                 .status(BusStatus.ON_ROUTE)
                 .build();
 

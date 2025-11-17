@@ -6,6 +6,7 @@ import co.edu.unimagdalena.finalbrasiliant.domain.repositories.TicketRepository;
 import co.edu.unimagdalena.finalbrasiliant.domain.repositories.UserRepository;
 import co.edu.unimagdalena.finalbrasiliant.exceptions.NotFoundException;
 import co.edu.unimagdalena.finalbrasiliant.services.BaggageService;
+import co.edu.unimagdalena.finalbrasiliant.services.ConfigService;
 import co.edu.unimagdalena.finalbrasiliant.services.mappers.BaggageMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -25,6 +26,7 @@ public class BaggageServiceImpl implements BaggageService {
     private final TicketRepository ticketRepo;
     private final UserRepository userRepo;
     private final BaggageMapper mapper;
+    private final ConfigService configService;
 
     @Override
     @Transactional
@@ -33,6 +35,12 @@ public class BaggageServiceImpl implements BaggageService {
         var baggage = mapper.toEntity(request);
         baggage.setTicket(ticket);
         baggage.setTagCode(generateTagCode());
+
+        var weightDiff = baggage.getWeightKg().subtract(configService.getValue("weight.limit"));
+        if (weightDiff.compareTo(BigDecimal.ZERO) > 0) {
+            baggage.setFee(weightDiff.multiply(configService.getValue("baggage.weight.fee")));
+        }
+
         return mapper.toResponse(baggageRepo.save(baggage));
     }
 

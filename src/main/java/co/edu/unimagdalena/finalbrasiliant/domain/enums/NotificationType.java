@@ -1,0 +1,7 @@
+package co.edu.unimagdalena.finalbrasiliant.domain.enums;
+
+public enum NotificationType {
+    TICKET_CONFIRMATION, TICKET_USED, TICKET_CANCELLED, PARCEL_CONFIRMATION,
+    PARCEL_IN_TRANSIT, PARCEL_READY_FOR_PICKUP,
+    PARCEL_DELIVERED, PARCEL_DELIVERY_FAIL
+}

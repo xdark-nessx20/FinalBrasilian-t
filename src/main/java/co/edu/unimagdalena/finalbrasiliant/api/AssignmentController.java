@@ -22,7 +22,7 @@ import java.util.List;
 public class AssignmentController {
     private final AssignmentService service;
 
-    @PostMapping("/trips/{tripId}/assignments")
+    @PostMapping("/trips/{tripId}/assignment")
     public ResponseEntity<AssignmentResponse> createAssignment(@PathVariable Long tripId, @Valid @RequestBody AssignmentCreateRequest request,
                                                                UriComponentsBuilder uriBuilder) {
         var body = service.create(tripId, request);
