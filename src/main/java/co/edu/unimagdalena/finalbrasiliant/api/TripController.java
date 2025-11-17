@@ -72,8 +72,8 @@ public class TripController {
 	     return ResponseEntity.ok(page);
 	    }
 	    
-	 @GetMapping("/trips/by-bus/{busId}")
-	 public ResponseEntity<Page<TripResponse>> getByBusId(@PathVariable Long busId, Pageable pageable) {
+	 @GetMapping("/trips/by-bus")
+	 public ResponseEntity<Page<TripResponse>> getByBusId(@RequestParam Long busId, Pageable pageable) {
 		 var page = service.getAllByBusId(busId, pageable);
 	     return ResponseEntity.ok(page);
 	    }
