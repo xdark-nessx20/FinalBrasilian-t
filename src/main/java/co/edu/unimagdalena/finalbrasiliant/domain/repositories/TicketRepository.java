@@ -19,6 +19,10 @@ public interface TicketRepository extends JpaRepository<Ticket,Long> {
     Optional<Ticket> findByTrip_IdAndSeatNumber(Long tripId, String seatNumber);
 
     @EntityGraph(attributePaths = {"fromStop", "toStop", "passenger", "trip"})
+    @Query("SELECT T FROM Ticket T WHERE T.id = :id")
+    Optional<Ticket> findByIdWithAll(Long id);
+
+    @EntityGraph(attributePaths = {"fromStop", "toStop", "passenger", "trip"})
     @Query("SELECT T FROM Ticket T WHERE T.qrCode = :qrCode")
     Optional<Ticket> findByQrCode(String qrCode);
 
@@ -65,4 +69,16 @@ public interface TicketRepository extends JpaRepository<Ticket,Long> {
         WHERE T.status = 'SOLD' AND (FUNCTION('EXTRACT', 'EPOCH', (CURRENT_TIMESTAMP - Tr.departureAt)) /60) <= 5
     """)
     List<Ticket> findByPassengerNoShow();
+
+    @Query(value = """
+        SELECT EXISTS(
+            SELECT 1 FROM Ticket T 
+                LEFT JOIN Stop FS ON FS.id = T.fromStop.id 
+                LEFT JOIN Stop TS ON TS.id = T.toStop.id
+                WHERE T.trip.id = :tripId AND T.seatNumber = :seatNumber AND T.status = 'NO_SHOW'
+                    AND ((:fromStopOrder BETWEEN FS.stopOrder AND TS.stopOrder) OR (:toStopOrder BETWEEN FS.stopOrder AND TS.stopOrder))
+            )
+    """, nativeQuery = true)
+    boolean wasNoShowTicket(@Param("tripId") Long tripId, @Param("seatNumber") String seatNumber,
+                            @Param("fromStopOrder") Integer fromStopOrder, @Param("toStopOrder") Integer toStopOrder);
 }

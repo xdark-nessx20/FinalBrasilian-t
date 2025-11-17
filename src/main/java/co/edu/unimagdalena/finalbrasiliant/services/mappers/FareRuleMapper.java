@@ -9,6 +9,15 @@ import org.mapstruct.*;
 @Mapper(componentModel = "spring")
 public interface FareRuleMapper {
 
+    @BeforeMapping
+    default void afterToEntity(FareRuleCreateRequest request, @MappingTarget FareRule fareRule) {
+        if (request.discounts() != null && !request.discounts().isEmpty()) {
+            request.discounts().forEach((key, value) -> {
+                fareRule.getDiscounts().put(key, value);
+            });
+        }
+    }
+
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "route", ignore = true)
     @Mapping(target = "fromStop", ignore = true)
@@ -27,7 +36,17 @@ public interface FareRuleMapper {
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE, ignoreByDefault = true)
     @Mapping(target = "basePrice", source = "basePrice")
-    @Mapping(target = "discounts", source = "discounts")
+    @Mapping(target = "discounts", ignore = true)
     @Mapping(target = "dynamicPricing", source = "dynamicPricing")
     void patch(@MappingTarget FareRule target, FareRuleUpdateRequest changes);
+
+    @AfterMapping
+    default void afterPatch(FareRuleUpdateRequest request, @MappingTarget FareRule entity) {
+        if (request.discounts() != null){
+            if (request.discounts().isEmpty()) entity.getDiscounts().clear();
+            else request.discounts().forEach((key, value) -> {
+                entity.getDiscounts().put(key, value);
+            });
+        }
+    }
 }

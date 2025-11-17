@@ -9,6 +9,7 @@ import co.edu.unimagdalena.finalbrasiliant.domain.repositories.*;
 import co.edu.unimagdalena.finalbrasiliant.exceptions.AlreadyExistsException;
 import co.edu.unimagdalena.finalbrasiliant.exceptions.ItCantBeException;
 import co.edu.unimagdalena.finalbrasiliant.exceptions.NotFoundException;
+import co.edu.unimagdalena.finalbrasiliant.services.ConfigService;
 import co.edu.unimagdalena.finalbrasiliant.services.NotificationService;
 import co.edu.unimagdalena.finalbrasiliant.services.TicketService;
 import co.edu.unimagdalena.finalbrasiliant.services.mappers.TicketMapper;
@@ -36,8 +37,10 @@ public class TicketServiceImpl implements TicketService {
     private final UserRepository userRepo;
     private final SeatRepository seatRepo;
     private final SeatHoldRepository seatHoldRepo;
+    private final FareRuleRepository fareRuleRepo;
     private final TicketMapper mapper;
     private final NotificationService notif;
+    private final ConfigService configs;
 
     @Override
     @Transactional
@@ -61,12 +64,25 @@ public class TicketServiceImpl implements TicketService {
                 .stream().noneMatch(sh -> sh.getSeatNumber().equals(request.seatNumber())))
             throw new AlreadyExistsException("The seat %s is hold by another passenger.".formatted(request.seatNumber()));
 
+        var fareRule = fareRuleRepo.findByRouteIdAndFromStopIdAndToStopId(
+            trip.getRoute().getId(), fromStop.getId(), toStop.getId()).orElseThrow(
+            () -> new NotFoundException("There's no fare rule from '%s' to '%s'.".formatted(fromStop.getName(), toStop.getName()))
+        );
+
         var ticket = mapper.toEntity(request);
         ticket.setTrip(trip);
         ticket.setFromStop(fromStop);
         ticket.setToStop(toStop);
         ticket.setPassenger(passenger);
+        ticket.setPrice(fareRule.getBasePrice().multiply(
+                BigDecimal.ONE.subtract(fareRule.getDiscounts().getOrDefault(request.type(), BigDecimal.ZERO))
+        ));
         ticket.setQrCode(generateQRCode());
+
+        if (ticketRepo.wasNoShowTicket(tripId, ticket.getSeatNumber(),  fromStop.getStopOrder(), toStop.getStopOrder()))
+            ticket.setPrice(ticket.getPrice().multiply(
+                    configs.getValue("ticket.no-show.fee").add(BigDecimal.valueOf(1))
+            ));
 
         var saved = ticketRepo.save(ticket);
         notif.sendTicketConfirmation(passenger.getPhone(), passenger.getUserName(), saved.getId(), saved.getSeatNumber(), saved.getQrCode());
@@ -87,7 +103,7 @@ public class TicketServiceImpl implements TicketService {
     @Override
     @Transactional
     public TicketResponse update(Long id, TicketUpdateRequest request) {
-        var ticket = ticketRepo.findById(id).orElseThrow(() -> new NotFoundException("Ticket %d not found".formatted(id)));
+        var ticket = ticketRepo.findByIdWithAll(id).orElseThrow(() -> new NotFoundException("Ticket %d not found".formatted(id)));
         if (request.status() != null && ticket.getTrip().getStatus().equals(TripStatus.DEPARTED)
                 && request.status().equals(TicketStatus.CANCELLED))
             throw new ItCantBeException("You can't cancel your ticket 'cause the trip already departed.");
@@ -100,10 +116,10 @@ public class TicketServiceImpl implements TicketService {
             var tripDeparture = updated.getTrip().getDepartureAt();
             var diff = Duration.between(OffsetDateTime.now(), tripDeparture).toHours();
             BigDecimal percentToRefund;
-            if (diff < 3) percentToRefund = BigDecimal.valueOf(.40);
-            else if (diff < 12) percentToRefund = BigDecimal.valueOf(.50);
-            else if (diff < 24) percentToRefund = BigDecimal.valueOf(.60);
-            else percentToRefund = BigDecimal.valueOf(.70);
+            if (diff < 3) percentToRefund = configs.getValue("last.refund.percent");
+            else if (diff < 12) percentToRefund = configs.getValue("third.refund.percent");
+            else if (diff < 24) percentToRefund = configs.getValue("second.refund.percent");
+            else percentToRefund = configs.getValue("initial.refund.percent");
 
             notif.sendTicketCancellation(passenger.getPhone(), passenger.getUserName(),
                     id, updated.getPrice().multiply(percentToRefund), updated.getPaymentMethod());

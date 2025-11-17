@@ -24,8 +24,8 @@ class TicketMapperTest {
                 "A12",
                 3L,
                 4L,
-                new BigDecimal("50000.00"),
-                PaymentMethod.CARD
+                PaymentMethod.CARD,
+                "STUDENT"
         );
 
         // When
@@ -33,7 +33,7 @@ class TicketMapperTest {
 
         // Then
         assertThat(entity.getSeatNumber()).isEqualTo("A12");
-        assertThat(entity.getPrice()).isEqualByComparingTo(new BigDecimal("50000.00"));
+        assertThat(entity.getPrice()).isNull();
         assertThat(entity.getPaymentMethod()).isEqualTo(PaymentMethod.CARD);
 
         // Campos ignorados

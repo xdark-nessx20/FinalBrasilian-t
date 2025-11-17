@@ -2,9 +2,7 @@ package co.edu.unimagdalena.finalbrasiliant.services;
 
 import co.edu.unimagdalena.finalbrasiliant.api.dto.TicketDTOs.*;
 import co.edu.unimagdalena.finalbrasiliant.domain.entities.*;
-import co.edu.unimagdalena.finalbrasiliant.domain.enums.PaymentMethod;
-import co.edu.unimagdalena.finalbrasiliant.domain.enums.SeatHoldStatus;
-import co.edu.unimagdalena.finalbrasiliant.domain.enums.TicketStatus;
+import co.edu.unimagdalena.finalbrasiliant.domain.enums.*;
 import co.edu.unimagdalena.finalbrasiliant.domain.repositories.*;
 import co.edu.unimagdalena.finalbrasiliant.exceptions.AlreadyExistsException;
 import co.edu.unimagdalena.finalbrasiliant.exceptions.NotFoundException;
@@ -24,6 +22,7 @@ import org.springframework.data.domain.Pageable;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
@@ -51,29 +50,49 @@ class TicketServiceImplTest {
     @Mock
     private SeatHoldRepository seatHoldRepo;
 
+    @Mock
+    private FareRuleRepository fareRuleRepo;
+
+    @Mock
+    private ConfigService configService;
+
     @Spy
     private TicketMapper mapper = Mappers.getMapper(TicketMapper.class);
+
+    @Spy
+    private NotificationService notif;
 
     @InjectMocks
     private TicketServiceImpl service;
 
+
     @Test
     void shouldCreateTicketSuccessfully() {
         // Given
-        var trip = Trip.builder().id(1L).build();
+        var trip = Trip.builder().id(1L).route(
+                Route.builder().id(101L).build()
+        ).build();
         var fromStop = Stop.builder().id(3L).stopOrder(1).build();
         var toStop = Stop.builder().id(4L).stopOrder(3).build();
         var passenger = User.builder().id(2L).userName("Juan").phone("3001234567").build();
+        var fareRule = FareRule.builder().id(10L).basePrice(BigDecimal.valueOf(100000.00)).route(
+                Route.builder().id(101L).routeName("a").code("ZZZZ").origin("x").destination("y")
+                        .distanceKM(BigDecimal.valueOf(200)).durationMin(240).build()
+        ).dynamicPricing(DynamicPricing.OFF).fromStop(fromStop).toStop(toStop).discounts(Map.of(
+                "STUDENT", BigDecimal.valueOf(.50)
+        )).build();
 
         var request = new TicketCreateRequest(
                 2L, "A12", 3L, 4L,
-                new BigDecimal("50000.00"),
-                PaymentMethod.CARD
+                PaymentMethod.CARD, "STUDENT"
         );
 
         when(tripRepo.findById(1L)).thenReturn(Optional.of(trip));
         when(stopRepo.findById(3L)).thenReturn(Optional.of(fromStop));
         when(stopRepo.findById(4L)).thenReturn(Optional.of(toStop));
+        when(fareRuleRepo.findByRouteIdAndFromStopIdAndToStopId(101L, 3L, 4L))
+                .thenReturn(Optional.of(fareRule));
+
         when(ticketRepo.existsOverlap(1L, "A12", 1, 3)).thenReturn(false);
         when(userRepo.findById(2L)).thenReturn(Optional.of(passenger));
         when(seatHoldRepo.existsByTripIdAndSeatNumberAndStatus(1L, "A12", SeatHoldStatus.HOLD))
@@ -105,8 +124,7 @@ class TicketServiceImplTest {
         // Given
         var request = new TicketCreateRequest(
                 2L, "A12", 3L, 4L,
-                new BigDecimal("50000.00"),
-                PaymentMethod.CARD
+                PaymentMethod.CARD, "STUDENT"
         );
 
         when(tripRepo.findById(99L)).thenReturn(Optional.empty());
@@ -125,8 +143,7 @@ class TicketServiceImplTest {
         var trip = Trip.builder().id(1L).build();
         var request = new TicketCreateRequest(
                 2L, "A12", 99L, 4L,
-                new BigDecimal("50000.00"),
-                PaymentMethod.CARD
+                PaymentMethod.CARD, "STUDENT"
         );
 
         when(tripRepo.findById(1L)).thenReturn(Optional.of(trip));
@@ -147,8 +164,7 @@ class TicketServiceImplTest {
         var fromStop = Stop.builder().id(3L).stopOrder(1).build();
         var request = new TicketCreateRequest(
                 2L, "A12", 3L, 99L,
-                new BigDecimal("50000.00"),
-                PaymentMethod.CARD
+                PaymentMethod.CARD, "STUDENT"
         );
 
         when(tripRepo.findById(1L)).thenReturn(Optional.of(trip));
@@ -172,8 +188,7 @@ class TicketServiceImplTest {
 
         var request = new TicketCreateRequest(
                 2L, "A12", 3L, 4L,
-                new BigDecimal("50000.00"),
-                PaymentMethod.CARD
+                PaymentMethod.CARD, "STUDENT"
         );
 
         when(tripRepo.findById(1L)).thenReturn(Optional.of(trip));
@@ -198,8 +213,7 @@ class TicketServiceImplTest {
 
         var request = new TicketCreateRequest(
                 99L, "A12", 3L, 4L,
-                new BigDecimal("50000.00"),
-                PaymentMethod.CARD
+                PaymentMethod.CARD, "STUDENT"
         );
 
         when(tripRepo.findById(1L)).thenReturn(Optional.of(trip));
@@ -226,8 +240,7 @@ class TicketServiceImplTest {
 
         var request = new TicketCreateRequest(
                 2L, "A12", 3L, 4L,
-                new BigDecimal("50000.00"),
-                PaymentMethod.CARD
+                PaymentMethod.CARD, "STUDENT"
         );
 
         when(tripRepo.findById(1L)).thenReturn(Optional.of(trip));
@@ -301,6 +314,9 @@ class TicketServiceImplTest {
                 .price(new BigDecimal("50000.00"))
                 .paymentMethod(PaymentMethod.CASH)
                 .status(TicketStatus.SOLD)
+                .trip(Trip.builder().id(777L).status(TripStatus.SCHEDULED)
+                        .departureAt(OffsetDateTime.now().plusHours(23)).build())
+                .passenger(User.builder().id(100001L).userName("Felipe Neduro").phone("3135467890").build())
                 .build();
 
         var updateRequest = new TicketUpdateRequest(
@@ -310,8 +326,9 @@ class TicketServiceImplTest {
                 TicketStatus.CANCELLED
         );
 
-        when(ticketRepo.findById(10L)).thenReturn(Optional.of(ticket));
+        when(ticketRepo.findByIdWithAll(10L)).thenReturn(Optional.of(ticket));
         when(ticketRepo.save(any(Ticket.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(configService.getValue("second.refund.percent")).thenReturn(BigDecimal.valueOf(.60));
 
         // When
         var response = service.update(10L, updateRequest);
@@ -697,7 +714,9 @@ class TicketServiceImplTest {
     @Test
     void shouldCreateTicketWhenPassengerHoldsSameSeat() {
         // Given
-        var trip = Trip.builder().id(1L).build();
+        var route = Route.builder().id(101L).routeName("a").code("ZZZZ").origin("x").destination("y")
+                .distanceKM(BigDecimal.valueOf(200)).durationMin(240).build();
+        var trip = Trip.builder().id(1L).route(route).build();
         var fromStop = Stop.builder().id(3L).stopOrder(1).build();
         var toStop = Stop.builder().id(4L).stopOrder(3).build();
         var passenger = User.builder().id(2L).userName("Juan").phone("3001234567").build();
@@ -709,11 +728,13 @@ class TicketServiceImplTest {
                 .seatNumber("A12")
                 .status(SeatHoldStatus.HOLD)
                 .build();
+        var fareRule = FareRule.builder().id(10L).basePrice(BigDecimal.valueOf(100000.00)).route(route)
+                .dynamicPricing(DynamicPricing.OFF).fromStop(fromStop).toStop(toStop).discounts(
+                        Map.of("STUDENT", BigDecimal.valueOf(.50))).build();
 
         var request = new TicketCreateRequest(
                 2L, "A12", 3L, 4L,
-                new BigDecimal("50000.00"),
-                PaymentMethod.CASH
+                PaymentMethod.CASH, "STUDENT"
         );
 
         when(tripRepo.findById(1L)).thenReturn(Optional.of(trip));
@@ -733,6 +754,8 @@ class TicketServiceImplTest {
             t.setStatus(TicketStatus.SOLD);
             return t;
         });
+        when(fareRuleRepo.findByRouteIdAndFromStopIdAndToStopId(101L, 3L, 4L))
+                .thenReturn(Optional.of(fareRule));
 
         // When
         var response = service.create(1L, request);

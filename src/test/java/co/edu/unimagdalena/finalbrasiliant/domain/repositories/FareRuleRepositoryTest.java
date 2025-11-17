@@ -11,7 +11,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -110,7 +112,8 @@ public class FareRuleRepositoryTest extends AbstractRepository {
                 .toStop(toStop)
                 .basePrice(basePrice)
                 .dynamicPricing(dynamicPricing)
-                .discounts(List.of("STUDENT:10", "SENIOR:15"))
+                .discounts(new HashMap<>(Map.of("STUDENT", BigDecimal.valueOf(.10),
+                        "SENIOR",  BigDecimal.valueOf(.15))))
                 .build());
     }
 
