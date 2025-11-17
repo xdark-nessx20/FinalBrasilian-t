@@ -4,7 +4,6 @@ import co.edu.unimagdalena.finalbrasiliant.api.dto.ConfigDTOs.*;
 import co.edu.unimagdalena.finalbrasiliant.domain.entities.Config;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 
 @Mapper(componentModel = "spring")
