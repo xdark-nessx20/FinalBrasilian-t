@@ -41,7 +41,7 @@ public class FareRuleControllerTest {
     private StopSummary midStop;
     private FareRuleResponse fareResponse1;
     private FareRuleResponse fareResponse2;
-    private Map<String, Integer> discounts;
+    private Map<String, BigDecimal> discounts;
 
     @BeforeEach
     void setUp() {
@@ -49,12 +49,12 @@ public class FareRuleControllerTest {
         fromStop = new StopSummary(10L, "Terminal Barranquilla", 1);
         toStop = new StopSummary(20L, "Terminal Santa Marta", 5);
         midStop = new StopSummary(15L, "Ciénaga", 3);
-        discounts = new HashMap<>(Map.of("STUDENT", 15, "SENIOR", 20));
+        discounts = new HashMap<>(Map.of("STUDENT", BigDecimal.valueOf(15), "SENIOR", BigDecimal.valueOf(15)));
 
         fareResponse1 = new FareRuleResponse(100L, routeSummary, fromStop, toStop,
                 new BigDecimal("50000"), discounts, DynamicPricing.ON);
         fareResponse2 = new FareRuleResponse(101L, routeSummary, fromStop, midStop,
-                new BigDecimal("30000"), new HashMap<>(Map.of("STUDENT", 15)), DynamicPricing.ON);
+                new BigDecimal("30000"), new HashMap<>(Map.of("STUDENT", BigDecimal.valueOf(15))), DynamicPricing.ON);
     }
 
     @Test
@@ -112,9 +112,9 @@ public class FareRuleControllerTest {
     @Test
     void update_shouldReturn200() throws Exception {
         var req = new FareRuleUpdateRequest(new BigDecimal("55000"),
-                new HashMap<>(Map.of("STUDENT", 20, "SENIOR", 25)), DynamicPricing.OFF);
+                new HashMap<>(Map.of("STUDENT", BigDecimal.valueOf(20), "SENIOR", BigDecimal.valueOf(25))), DynamicPricing.OFF);
         var updated = new FareRuleResponse(100L, routeSummary, fromStop, toStop,
-                new BigDecimal("55000"), Map.of("STUDENT", 20, "SENIOR", 25), DynamicPricing.OFF);
+                new BigDecimal("55000"), Map.of("STUDENT", BigDecimal.valueOf(15), "SENIOR", BigDecimal.valueOf(20)), DynamicPricing.OFF);
 
         when(service.update(eq(100L), any())).thenReturn(updated);
 
@@ -189,7 +189,7 @@ public class FareRuleControllerTest {
     @Test
     void listByToStop_shouldReturn200() throws Exception {
         var fare3 = new FareRuleResponse(102L, routeSummary, midStop, toStop,
-                new BigDecimal("20000"), new HashMap<>(Map.of("STUDENT", 15)), DynamicPricing.ON);
+                new BigDecimal("20000"), new HashMap<>(Map.of("STUDENT", BigDecimal.valueOf(20))), DynamicPricing.ON);
 
         when(service.listByToStop(20L)).thenReturn(List.of(fareResponse1, fare3));
 
@@ -241,7 +241,7 @@ public class FareRuleControllerTest {
         var fromStop2 = new StopSummary(30L, "Terminal Cartagena", 1);
         var toStop2 = new StopSummary(40L, "Terminal Montería", 8);
         var fareOff = new FareRuleResponse(200L, routeSummary2, fromStop2, toStop2,
-                new BigDecimal("60000"), new HashMap<>(Map.of("SENIOR", 30)), DynamicPricing.OFF);
+                new BigDecimal("60000"), new HashMap<>(Map.of("SENIOR", BigDecimal.valueOf(30))), DynamicPricing.OFF);
 
         when(service.listByDynamicPricing(DynamicPricing.OFF)).thenReturn(List.of(fareOff));
 
