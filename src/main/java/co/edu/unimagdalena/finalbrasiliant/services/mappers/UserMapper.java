@@ -13,11 +13,11 @@ public interface UserMapper {
 	@Mapping(target = "id", ignore = true)
 	@Mapping(target = "createdAt", ignore = true)
 	@Mapping(target = "status", ignore = true)
-	User toEntity(userCreateRequest request);
+	User toEntity(UserCreateRequest request);
 	
-	userResponse toResponse(User user);
+	UserResponse toResponse(User user);
 	
 	@Mapping(target = "id", ignore = true)
 	@Mapping(target = "createdAt", ignore = true)
-	void patch(@MappingTarget User user, userUpdateRequest request);
+	void patch(@MappingTarget User user, UserUpdateRequest request);
 }

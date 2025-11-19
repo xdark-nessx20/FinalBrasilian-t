@@ -8,9 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import co.edu.unimagdalena.finalbrasiliant.api.dto.UserDTO.userCreateRequest;
-import co.edu.unimagdalena.finalbrasiliant.api.dto.UserDTO.userResponse;
-import co.edu.unimagdalena.finalbrasiliant.api.dto.UserDTO.userUpdateRequest;
+import co.edu.unimagdalena.finalbrasiliant.api.dto.UserDTO.*;
 import co.edu.unimagdalena.finalbrasiliant.domain.entities.User;
 import co.edu.unimagdalena.finalbrasiliant.domain.enums.Role;
 import co.edu.unimagdalena.finalbrasiliant.domain.repositories.UserRepository;
@@ -27,21 +25,21 @@ public class UserServiceImpl implements UserService {
 	
 	@Transactional
 	@Override
-	public userResponse create(userCreateRequest request) {
+	public UserResponse create(UserCreateRequest request) {
 	    User user = userMapper.toEntity(request);
 	    User saved = userRepo.save(user);
 	    return userMapper.toResponse(saved);
 	}
 	
 	@Override
-    public userResponse get(Long id) {
+    public UserResponse get(Long id) {
         return userRepo.findById(id).map(userMapper::toResponse)
                 .orElseThrow(() -> new NotFoundException("User %d not found".formatted(id)));
     }
 	
 	@Override
     @Transactional
-    public userResponse update(Long id, userUpdateRequest request) {
+    public UserResponse update(Long id, UserUpdateRequest request) {
         var user = userRepo.findById(id).orElseThrow(() -> new NotFoundException("user %d not found.".formatted(id)));
         userMapper.patch(user, request);
         return userMapper.toResponse(userRepo.save(user));
@@ -52,27 +50,27 @@ public class UserServiceImpl implements UserService {
     public void delete(Long id) {
         userRepo.deleteById(id);
     }
-	
+
 	@Override
-	public userResponse getByUserName(String userName) {
+	public UserResponse getByUserName(String userName) {
 		return userRepo.findByUserName(userName).map(userMapper::toResponse).orElseThrow(
 				()-> new NotFoundException("user with the name %s not found".formatted(userName)));
 	}
 	
 	@Override
-	public userResponse getByEmail(String email) {
+	public UserResponse getByEmail(String email) {
 		return userRepo.findByEmail(email).map(userMapper::toResponse).orElseThrow(
 				()-> new NotFoundException("user with the e-mail %s not found".formatted(email)));
 	}
 	
 	@Override
-	public userResponse getByPhone(String phone) {
+	public UserResponse getByPhone(String phone) {
 		return userRepo.findByPhone(phone).map(userMapper::toResponse).orElseThrow(
 				()-> new NotFoundException("user with the phone %s not found".formatted(phone)));
 	}
 	
 	@Override
-	public Page<userResponse> getByCreatedAtBetween(OffsetDateTime start, OffsetDateTime end, Pageable pageable){
+	public Page<UserResponse> getByCreatedAtBetween(OffsetDateTime start, OffsetDateTime end, Pageable pageable){
 		Page<User> users = userRepo.findAllByCreatedAtBetween(start, end, pageable);
 		if (users.isEmpty()) {
 		    throw new NotFoundException("No users found between %s and %s".formatted(start, end));
@@ -81,7 +79,7 @@ public class UserServiceImpl implements UserService {
 	}
 	
 	@Override
-    public List<userResponse> getByRole(Role role){
+    public List<UserResponse> getByRole(Role role){
     	List<User> users = userRepo.findAllByRole(role);
 		if (users.isEmpty()) {
 		    throw new NotFoundException("No users found with role  %s".formatted(role));
@@ -90,7 +88,7 @@ public class UserServiceImpl implements UserService {
     }
     
     @Override
-    public Page<userResponse> getByStatus(Boolean status, Pageable pageable) {
+    public Page<UserResponse> getByStatus(Boolean status, Pageable pageable) {
         Page<User> users = userRepo.findAllByStatus(status, pageable);
         if (users.isEmpty()) {
             String readableStatus = status ? "Active" : "Innactive";

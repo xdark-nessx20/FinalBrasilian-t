@@ -6,6 +6,7 @@ import co.edu.unimagdalena.finalbrasiliant.domain.repositories.TicketRepository;
 import co.edu.unimagdalena.finalbrasiliant.domain.repositories.UserRepository;
 import co.edu.unimagdalena.finalbrasiliant.exceptions.NotFoundException;
 import co.edu.unimagdalena.finalbrasiliant.services.BaggageService;
+import co.edu.unimagdalena.finalbrasiliant.services.ConfigService;
 import co.edu.unimagdalena.finalbrasiliant.services.mappers.BaggageMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -25,14 +26,21 @@ public class BaggageServiceImpl implements BaggageService {
     private final TicketRepository ticketRepo;
     private final UserRepository userRepo;
     private final BaggageMapper mapper;
+    private final ConfigService configService;
 
     @Override
     @Transactional
-    public BaggageResponse create(BaggageCreateRequest request) {
-        var ticket = ticketRepo.findById(request.ticketId()).orElseThrow(() -> new NotFoundException("Ticket %d not found".formatted(request.ticketId())));
+    public BaggageResponse create(Long ticketId, BaggageCreateRequest request) {
+        var ticket = ticketRepo.findById(ticketId).orElseThrow(() -> new NotFoundException("Ticket %d not found".formatted(ticketId)));
         var baggage = mapper.toEntity(request);
         baggage.setTicket(ticket);
         baggage.setTagCode(generateTagCode());
+
+        var weightDiff = baggage.getWeightKg().subtract(configService.getValue("weight.limit"));
+        if (weightDiff.compareTo(BigDecimal.ZERO) > 0) {
+            baggage.setFee(weightDiff.multiply(configService.getValue("baggage.weight.fee")));
+        }
+
         return mapper.toResponse(baggageRepo.save(baggage));
     }
 
@@ -72,6 +80,12 @@ public class BaggageServiceImpl implements BaggageService {
     public List<BaggageResponse> listByPassenger(Long passengerId) {
         userRepo.findById(passengerId).orElseThrow(() -> new NotFoundException("Passenger %d not found".formatted(passengerId)));
         return baggageRepo.findByTicket_Passenger_Id(passengerId).stream().map(mapper::toResponse).toList();
+    }
+
+    @Override
+    public List<BaggageResponse> listByTicket(Long ticketId) {
+        ticketRepo.findById(ticketId).orElseThrow(() -> new NotFoundException("Ticket %d not found".formatted(ticketId)));
+        return baggageRepo.findByTicket_Id(ticketId).stream().map((mapper::toResponse)).toList();
     }
 
     @Override

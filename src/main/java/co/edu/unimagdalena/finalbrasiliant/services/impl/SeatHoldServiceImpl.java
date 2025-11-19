@@ -113,7 +113,7 @@ public class SeatHoldServiceImpl implements SeatHoldService {
         userRepo.findById(passengerId)
                 .orElseThrow(() -> new NotFoundException("Passenger %d not found".formatted(passengerId)));
 
-        return seatHoldRepo.findByUser_Id(passengerId)
+        return seatHoldRepo.findByPassenger_Id(passengerId)
                 .stream()
                 .map(mapper::toResponse)
                 .toList();
@@ -172,9 +172,7 @@ public class SeatHoldServiceImpl implements SeatHoldService {
         var now = OffsetDateTime.now();
         var expiredHolds = seatHoldRepo.findExpiredHolds(now);
 
-        if (expiredHolds.isEmpty()) {
-            return;
-        }
+        if (expiredHolds.isEmpty()) return;
 
         expiredHolds.forEach(hold -> hold.setStatus(SeatHoldStatus.EXPIRED));
         seatHoldRepo.saveAll(expiredHolds);

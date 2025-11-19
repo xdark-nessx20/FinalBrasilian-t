@@ -2,9 +2,13 @@ package co.edu.unimagdalena.finalbrasiliant.services;
 
 import co.edu.unimagdalena.finalbrasiliant.api.dto.IncidentDTOs.*;
 import co.edu.unimagdalena.finalbrasiliant.domain.entities.Incident;
+import co.edu.unimagdalena.finalbrasiliant.domain.entities.Trip;
 import co.edu.unimagdalena.finalbrasiliant.domain.enums.EntityType;
 import co.edu.unimagdalena.finalbrasiliant.domain.enums.IncidentType;
+import co.edu.unimagdalena.finalbrasiliant.domain.enums.TripStatus;
 import co.edu.unimagdalena.finalbrasiliant.domain.repositories.IncidentRepository;
+import co.edu.unimagdalena.finalbrasiliant.domain.repositories.TicketRepository;
+import co.edu.unimagdalena.finalbrasiliant.domain.repositories.TripRepository;
 import co.edu.unimagdalena.finalbrasiliant.exceptions.AlreadyExistsException;
 import co.edu.unimagdalena.finalbrasiliant.exceptions.NotFoundException;
 import co.edu.unimagdalena.finalbrasiliant.services.impl.IncidentServiceImpl;
@@ -20,6 +24,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -33,6 +38,9 @@ class IncidentServiceImplTest {
 
     @Mock
     private IncidentRepository incidentRepo;
+
+    @Mock
+    private TripRepository tripRepo;
 
     @Spy
     private IncidentMapper mapper = Mappers.getMapper(IncidentMapper.class);
@@ -52,6 +60,10 @@ class IncidentServiceImplTest {
 
         when(incidentRepo.findByEntityTypeAndEntityId(EntityType.TRIP, 1L))
                 .thenReturn(Optional.empty());
+
+        when(tripRepo.findById(1L)).thenReturn(Optional.of(Trip.builder().id(1L).date(LocalDate.now())
+                .departureAt(OffsetDateTime.now()).arrivalETA(OffsetDateTime.now().plusHours(2))
+                .status(TripStatus.SCHEDULED).build()));
 
         when(incidentRepo.save(any(Incident.class))).thenAnswer(inv -> {
             Incident i = inv.getArgument(0);

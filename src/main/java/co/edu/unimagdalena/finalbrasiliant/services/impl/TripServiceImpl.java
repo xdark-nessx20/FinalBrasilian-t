@@ -30,11 +30,11 @@ public class TripServiceImpl implements TripService {
 	
 	@Transactional
 	@Override
-	public TripResponse create(TripCreateRequest request) {
+	public TripResponse create(Long routeId, TripCreateRequest request) {
 		var bus = busRepo.findById(request.bus_id())
 				.orElseThrow(() -> new NotFoundException("Bus %d not found".formatted(request.bus_id())));
-		var route = routeRepo.findById(request.route_id())
-			    .orElseThrow(() -> new NotFoundException("Route %d not found".formatted(request.route_id())));
+		var route = routeRepo.findById(routeId)
+			    .orElseThrow(() -> new NotFoundException("Route %d not found".formatted(routeId)));
 		Trip trip = tripMapper.toEntity(request);
 		trip.setBus(bus);
 		trip.setRoute(route);
@@ -129,5 +129,14 @@ public class TripServiceImpl implements TripService {
 			throw new NotFoundException("No trips found in the date %s".formatted(date));
 		}
 		return trips.map(tripMapper::toResponse);
+	}
+	
+	@Override
+	public List<TripResponse> getByRouteIdAndDate(Long route_id, LocalDate date){
+		List<Trip> trips = tripRepo.findAllByRoute_IdAndDate(route_id, date);
+		if(trips.isEmpty()) {
+			throw new NotFoundException("No trips found in route %s and date %s".formatted(route_id, date));
+		}
+		return trips.stream().map(tripMapper::toResponse).toList();
 	}
 }

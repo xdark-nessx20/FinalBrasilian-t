@@ -1,10 +1,15 @@
 package co.edu.unimagdalena.finalbrasiliant.services.impl;
 
+import co.edu.unimagdalena.finalbrasiliant.api.dto.IncidentDTOs.IncidentCreateRequest;
 import co.edu.unimagdalena.finalbrasiliant.api.dto.ParcelDTOs.*;
+import co.edu.unimagdalena.finalbrasiliant.domain.enums.EntityType;
+import co.edu.unimagdalena.finalbrasiliant.domain.enums.IncidentType;
 import co.edu.unimagdalena.finalbrasiliant.domain.enums.ParcelStatus;
 import co.edu.unimagdalena.finalbrasiliant.domain.repositories.ParcelRepository;
 import co.edu.unimagdalena.finalbrasiliant.domain.repositories.StopRepository;
 import co.edu.unimagdalena.finalbrasiliant.exceptions.NotFoundException;
+import co.edu.unimagdalena.finalbrasiliant.services.IncidentService;
+import co.edu.unimagdalena.finalbrasiliant.services.NotificationService;
 import co.edu.unimagdalena.finalbrasiliant.services.ParcelService;
 import co.edu.unimagdalena.finalbrasiliant.services.mappers.ParcelMapper;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -22,6 +28,8 @@ public class ParcelServiceImpl implements ParcelService {
     private final ParcelRepository parcelRepo;
     private final StopRepository stopRepo;
     private final ParcelMapper mapper;
+    private final NotificationService notif;
+    private final IncidentService incidents;
 
     @Override
     @Transactional
@@ -35,7 +43,15 @@ public class ParcelServiceImpl implements ParcelService {
         var parcel = mapper.toEntity(request);
         parcel.setFromStop(fromStop);
         parcel.setToStop(toStop);
+        parcel.setCode(generateCode());
+
+        notif.sendParcelCreated(parcel.getReceiverPhone(), parcel.getSenderName(), parcel.getCode(), parcel.getReceiverName());
+
         return mapper.toResponse(parcelRepo.save(parcel));
+    }
+
+    private String generateCode(){
+        return "PAR-" + UUID.randomUUID().toString().substring(0, 16).toUpperCase();
     }
 
     @Override
@@ -51,7 +67,25 @@ public class ParcelServiceImpl implements ParcelService {
                 () -> new NotFoundException("Parcel %d not found.".formatted(id))
         );
         mapper.patch(parcel, request);
-        return mapper.toResponse(parcelRepo.save(parcel));
+        var updated = parcelRepo.save(parcel);
+
+        switch (updated.getStatus()) {
+            case IN_TRANSIT -> notif.sendParcelInTransit(updated.getReceiverPhone(), updated.getReceiverName(),  updated.getCode());
+            case READY_FOR_PICKUP -> {
+                updated.setDeliveryOTP(UUID.randomUUID().toString().substring(0, 10).toUpperCase());
+                notif.sendParcelReadyForPickup(updated.getReceiverPhone(), updated.getReceiverName(),
+                        updated.getCode(), updated.getDeliveryOTP(), updated.getToStop().getName());
+            }
+            case DELIVERED -> notif.sendParcelDelivered(updated.getReceiverPhone(), updated.getReceiverName(), updated.getCode());
+            case FAILED -> {
+                incidents.create(new IncidentCreateRequest(EntityType.PARCEL, updated.getId(),
+                        IncidentType.DELIVERY_FAIL, "OTP failed!"));
+                notif.sendParcelDeliveryFailed(updated.getReceiverPhone(), updated.getReceiverName(), updated.getCode(), updated.getId());
+            }
+            default -> {}
+        }
+
+        return mapper.toResponse(updated);
     }
 
     @Override
@@ -84,12 +118,11 @@ public class ParcelServiceImpl implements ParcelService {
 
     @Override
     public List<ParcelResponse> listByStretch(Long fromId, Long toId) {
-        stopRepo.findById(fromId).orElseThrow(
-                () -> new NotFoundException("Stop %d not found".formatted(fromId))
-        );
-        stopRepo.findById(toId).orElseThrow(
-                () -> new NotFoundException("Stop %d not found".formatted(toId))
-        );
+        if (fromId == null && toId == null) throw new IllegalArgumentException("fromId and toId can't be null");
+
+        if (fromId != null) stopRepo.findById(fromId).orElseThrow(() -> new NotFoundException("Stop %d not found".formatted(fromId)));
+        if (toId != null) stopRepo.findById(toId).orElseThrow(() -> new NotFoundException("Stop %d not found".formatted(toId)));
+
         return parcelRepo.findAllByStretch(fromId, toId).stream().map(mapper::toResponse).toList();
     }
 

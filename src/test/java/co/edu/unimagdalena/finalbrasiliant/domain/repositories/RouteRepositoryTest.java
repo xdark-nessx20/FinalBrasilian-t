@@ -236,4 +236,62 @@ class RouteRepositoryTest extends AbstractRepository {
                 .extracting(Route::getCode)
                 .containsExactly("RT002");
     }
+    
+    @Test
+    void shouldFindAllRoutesWithPagination() {
+        Page<Route> result = routeRepository.findAll(PageRequest.of(0, 10));
+
+        assertThat(result.getContent())
+                .hasSize(5)
+                .extracting(Route::getId)
+                .containsExactlyInAnyOrder(
+                        route1.getId(), 
+                        route2.getId(), 
+                        route3.getId(), 
+                        route4.getId(), 
+                        route5.getId()
+                );
+
+        assertThat(result.getTotalElements()).isEqualTo(5);
+        assertThat(result.getTotalPages()).isEqualTo(1);
+        assertThat(result.getNumber()).isEqualTo(0);
+    }
+
+    @Test
+    void shouldReturnFirstPageWithLimitedSize() {
+        Page<Route> result = routeRepository.findAll(PageRequest.of(0, 2));
+
+        assertThat(result.getContent()).hasSize(2);
+        assertThat(result.getTotalElements()).isEqualTo(5);
+        assertThat(result.getTotalPages()).isEqualTo(3);
+        assertThat(result.getNumber()).isEqualTo(0);
+        assertThat(result.isFirst()).isTrue();
+        assertThat(result.hasNext()).isTrue();
+    }
+
+    @Test
+    void shouldReturnSecondPageWithPagination() {
+        Page<Route> result = routeRepository.findAll(PageRequest.of(1, 2));
+
+        assertThat(result.getContent()).hasSize(2);
+        assertThat(result.getTotalElements()).isEqualTo(5);
+        assertThat(result.getTotalPages()).isEqualTo(3);
+        assertThat(result.getNumber()).isEqualTo(1);
+        assertThat(result.isFirst()).isFalse();
+        assertThat(result.hasNext()).isTrue();
+        assertThat(result.hasPrevious()).isTrue();
+    }
+
+    @Test
+    void shouldReturnLastPageWithRemainingElements() {
+        Page<Route> result = routeRepository.findAll(PageRequest.of(2, 2));
+
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getTotalElements()).isEqualTo(5);
+        assertThat(result.getTotalPages()).isEqualTo(3);
+        assertThat(result.getNumber()).isEqualTo(2);
+        assertThat(result.isLast()).isTrue();
+        assertThat(result.hasNext()).isFalse();
+        assertThat(result.hasPrevious()).isTrue();
+    }
 }

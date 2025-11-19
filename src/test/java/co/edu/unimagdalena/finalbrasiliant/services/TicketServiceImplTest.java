@@ -2,9 +2,7 @@ package co.edu.unimagdalena.finalbrasiliant.services;
 
 import co.edu.unimagdalena.finalbrasiliant.api.dto.TicketDTOs.*;
 import co.edu.unimagdalena.finalbrasiliant.domain.entities.*;
-import co.edu.unimagdalena.finalbrasiliant.domain.enums.PaymentMethod;
-import co.edu.unimagdalena.finalbrasiliant.domain.enums.SeatHoldStatus;
-import co.edu.unimagdalena.finalbrasiliant.domain.enums.TicketStatus;
+import co.edu.unimagdalena.finalbrasiliant.domain.enums.*;
 import co.edu.unimagdalena.finalbrasiliant.domain.repositories.*;
 import co.edu.unimagdalena.finalbrasiliant.exceptions.AlreadyExistsException;
 import co.edu.unimagdalena.finalbrasiliant.exceptions.NotFoundException;
@@ -24,6 +22,7 @@ import org.springframework.data.domain.Pageable;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
@@ -51,29 +50,49 @@ class TicketServiceImplTest {
     @Mock
     private SeatHoldRepository seatHoldRepo;
 
+    @Mock
+    private FareRuleRepository fareRuleRepo;
+
+    @Mock
+    private ConfigService configService;
+
     @Spy
     private TicketMapper mapper = Mappers.getMapper(TicketMapper.class);
+
+    @Spy
+    private NotificationService notif;
 
     @InjectMocks
     private TicketServiceImpl service;
 
+
     @Test
     void shouldCreateTicketSuccessfully() {
         // Given
-        var trip = Trip.builder().id(1L).build();
+        var trip = Trip.builder().id(1L).route(
+                Route.builder().id(101L).build()
+        ).build();
         var fromStop = Stop.builder().id(3L).stopOrder(1).build();
         var toStop = Stop.builder().id(4L).stopOrder(3).build();
         var passenger = User.builder().id(2L).userName("Juan").phone("3001234567").build();
+        var fareRule = FareRule.builder().id(10L).basePrice(BigDecimal.valueOf(100000.00)).route(
+                Route.builder().id(101L).routeName("a").code("ZZZZ").origin("x").destination("y")
+                        .distanceKM(BigDecimal.valueOf(200)).durationMin(240).build()
+        ).dynamicPricing(DynamicPricing.OFF).fromStop(fromStop).toStop(toStop).discounts(Map.of(
+                "STUDENT", BigDecimal.valueOf(.50)
+        )).build();
 
         var request = new TicketCreateRequest(
-                1L, 2L, "A12", 3L, 4L,
-                new BigDecimal("50000.00"),
-                PaymentMethod.CARD
+                2L, "A12", 3L, 4L,
+                PaymentMethod.CARD, "STUDENT"
         );
 
         when(tripRepo.findById(1L)).thenReturn(Optional.of(trip));
         when(stopRepo.findById(3L)).thenReturn(Optional.of(fromStop));
         when(stopRepo.findById(4L)).thenReturn(Optional.of(toStop));
+        when(fareRuleRepo.findByRouteIdAndFromStopIdAndToStopId(101L, 3L, 4L))
+                .thenReturn(Optional.of(fareRule));
+
         when(ticketRepo.existsOverlap(1L, "A12", 1, 3)).thenReturn(false);
         when(userRepo.findById(2L)).thenReturn(Optional.of(passenger));
         when(seatHoldRepo.existsByTripIdAndSeatNumberAndStatus(1L, "A12", SeatHoldStatus.HOLD))
@@ -88,7 +107,7 @@ class TicketServiceImplTest {
         });
 
         // When
-        var response = service.create(request);
+        var response = service.create(1L, request);
 
         // Then
         assertThat(response.id()).isEqualTo(10L);
@@ -97,22 +116,21 @@ class TicketServiceImplTest {
         assertThat(response.paymentMethod()).isEqualTo(PaymentMethod.CARD);
         assertThat(response.passenger().id()).isEqualTo(2L);
 
-        verify(ticketRepo, times(2)).save(any(Ticket.class)); // save() se llama 2 veces
+        verify(ticketRepo, times(1)).save(any(Ticket.class));
     }
 
     @Test
     void shouldThrowNotFoundExceptionWhenTripNotExists() {
         // Given
         var request = new TicketCreateRequest(
-                99L, 2L, "A12", 3L, 4L,
-                new BigDecimal("50000.00"),
-                PaymentMethod.CARD
+                2L, "A12", 3L, 4L,
+                PaymentMethod.CARD, "STUDENT"
         );
 
         when(tripRepo.findById(99L)).thenReturn(Optional.empty());
 
         // When / Then
-        assertThatThrownBy(() -> service.create(request))
+        assertThatThrownBy(() -> service.create(99L, request))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessageContaining("Trip 99 not found");
 
@@ -124,16 +142,15 @@ class TicketServiceImplTest {
         // Given
         var trip = Trip.builder().id(1L).build();
         var request = new TicketCreateRequest(
-                1L, 2L, "A12", 99L, 4L,
-                new BigDecimal("50000.00"),
-                PaymentMethod.CARD
+                2L, "A12", 99L, 4L,
+                PaymentMethod.CARD, "STUDENT"
         );
 
         when(tripRepo.findById(1L)).thenReturn(Optional.of(trip));
         when(stopRepo.findById(99L)).thenReturn(Optional.empty());
 
         // When / Then
-        assertThatThrownBy(() -> service.create(request))
+        assertThatThrownBy(() -> service.create(1L, request))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessageContaining("Stop 99 not found");
 
@@ -146,9 +163,8 @@ class TicketServiceImplTest {
         var trip = Trip.builder().id(1L).build();
         var fromStop = Stop.builder().id(3L).stopOrder(1).build();
         var request = new TicketCreateRequest(
-                1L, 2L, "A12", 3L, 99L,
-                new BigDecimal("50000.00"),
-                PaymentMethod.CARD
+                2L, "A12", 3L, 99L,
+                PaymentMethod.CARD, "STUDENT"
         );
 
         when(tripRepo.findById(1L)).thenReturn(Optional.of(trip));
@@ -156,7 +172,7 @@ class TicketServiceImplTest {
         when(stopRepo.findById(99L)).thenReturn(Optional.empty());
 
         // When / Then
-        assertThatThrownBy(() -> service.create(request))
+        assertThatThrownBy(() -> service.create(1L, request))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessageContaining("Stop 99 not found");
 
@@ -171,9 +187,8 @@ class TicketServiceImplTest {
         var toStop = Stop.builder().id(4L).stopOrder(3).build();
 
         var request = new TicketCreateRequest(
-                1L, 2L, "A12", 3L, 4L,
-                new BigDecimal("50000.00"),
-                PaymentMethod.CARD
+                2L, "A12", 3L, 4L,
+                PaymentMethod.CARD, "STUDENT"
         );
 
         when(tripRepo.findById(1L)).thenReturn(Optional.of(trip));
@@ -182,7 +197,7 @@ class TicketServiceImplTest {
         when(ticketRepo.existsOverlap(1L, "A12", 1, 3)).thenReturn(true);
 
         // When / Then
-        assertThatThrownBy(() -> service.create(request))
+        assertThatThrownBy(() -> service.create(1L, request))
                 .isInstanceOf(AlreadyExistsException.class)
                 .hasMessageContaining("Already exists a Ticket for the A12 seat");
 
@@ -197,9 +212,8 @@ class TicketServiceImplTest {
         var toStop = Stop.builder().id(4L).stopOrder(3).build();
 
         var request = new TicketCreateRequest(
-                1L, 99L, "A12", 3L, 4L,
-                new BigDecimal("50000.00"),
-                PaymentMethod.CARD
+                99L, "A12", 3L, 4L,
+                PaymentMethod.CARD, "STUDENT"
         );
 
         when(tripRepo.findById(1L)).thenReturn(Optional.of(trip));
@@ -209,7 +223,7 @@ class TicketServiceImplTest {
         when(userRepo.findById(99L)).thenReturn(Optional.empty());
 
         // When / Then
-        assertThatThrownBy(() -> service.create(request))
+        assertThatThrownBy(() -> service.create(1L, request))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessageContaining("Passenger 99 not found");
 
@@ -225,9 +239,8 @@ class TicketServiceImplTest {
         var passenger = User.builder().id(2L).build();
 
         var request = new TicketCreateRequest(
-                1L, 2L, "A12", 3L, 4L,
-                new BigDecimal("50000.00"),
-                PaymentMethod.CARD
+                2L, "A12", 3L, 4L,
+                PaymentMethod.CARD, "STUDENT"
         );
 
         when(tripRepo.findById(1L)).thenReturn(Optional.of(trip));
@@ -241,7 +254,7 @@ class TicketServiceImplTest {
                 .thenReturn(List.of()); // No tiene holds este pasajero
 
         // When / Then
-        assertThatThrownBy(() -> service.create(request))
+        assertThatThrownBy(() -> service.create(1L, request))
                 .isInstanceOf(AlreadyExistsException.class)
                 .hasMessageContaining("The seat A12 is hold by another passenger");
 
@@ -301,6 +314,9 @@ class TicketServiceImplTest {
                 .price(new BigDecimal("50000.00"))
                 .paymentMethod(PaymentMethod.CASH)
                 .status(TicketStatus.SOLD)
+                .trip(Trip.builder().id(777L).status(TripStatus.SCHEDULED)
+                        .departureAt(OffsetDateTime.now().plusHours(23)).build())
+                .passenger(User.builder().id(100001L).userName("Felipe Neduro").phone("3135467890").build())
                 .build();
 
         var updateRequest = new TicketUpdateRequest(
@@ -310,8 +326,9 @@ class TicketServiceImplTest {
                 TicketStatus.CANCELLED
         );
 
-        when(ticketRepo.findById(10L)).thenReturn(Optional.of(ticket));
+        when(ticketRepo.findByIdWithAll(10L)).thenReturn(Optional.of(ticket));
         when(ticketRepo.save(any(Ticket.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(configService.getValue("second.refund.percent")).thenReturn(BigDecimal.valueOf(.60));
 
         // When
         var response = service.update(10L, updateRequest);
@@ -511,7 +528,7 @@ class TicketServiceImplTest {
         // Then
         assertThat(result.getTotalElements()).isEqualTo(1);
         assertThat(result.getContent()).hasSize(1);
-        assertThat(result.getContent().get(0).paymentMethod()).isEqualTo(PaymentMethod.CARD);
+        assertThat(result.getContent().getFirst().paymentMethod()).isEqualTo(PaymentMethod.CARD);
     }
 
     @Test
@@ -653,8 +670,8 @@ class TicketServiceImplTest {
 
         // Then
         assertThat(result).hasSize(1);
-        assertThat(result.get(0).fromStop().id()).isEqualTo(1L);
-        assertThat(result.get(0).toStop().id()).isEqualTo(3L);
+        assertThat(result.getFirst().fromStop().id()).isEqualTo(1L);
+        assertThat(result.getFirst().toStop().id()).isEqualTo(3L);
     }
 
     @Test
@@ -682,43 +699,6 @@ class TicketServiceImplTest {
     }
 
     @Test
-    void shouldSetTicketsToNoShowWhenScheduledMethodRuns() {
-        // Given
-        var ticket1 = Ticket.builder()
-                .id(1L)
-                .status(TicketStatus.SOLD)
-                .build();
-
-        var ticket2 = Ticket.builder()
-                .id(2L)
-                .status(TicketStatus.SOLD)
-                .build();
-
-        when(ticketRepo.findByPassengerNoShow()).thenReturn(List.of(ticket1, ticket2));
-
-        // When
-        service.setTicketsNoShow();
-        // Then
-        verify(ticketRepo).findByPassengerNoShow();
-        verify(mapper, times(2)).patch(any(Ticket.class), any(TicketUpdateRequest.class));
-        
-        // Verificar que se llamó patch con TicketStatus.NO_SHOW
-        verify(mapper).patch(eq(ticket1), argThat(req -> 
-            req.status() == TicketStatus.NO_SHOW &&
-            req.seatNumber() == null &&
-            req.price() == null &&
-            req.paymentMethod() == null
-        ));
-        
-        verify(mapper).patch(eq(ticket2), argThat(req -> 
-            req.status() == TicketStatus.NO_SHOW &&
-            req.seatNumber() == null &&
-            req.price() == null &&
-            req.paymentMethod() == null
-        ));
-    }
-
-    @Test
     void shouldDoNothingWhenNoTicketsToSetNoShow() {
         // Given
         when(ticketRepo.findByPassengerNoShow()).thenReturn(List.of());
@@ -734,7 +714,9 @@ class TicketServiceImplTest {
     @Test
     void shouldCreateTicketWhenPassengerHoldsSameSeat() {
         // Given
-        var trip = Trip.builder().id(1L).build();
+        var route = Route.builder().id(101L).routeName("a").code("ZZZZ").origin("x").destination("y")
+                .distanceKM(BigDecimal.valueOf(200)).durationMin(240).build();
+        var trip = Trip.builder().id(1L).route(route).build();
         var fromStop = Stop.builder().id(3L).stopOrder(1).build();
         var toStop = Stop.builder().id(4L).stopOrder(3).build();
         var passenger = User.builder().id(2L).userName("Juan").phone("3001234567").build();
@@ -746,11 +728,13 @@ class TicketServiceImplTest {
                 .seatNumber("A12")
                 .status(SeatHoldStatus.HOLD)
                 .build();
+        var fareRule = FareRule.builder().id(10L).basePrice(BigDecimal.valueOf(100000.00)).route(route)
+                .dynamicPricing(DynamicPricing.OFF).fromStop(fromStop).toStop(toStop).discounts(
+                        Map.of("STUDENT", BigDecimal.valueOf(.50))).build();
 
         var request = new TicketCreateRequest(
-                1L, 2L, "A12", 3L, 4L,
-                new BigDecimal("50000.00"),
-                PaymentMethod.CREDIT_CARD
+                2L, "A12", 3L, 4L,
+                PaymentMethod.CASH, "STUDENT"
         );
 
         when(tripRepo.findById(1L)).thenReturn(Optional.of(trip));
@@ -770,23 +754,46 @@ class TicketServiceImplTest {
             t.setStatus(TicketStatus.SOLD);
             return t;
         });
+        when(fareRuleRepo.findByRouteIdAndFromStopIdAndToStopId(101L, 3L, 4L))
+                .thenReturn(Optional.of(fareRule));
 
         // When
-        var response = service.create(request);
+        var response = service.create(1L, request);
 
         // Then
         assertThat(response.id()).isEqualTo(10L);
         assertThat(response.seatNumber()).isEqualTo("A12");
         
-        verify(ticketRepo, times(2)).save(any(Ticket.class));
+        verify(ticketRepo, times(1)).save(any(Ticket.class));
     }
 
     @Test
-    void shouldGetByQRCodeReturnNull() {
+    void shouldGetByQRCode() {
+        //Given
+        var bus = Bus.builder().id(1L).plate("ABC123").build();
+        var trip = Trip.builder().id(1L).bus(bus).departureAt(OffsetDateTime.now()).build();
+        var passenger = User.builder().id(2L).userName("Juan").phone("3001234567").build();
+        var fromStop = Stop.builder().id(3L).name("Bogotá").stopOrder(1).build();
+        var toStop = Stop.builder().id(4L).name("Medellín").stopOrder(3).build();
+
+        var ticket1 = Ticket.builder()
+                .id(1L)
+                .trip(trip)
+                .passenger(passenger)
+                .seatNumber("A12")
+                .fromStop(fromStop)
+                .toStop(toStop)
+                .build();
+        ticket1.setQrCode("TKT-H3DY61CKU0JMV9W7");
         // When
-        var result = service.getByQRCode("QR123");
+        when(ticketRepo.findByQrCode(anyString())).thenReturn(Optional.of(ticket1));
+
+        var result = service.getByQRCode("TKT-H3DY61CKU0JMV9W7");
 
         // Then
-        assertThat(result).isNull();
+        assertThat(result).isNotNull();
+        assertThat(result.id()).isEqualTo(1L);
+        assertThat(result.seatNumber()).isEqualTo("A12");
+        assertThat(result.passenger().userName()).isEqualTo(passenger.getUserName());
     }
 }

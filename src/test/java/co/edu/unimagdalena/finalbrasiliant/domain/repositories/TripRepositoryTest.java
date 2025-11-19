@@ -321,4 +321,92 @@ class TripRepositoryTest extends AbstractRepository {
                 .extracting(Trip::getId)
                 .containsExactly(trip2.getId());
     }
+    
+    @Test
+    void shouldFindAllTripsByRouteIdAndDate() {
+        List<Trip> result = tripRepository.findAllByRoute_IdAndDate(
+                route1.getId(), LocalDate.now());
+
+        assertThat(result)
+                .hasSize(2)
+                .extracting(Trip::getId)
+                .containsExactlyInAnyOrder(trip1.getId(), trip4.getId());
+
+        assertThat(result)
+                .allSatisfy(trip -> {
+                    assertThat(trip.getRoute().getId()).isEqualTo(route1.getId());
+                    assertThat(trip.getDate()).isEqualTo(LocalDate.now());
+                });
+    }
+
+    @Test
+    void shouldFindTripsByRouteIdAndFutureDate() {
+        List<Trip> result = tripRepository.findAllByRoute_IdAndDate(
+                route1.getId(), LocalDate.now().plusDays(1));
+
+        assertThat(result)
+                .hasSize(1)
+                .extracting(Trip::getId)
+                .containsExactly(trip2.getId());
+
+        assertThat(result.get(0).getRoute().getId()).isEqualTo(route1.getId());
+        assertThat(result.get(0).getDate()).isEqualTo(LocalDate.now().plusDays(1));
+    }
+
+    @Test
+    void shouldFindTripsBySecondRouteAndDate() {
+        List<Trip> result = tripRepository.findAllByRoute_IdAndDate(
+                route2.getId(), LocalDate.now().plusDays(2));
+
+        assertThat(result)
+                .hasSize(1)
+                .extracting(Trip::getId)
+                .containsExactly(trip3.getId());
+
+        assertThat(result.get(0).getRoute().getId()).isEqualTo(route2.getId());
+        assertThat(result.get(0).getDate()).isEqualTo(LocalDate.now().plusDays(2));
+    }
+
+    @Test
+    void shouldReturnEmptyListWhenNoTripsFoundForRouteIdAndDate() {
+        List<Trip> result = tripRepository.findAllByRoute_IdAndDate(
+                route1.getId(), LocalDate.now().plusDays(10));
+
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    void shouldReturnEmptyListForNonExistentRouteId() {
+        List<Trip> result = tripRepository.findAllByRoute_IdAndDate(
+                999L, LocalDate.now());
+
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    void shouldFilterByBothRouteIdAndDateCorrectly() {
+        // This test ensures that the method filters by BOTH route_id AND date
+        // trip1 and trip4 are on route1 on LocalDate.now()
+        // trip3 is on route2 on LocalDate.now().plusDays(2)
+        
+        List<Trip> route1Today = tripRepository.findAllByRoute_IdAndDate(
+                route1.getId(), LocalDate.now());
+        
+        List<Trip> route2TodayPlusTwo = tripRepository.findAllByRoute_IdAndDate(
+                route2.getId(), LocalDate.now().plusDays(2));
+        
+        List<Trip> route1TodayPlusTwo = tripRepository.findAllByRoute_IdAndDate(
+                route1.getId(), LocalDate.now().plusDays(2));
+
+        // Should find trips for route1 on today
+        assertThat(route1Today).hasSize(2);
+        
+        // Should find trip3 for route2 on today+2
+        assertThat(route2TodayPlusTwo).hasSize(1)
+                .extracting(Trip::getId)
+                .containsExactly(trip3.getId());
+        
+        // Should NOT find any trips for route1 on today+2 (trip3 is on route2)
+        assertThat(route1TodayPlusTwo).isEmpty();
+    }
 }

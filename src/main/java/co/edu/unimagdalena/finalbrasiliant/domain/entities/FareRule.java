@@ -8,7 +8,9 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import co.edu.unimagdalena.finalbrasiliant.domain.enums.DynamicPricing;
 
@@ -40,12 +42,14 @@ public class FareRule {
     @Column(nullable = false, precision = 8, scale = 2, name = "base_price")
     private BigDecimal basePrice;
 
+    @ElementCollection
     @Builder.Default
-    private List<String> discounts = new ArrayList<>();
+    @CollectionTable(name = "fare_rule_discounts", joinColumns = @JoinColumn(name = "fare_rule_id"))
+    @Column(name = "discounts")
+    private Map<String, BigDecimal> discounts = new HashMap<>();
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, name = "dynamic_pricing")
     private DynamicPricing dynamicPricing;
-
 
 }

@@ -8,14 +8,14 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 public class UserDTO {
-	public record userCreateRequest(@NotBlank String userName, @NotBlank String email, 
+	public record UserCreateRequest(@NotBlank String userName, @NotBlank String email, 
 			@NotBlank String phone, @NotNull Role role, @NotBlank String passwordHash) implements Serializable{};
 			
-	public record userUpdateRequest(String userName, String email, 
+	public record UserUpdateRequest(String userName, String email, 
 			String phone, Role role, 
 			Boolean status, String passwordHash) implements Serializable{};
 	
-	public record userResponse(Long id, String userName, String email, 
+	public record UserResponse(Long id, String userName, String email, 
 			String phone, Role role, 
 			Boolean status, OffsetDateTime createdAt) implements Serializable{};
 }

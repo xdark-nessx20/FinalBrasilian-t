@@ -23,7 +23,6 @@ class TripMapperTest {
         var departureTime = OffsetDateTime.now().plusHours(2);
         var arrivalTime = OffsetDateTime.now().plusHours(6);
         var request = new TripCreateRequest(
-                1L,
                 2L,
                 LocalDate.of(2025, 12, 25),
                 departureTime,
@@ -34,15 +33,12 @@ class TripMapperTest {
         var entity = mapper.toEntity(request);
 
         // Then
-        assertThat(entity.getRoute()).isNotNull();
-        assertThat(entity.getRoute().getId()).isEqualTo(1L);
-        assertThat(entity.getBus()).isNotNull();
-        assertThat(entity.getBus().getId()).isEqualTo(2L);
+        assertThat(entity.getRoute()).isNull();
+        assertThat(entity.getBus()).isNull();
         assertThat(entity.getDate()).isEqualTo(LocalDate.of(2025, 12, 25));
         assertThat(entity.getDepartureAt()).isEqualTo(departureTime);
         assertThat(entity.getArrivalETA()).isEqualTo(arrivalTime);
         assertThat(entity.getId()).isNull(); // Ignored by mapper
-        assertThat(entity.getStatus()).isNull(); // Ignored by mapper
     }
 
     @Test
@@ -51,7 +47,6 @@ class TripMapperTest {
         var departureTime = OffsetDateTime.now().plusDays(1);
         var arrivalTime = OffsetDateTime.now().plusDays(1).plusHours(4);
         var request = new TripCreateRequest(
-                5L,
                 10L,
                 LocalDate.of(2025, 11, 15),
                 departureTime,
@@ -62,8 +57,8 @@ class TripMapperTest {
         var entity = mapper.toEntity(request);
 
         // Then
-        assertThat(entity.getRoute().getId()).isEqualTo(5L);
-        assertThat(entity.getBus().getId()).isEqualTo(10L);
+        assertThat(entity.getRoute()).isNull();
+        assertThat(entity.getBus()).isNull();
         assertThat(entity.getDate()).isEqualTo(LocalDate.of(2025, 11, 15));
         assertThat(entity.getDepartureAt()).isEqualTo(departureTime);
         assertThat(entity.getArrivalETA()).isEqualTo(arrivalTime);
