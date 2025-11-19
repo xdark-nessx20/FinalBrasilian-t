@@ -46,7 +46,7 @@ public class FareRule {
     @Builder.Default
     @CollectionTable(name = "fare_rule_discounts", joinColumns = @JoinColumn(name = "fare_rule_id"))
     @Column(name = "discounts")
-    private Map<String, Integer> discounts = new HashMap<>();
+    private Map<String, BigDecimal> discounts = new HashMap<>();
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, name = "dynamic_pricing")

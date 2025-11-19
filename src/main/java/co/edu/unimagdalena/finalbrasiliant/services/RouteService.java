@@ -23,5 +23,5 @@ public interface RouteService {
 	List<RouteResponse> getByDistanceLessThan(BigDecimal maxDistance);
 	List<RouteResponse> getByDistanceBetween(BigDecimal minDistance, BigDecimal maxDistance);
 	Page<RouteResponse> getByOriginAndDestination(String origin, String destination, Pageable pageable);
-
+	Page<RouteResponse> getAllRoutes(Pageable pageable);
 }

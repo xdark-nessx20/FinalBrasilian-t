@@ -448,4 +448,57 @@ class RouteServiceImplTest {
         assertThat(result.getContent().get(0).routeName()).isEqualTo("Bogotá - Medellín Express");
         assertThat(result.getContent().get(1).routeName()).isEqualTo("Bogotá - Medellín Económico");
     }
+    
+    @Test
+    void shouldGetAllRoutes() {
+        // Given
+        Pageable pageable = PageRequest.of(0, 10);
+        
+        var route1 = Route.builder()
+                .id(1L)
+                .code("SMR-CTG")
+                .routeName("Santa Marta - Cartagena")
+                .origin("Santa Marta")
+                .destination("Cartagena")
+                .distanceKM(new BigDecimal("220.50"))
+                .durationMin(240)
+                .build();
+
+        var route2 = Route.builder()
+                .id(2L)
+                .code("BOG-MED")
+                .routeName("Bogotá - Medellín")
+                .origin("Bogotá")
+                .destination("Medellín")
+                .distanceKM(new BigDecimal("415.00"))
+                .durationMin(480)
+                .build();
+
+        var route3 = Route.builder()
+                .id(3L)
+                .code("BAQ-CTG")
+                .routeName("Barranquilla - Cartagena")
+                .origin("Barranquilla")
+                .destination("Cartagena")
+                .distanceKM(new BigDecimal("120.00"))
+                .durationMin(120)
+                .build();
+
+        var page = new PageImpl<>(List.of(route1, route2, route3), pageable, 3);
+        when(routeRepo.findAll(pageable)).thenReturn(page);
+
+        // When
+        var result = service.getAllRoutes(pageable);
+
+        // Then
+        assertThat(result.getTotalElements()).isEqualTo(3);
+        assertThat(result.getContent()).hasSize(3);
+        assertThat(result.getContent().get(0).id()).isEqualTo(1L);
+        assertThat(result.getContent().get(0).code()).isEqualTo("SMR-CTG");
+        assertThat(result.getContent().get(1).id()).isEqualTo(2L);
+        assertThat(result.getContent().get(1).code()).isEqualTo("BOG-MED");
+        assertThat(result.getContent().get(2).id()).isEqualTo(3L);
+        assertThat(result.getContent().get(2).code()).isEqualTo("BAQ-CTG");
+        verify(routeRepo).findAll(pageable);
+    }
 }

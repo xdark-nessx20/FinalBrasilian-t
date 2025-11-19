@@ -10,16 +10,16 @@ import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 
 public class TicketDTOs {
-    public record TicketCreateRequest(@NotNull Long tripId, @NotNull Long passengerId, @NotNull String seatNumber,
-                                      @NotNull Long fromStopId, @NotNull Long toStopId, @NotNull @Positive BigDecimal price,
-                                      @NotNull PaymentMethod paymentMethod) implements Serializable {}
+    public record TicketCreateRequest(@NotNull Long passengerId, @NotNull String seatNumber,
+                                      @NotNull Long fromStopId, @NotNull Long toStopId,
+                                      @NotNull PaymentMethod paymentMethod, String type) implements Serializable {}
 
     public record TicketUpdateRequest(String seatNumber, @Positive BigDecimal price, PaymentMethod paymentMethod,
                                       TicketStatus status) implements Serializable {}
 
     public record TicketResponse(Long id, TripSummary trip, UserSummary passenger, String seatNumber, StopSummary fromStop,
                                  StopSummary toStop, BigDecimal price, OffsetDateTime createdAt, PaymentMethod paymentMethod,
-                                 TicketStatus status) implements Serializable {}
+                                 TicketStatus status, String qrCode) implements Serializable {}
 
     public record TripSummary(Long id, String busPlate, OffsetDateTime departureAt) implements Serializable {}
     public record UserSummary(Long id, String userName, String phone) implements Serializable {}

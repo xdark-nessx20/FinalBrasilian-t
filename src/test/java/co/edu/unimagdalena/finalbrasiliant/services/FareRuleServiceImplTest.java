@@ -20,7 +20,9 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -56,7 +58,7 @@ public class FareRuleServiceImplTest {
         var request = new FareRuleCreateRequest(
                 1L, 2L, 3L,
                 new BigDecimal("50000.00"),
-                List.of("STUDENT:10"),
+                Map.of("STUDENT", BigDecimal.valueOf(.50)),
                 DynamicPricing.ON
         );
 
@@ -91,7 +93,7 @@ public class FareRuleServiceImplTest {
         var request = new FareRuleCreateRequest(
                 1L, 2L, 3L,
                 new BigDecimal("50000.00"),
-                List.of(),
+                Map.of(),
                 DynamicPricing.ON
         );
 
@@ -116,7 +118,7 @@ public class FareRuleServiceImplTest {
         var request = new FareRuleCreateRequest(
                 1L, 2L, 3L,
                 new BigDecimal("50000.00"),
-                List.of(),
+                Map.of(),
                 DynamicPricing.ON
         );
 
@@ -142,7 +144,7 @@ public class FareRuleServiceImplTest {
         var request = new FareRuleCreateRequest(
                 1L, 2L, 3L,
                 new BigDecimal("50000.00"),
-                List.of(),
+                Map.of(),
                 DynamicPricing.ON
         );
 
@@ -191,13 +193,13 @@ public class FareRuleServiceImplTest {
         var fareRule = FareRule.builder()
                 .id(10L)
                 .basePrice(new BigDecimal("50000.00"))
-                .discounts(List.of("STUDENT:10"))
+                .discounts(new HashMap<>(Map.of("STUDENT", BigDecimal.valueOf(.50))))
                 .dynamicPricing(DynamicPricing.OFF)
                 .build();
 
         var updateRequest = new FareRuleUpdateRequest(
                 new BigDecimal("60000.00"),
-                List.of("SENIOR:15"),
+                Map.of("STUDENT", BigDecimal.valueOf(.20)),
                 DynamicPricing.ON
         );
 
@@ -250,6 +252,6 @@ public class FareRuleServiceImplTest {
 
         // Then
         assertThat(result).hasSize(1);
-        assertThat(result.get(0).dynamicPricing()).isEqualTo(DynamicPricing.ON);
+        assertThat(result.getFirst().dynamicPricing()).isEqualTo(DynamicPricing.ON);
     }
 }

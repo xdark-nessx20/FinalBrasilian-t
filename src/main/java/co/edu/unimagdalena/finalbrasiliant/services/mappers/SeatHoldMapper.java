@@ -21,7 +21,7 @@ public interface SeatHoldMapper {
 
     UserSummary toUserSummary(User user);
 
-    @Mapping(target = "status", source = "status.name")
+    @Mapping(target = "status", source = "status")
     TripSummary toTripSummary(Trip trip);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE, ignoreByDefault = true)

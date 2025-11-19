@@ -58,7 +58,7 @@ class SeatServiceImplTest {
         });
 
         // When
-        var response = service.create(request);
+        var response = service.create(10L, request);
 
         // Then
         assertThat(response.id()).isEqualTo(10L);
@@ -241,28 +241,4 @@ class SeatServiceImplTest {
         assertThat(result.get(2).number()).isEqualTo("V1");
     }
 
-    @Test
-    void shouldGetSeatByNumberAndTrip() {
-        // Given
-        var bus = Bus.builder().id(1L).build();
-
-        var seat = Seat.builder()
-                .id(10L)
-                .bus(bus)
-                .number("A3")
-                .type(SeatType.STANDARD)
-                .build();
-
-        when(seatRepo.findByNumberAndTrip_id("A3", 5L)).thenReturn(Optional.of(seat));
-
-        // When
-        var response = service.getSeatByNumberAndTrip("A3", 5L);
-
-        // Then
-        assertThat(response.id()).isEqualTo(10L);
-        assertThat(response.bus_id()).isEqualTo(1L);
-        assertThat(response.number()).isEqualTo("A3");
-        assertThat(response.type()).isEqualTo(SeatType.STANDARD);
-        verify(seatRepo).findByNumberAndTrip_id("A3", 5L);
-    }
 }

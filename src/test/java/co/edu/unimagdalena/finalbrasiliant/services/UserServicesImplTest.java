@@ -40,7 +40,7 @@ class UserServiceImplTest {
     @Test
     void shouldCreateAndReturnResponse() {
         // Given
-        var request = new userCreateRequest(
+        var request = new UserCreateRequest(
                 "juan_perez",
                 "juan.perez@example.com",
                 "3001234567",
@@ -113,7 +113,7 @@ class UserServiceImplTest {
                 .createdAt(OffsetDateTime.now())
                 .build();
 
-        var updateRequest = new userUpdateRequest(
+        var updateRequest = new UserUpdateRequest(
                 "carlos_gomez_updated",
                 "carlos.nuevo@example.com",
                 "3002222222",

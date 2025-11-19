@@ -61,7 +61,7 @@ class BaggageServiceImplTest {
                 .seatNumber("A12")
                 .build();
 
-        var request = new BaggageCreateRequest(5L, new BigDecimal("15.50"), new BigDecimal("25000.00"));
+        var request = new BaggageCreateRequest(new BigDecimal("15.50"), new BigDecimal("25000.00"));
 
         when(ticketRepo.findById(5L)).thenReturn(Optional.of(ticket));
         when(baggageRepo.save(any(Baggage.class))).thenAnswer(inv -> {
@@ -71,7 +71,7 @@ class BaggageServiceImplTest {
         });
 
         // When
-        var response = service.create(request);
+        var response = service.create(5L, request);
 
         // Then
         assertThat(response.id()).isEqualTo(10L);
@@ -88,11 +88,11 @@ class BaggageServiceImplTest {
     @Test
     void shouldThrowNotFoundExceptionWhenTicketNotExists() {
         // Given
-        var request = new BaggageCreateRequest(99L, new BigDecimal("15.50"), new BigDecimal("25000.00"));
+        var request = new BaggageCreateRequest(new BigDecimal("15.50"), new BigDecimal("25000.00"));
         when(ticketRepo.findById(99L)).thenReturn(Optional.empty());
 
         // When / Then
-        assertThatThrownBy(() -> service.create(request))
+        assertThatThrownBy(() -> service.create(99L, request))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessageContaining("Ticket 99 not found");
 
@@ -104,7 +104,7 @@ class BaggageServiceImplTest {
         // Given
         var passenger = User.builder().id(1L).userName("Juan").build();
         var ticket = Ticket.builder().id(5L).passenger(passenger).build();
-        var request = new BaggageCreateRequest(5L, new BigDecimal("10.00"), new BigDecimal("15000.00"));
+        var request = new BaggageCreateRequest(new BigDecimal("10.00"), new BigDecimal("15000.00"));
 
         when(ticketRepo.findById(5L)).thenReturn(Optional.of(ticket));
         when(baggageRepo.save(any(Baggage.class))).thenAnswer(inv -> {
@@ -114,8 +114,8 @@ class BaggageServiceImplTest {
         });
 
         // When
-        var response1 = service.create(request);
-        var response2 = service.create(request);
+        var response1 = service.create(5L, request);
+        var response2 = service.create(5L, request);
 
         // Then
         assertThat(response1.tagCode()).isNotEqualTo(response2.tagCode());

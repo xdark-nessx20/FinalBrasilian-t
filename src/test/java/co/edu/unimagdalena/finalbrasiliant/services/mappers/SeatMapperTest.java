@@ -26,8 +26,7 @@ class SeatMapperTest {
         var entity = mapper.toEntity(request);
 
         // Then
-        assertThat(entity.getBus()).isNotNull();
-        assertThat(entity.getBus().getId()).isEqualTo(1L);
+        assertThat(entity.getBus()).isNull();
         assertThat(entity.getNumber()).isEqualTo("A1");
         assertThat(entity.getType()).isEqualTo(SeatType.STANDARD);
         assertThat(entity.getId()).isNull(); // Ignored by mapper
@@ -46,8 +45,7 @@ class SeatMapperTest {
         var entity = mapper.toEntity(request);
 
         // Then
-        assertThat(entity.getBus()).isNotNull();
-        assertThat(entity.getBus().getId()).isEqualTo(2L);
+        assertThat(entity.getBus()).isNull();
         assertThat(entity.getNumber()).isEqualTo("B5");
         assertThat(entity.getType()).isEqualTo(SeatType.PREFERENTIAL);
         assertThat(entity.getId()).isNull(); // Ignored by mapper
@@ -66,7 +64,7 @@ class SeatMapperTest {
         var entity = mapper.toEntity(request);
 
         // Then
-        assertThat(entity.getBus().getId()).isEqualTo(5L);
+        assertThat(entity.getBus()).isNull();
         assertThat(entity.getNumber()).isEqualTo("C12");
         assertThat(entity.getType()).isEqualTo(SeatType.STANDARD);
     }

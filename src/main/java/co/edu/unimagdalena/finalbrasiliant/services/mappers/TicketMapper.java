@@ -11,11 +11,11 @@ import org.mapstruct.*;
 public interface TicketMapper {
     @BeanMapping(ignoreByDefault = true)
     @Mapping(target = "seatNumber", source = "seatNumber")
-    @Mapping(target = "price", source = "price")
     @Mapping(target = "paymentMethod", source = "paymentMethod")
     Ticket toEntity(TicketCreateRequest request);
 
-    TicketResponse toResponse(Ticket entity);
+    @Mapping(target = "qrCode", expression = "java(includeQr? entity.getQrCode() : null)")
+    TicketResponse toResponse(Ticket entity, boolean includeQr);
     UserSummary toUserSummary(User user);
     StopSummary toStopSummary(Stop stop);
 

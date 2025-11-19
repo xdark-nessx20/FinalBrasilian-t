@@ -26,8 +26,8 @@ public class SeatServiceImpl implements SeatService {
 	
 	@Transactional
 	@Override
-	public SeatResponse create(SeatCreateRequest request) {
-		var bus = busRepo.findById(request.bus_id())
+	public SeatResponse create(Long bus_id, SeatCreateRequest request) {
+		var bus = busRepo.findById(bus_id)
 				.orElseThrow(() -> new NotFoundException("Bus %d not found".formatted(request.bus_id())));
 		Seat seat = seatMapper.toEntity(request);
 		seat.setBus(bus);
@@ -83,12 +83,5 @@ public class SeatServiceImpl implements SeatService {
 			throw new NotFoundException("No seats founds with type %s".formatted(type));
 		}
 		return seats.stream().map(seatMapper::toResponse).toList();
-	}
-	
-	@Override
-	public SeatResponse getSeatByNumberAndTrip(String number, Long trip_id) {
-		return seatRepo.findByNumberAndTrip_id(number, trip_id)
-				.map(seatMapper::toResponse)
-				.orElseThrow(() -> new NotFoundException("Seat %s wasn't found in trip %s".formatted(number, trip_id)));
 	}
 }
