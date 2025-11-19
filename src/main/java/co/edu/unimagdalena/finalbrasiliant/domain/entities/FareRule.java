@@ -42,14 +42,14 @@ public class FareRule {
     @Column(nullable = false, precision = 8, scale = 2, name = "base_price")
     private BigDecimal basePrice;
 
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "fare_rule_discounts", joinColumns = @JoinColumn(name = "fare_rule_id"))
+    @ElementCollection
     @Builder.Default
+    @CollectionTable(name = "fare_rule_discounts", joinColumns = @JoinColumn(name = "fare_rule_id"))
+    @Column(name = "discounts")
     private Map<String, BigDecimal> discounts = new HashMap<>();
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, name = "dynamic_pricing")
     private DynamicPricing dynamicPricing;
-
 
 }

@@ -184,7 +184,6 @@ public class FareRuleMapperTest {
 
         // Then
         assertThat(fareRule.getBasePrice()).isEqualByComparingTo(new BigDecimal("50000.00")); // No cambió
-        //assertThat(fareRule.getDiscounts()).containsExactly("STUDENT:10"); // No cambió
         assertThat(fareRule.getDynamicPricing()).isEqualTo(DynamicPricing.ON); // No cambió
     }
 

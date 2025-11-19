@@ -172,9 +172,7 @@ public class SeatHoldServiceImpl implements SeatHoldService {
         var now = OffsetDateTime.now();
         var expiredHolds = seatHoldRepo.findExpiredHolds(now);
 
-        if (expiredHolds.isEmpty()) {
-            return;
-        }
+        if (expiredHolds.isEmpty()) return;
 
         expiredHolds.forEach(hold -> hold.setStatus(SeatHoldStatus.EXPIRED));
         seatHoldRepo.saveAll(expiredHolds);
