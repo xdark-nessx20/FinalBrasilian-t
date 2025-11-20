@@ -1,328 +1,220 @@
 package co.edu.unimagdalena.finalbrasiliant.api;
 
 import co.edu.unimagdalena.finalbrasiliant.api.dto.UserDTO.*;
-import co.edu.unimagdalena.finalbrasiliant.domain.entities.User;
 import co.edu.unimagdalena.finalbrasiliant.domain.enums.Role;
-import co.edu.unimagdalena.finalbrasiliant.domain.repositories.UserRepository;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.BeforeEach;
+import co.edu.unimagdalena.finalbrasiliant.services.UserService;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.time.OffsetDateTime;
+import java.util.List;
 
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.endsWith;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@SpringBootTest
-@AutoConfigureMockMvc
-@ActiveProfiles("test")
-@Transactional
-class UserControllerIntegrationTest extends BaseTest{
-    @Autowired
-    private UserRepository userRepository;
-
-    @BeforeEach
-    void setUp() {
-        userRepository.deleteAll();
-    }
+@WebMvcTest(UserController.class)
+class UserControllerTest extends BaseTest {
+    
+    @MockitoBean
+    UserService service;
 
     @Test
-    void testCreateUser_Success() throws Exception {
-        // Given
-        UserCreateRequest request = new UserCreateRequest(
-                "johndoe",
-                "john.doe@example.com",
-                "3001234567",
-                Role.ROLE_PASSENGER,
-                "securePassword123"
-        );
+    void createUser_shouldReturn201AndLocation() throws Exception {
+        var req = new UserCreateRequest("johndoe", "john@example.com", 
+                "+573001234567", Role.ROLE_PASSENGER, "hashedPassword123");
+        var resp = new UserResponse(1L, "johndoe", "john@example.com", 
+                "+573001234567", Role.ROLE_PASSENGER, true, OffsetDateTime.now());
 
-        // When & Then
+        when(service.create(any(UserCreateRequest.class))).thenReturn(resp);
+
         mvc.perform(post("/api/v1/users")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(om.writeValueAsString(request)))
+                        .content(om.writeValueAsString(req)))
                 .andExpect(status().isCreated())
-                .andExpect(header().exists("Location"))
-                .andExpect(jsonPath("$.id").exists())
+                .andExpect(header().string("Location", endsWith("/api/v1/users/1")))
+                .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.userName").value("johndoe"))
-                .andExpect(jsonPath("$.email").value("john.doe@example.com"))
-                .andExpect(jsonPath("$.phone").value("3001234567"))
-                .andExpect(jsonPath("$.role").value("ROLE_PASSENGER"))
+                .andExpect(jsonPath("$.email").value("john@example.com"))
+                .andExpect(jsonPath("$.phone").value("+573001234567"))
+                .andExpect(jsonPath("$.role").value("PASSENGER"))
                 .andExpect(jsonPath("$.status").value(true));
+
+        verify(service).create(any(UserCreateRequest.class));
     }
 
     @Test
-    void testGetUser_Success() throws Exception {
-        // Given
-        User user = User.builder()
-                .userName("janedoe")
-                .email("jane.doe@example.com")
-                .phone("3009876543")
-                .role(Role.ROLE_DRIVER)
-                .status(true)
-                .passwordHash("hashedPassword")
-                .build();
-        User savedUser = userRepository.save(user);
+    void get_shouldReturn200() throws Exception {
+        var resp = new UserResponse(1L, "johndoe", "john@example.com", 
+                "+573001234567", Role.ROLE_PASSENGER, true, OffsetDateTime.now());
 
-        // When & Then
-        mvc.perform(get("/api/v1/users/{id}", savedUser.getId()))
+        when(service.get(1L)).thenReturn(resp);
+
+        mvc.perform(get("/api/v1/users/1"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(savedUser.getId()))
-                .andExpect(jsonPath("$.userName").value("janedoe"))
-                .andExpect(jsonPath("$.email").value("jane.doe@example.com"))
-                .andExpect(jsonPath("$.phone").value("3009876543"))
-                .andExpect(jsonPath("$.role").value("ROLE_DRIVER"));
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.userName").value("johndoe"))
+                .andExpect(jsonPath("$.email").value("john@example.com"))
+                .andExpect(jsonPath("$.role").value("PASSENGER"));
+
+        verify(service).get(1L);
     }
 
     @Test
-    void testUpdateUser_Success() throws Exception {
-        // Given
-        User user = User.builder()
-                .userName("oldname")
-                .email("old@example.com")
-                .phone("3001111111")
-                .role(Role.ROLE_PASSENGER)
-                .status(true)
-                .passwordHash("hashedPassword")
-                .build();
-        User savedUser = userRepository.save(user);
+    void update_shouldReturn200() throws Exception {
+        var req = new UserUpdateRequest("johndoe_updated", "john.new@example.com", 
+                "+573009876543", Role.ROLE_DRIVER, false, "newHashedPassword");
+        var resp = new UserResponse(1L, "johndoe_updated", "john.new@example.com", 
+                "+573009876543", Role.ROLE_DRIVER, false, OffsetDateTime.now());
 
-        UserUpdateRequest updateRequest = new UserUpdateRequest(
-                "newname",
-                "new@example.com",
-                "3002222222",
-                Role.ROLE_ADMIN,
-                false,
-                "hashedPassword"
-        );
+        when(service.update(eq(1L), any(UserUpdateRequest.class))).thenReturn(resp);
 
-        // When & Then
-        mvc.perform(patch("/api/v1/users/{id}", savedUser.getId())
+        mvc.perform(patch("/api/v1/users/1")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(om.writeValueAsString(updateRequest)))
+                        .content(om.writeValueAsString(req)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(savedUser.getId()))
-                .andExpect(jsonPath("$.userName").value("newname"))
-                .andExpect(jsonPath("$.email").value("new@example.com"))
-                .andExpect(jsonPath("$.phone").value("3002222222"))
-                .andExpect(jsonPath("$.role").value("ROLE_ADMIN"))
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.userName").value("johndoe_updated"))
+                .andExpect(jsonPath("$.email").value("john.new@example.com"))
+                .andExpect(jsonPath("$.phone").value("+573009876543"))
+                .andExpect(jsonPath("$.role").value("DRIVER"))
                 .andExpect(jsonPath("$.status").value(false));
+
+        verify(service).update(eq(1L), any(UserUpdateRequest.class));
     }
 
     @Test
-    void testDeleteUser_Success() throws Exception {
-        // Given
-        User user = User.builder()
-                .userName("deleteMe")
-                .email("delete@example.com")
-                .phone("3003333333")
-                .role(Role.ROLE_PASSENGER)
-                .status(true)
-                .passwordHash("hashedPassword")
-                .build();
-        User savedUser = userRepository.save(user);
-
-        // When & Then
-        mvc.perform(delete("/api/v1/users/{id}", savedUser.getId()))
+    void delete_shouldReturn204() throws Exception {
+        mvc.perform(delete("/api/v1/users/1"))
                 .andExpect(status().isNoContent());
+
+        verify(service).delete(1L);
     }
 
     @Test
-    void testGetByUserName_Success() throws Exception {
-        // Given
-        User user = User.builder()
-                .userName("uniqueuser")
-                .email("unique@example.com")
-                .phone("3004444444")
-                .role(Role.ROLE_PASSENGER)
-                .status(true)
-                .passwordHash("hashedPassword")
-                .build();
-        userRepository.save(user);
+    void getByUserName_shouldReturn200() throws Exception {
+        var resp = new UserResponse(1L, "johndoe", "john@example.com", 
+                "+573001234567", Role.ROLE_PASSENGER, true, OffsetDateTime.now());
 
-        // When & Then
+        when(service.getByUserName("johndoe")).thenReturn(resp);
+
         mvc.perform(get("/api/v1/users/by-name")
-                        .param("userName", "uniqueuser"))
+                        .param("userName", "johndoe"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.userName").value("uniqueuser"))
-                .andExpect(jsonPath("$.email").value("unique@example.com"));
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.userName").value("johndoe"));
+
+        verify(service).getByUserName("johndoe");
     }
 
     @Test
-    void testGetByEmail_Success() throws Exception {
-        // Given
-        User user = User.builder()
-                .userName("emailuser")
-                .email("findme@example.com")
-                .phone("3005555555")
-                .role(Role.ROLE_DRIVER)
-                .status(true)
-                .passwordHash("hashedPassword")
-                .build();
-        userRepository.save(user);
+    void getByEmail_shouldReturn200() throws Exception {
+        var resp = new UserResponse(1L, "johndoe", "john@example.com", 
+                "+573001234567", Role.ROLE_PASSENGER, true, OffsetDateTime.now());
 
-        // When & Then
+        when(service.getByEmail("john@example.com")).thenReturn(resp);
+
         mvc.perform(get("/api/v1/users/by-email")
-                        .param("email", "findme@example.com"))
+                        .param("email", "john@example.com"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.email").value("findme@example.com"))
-                .andExpect(jsonPath("$.userName").value("emailuser"));
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.email").value("john@example.com"));
+
+        verify(service).getByEmail("john@example.com");
     }
 
     @Test
-    void testGetByPhone_Success() throws Exception {
-        // Given
-        User user = User.builder()
-                .userName("phoneuser")
-                .email("phone@example.com")
-                .phone("3006666666")
-                .role(Role.ROLE_PASSENGER)
-                .status(true)
-                .passwordHash("hashedPassword")
-                .build();
-        userRepository.save(user);
+    void getByPhone_shouldReturn200() throws Exception {
+        var resp = new UserResponse(1L, "johndoe", "john@example.com", 
+                "+573001234567", Role.ROLE_PASSENGER, true, OffsetDateTime.now());
 
-        // When & Then
+        when(service.getByPhone("+573001234567")).thenReturn(resp);
+
         mvc.perform(get("/api/v1/users/by-phone")
-                        .param("phone", "3006666666"))
+                        .param("phone", "+573001234567"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.phone").value("3006666666"))
-                .andExpect(jsonPath("$.userName").value("phoneuser"));
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.phone").value("+573001234567"));
+
+        verify(service).getByPhone("+573001234567");
     }
 
     @Test
-    void testGetByCreatedAtBetween_Success() throws Exception {
-        // Given
-        OffsetDateTime start = OffsetDateTime.now().minusDays(1);
-        OffsetDateTime end = OffsetDateTime.now().plusDays(1);
+    void getByCreatedAtBetween_shouldReturn200() throws Exception {
+        var start = OffsetDateTime.now().minusDays(7);
+        var end = OffsetDateTime.now();
+        var users = List.of(
+                new UserResponse(1L, "johndoe", "john@example.com", 
+                        "+573001234567", Role.ROLE_PASSENGER, true, start.plusDays(1)),
+                new UserResponse(2L, "janedoe", "jane@example.com", 
+                        "+573007654321", Role.ROLE_DRIVER, true, start.plusDays(3))
+        );
+        var page = new PageImpl<>(users, PageRequest.of(0, 10), 2);
 
-        User user1 = User.builder()
-                .userName("user1")
-                .email("user1@example.com")
-                .phone("3007777777")
-                .role(Role.ROLE_PASSENGER)
-                .status(true)
-                .passwordHash("hashedPassword")
-                .build();
-        
-        User user2 = User.builder()
-                .userName("user2")
-                .email("user2@example.com")
-                .phone("3008888888")
-                .role(Role.ROLE_DRIVER)
-                .status(true)
-                .passwordHash("hashedPassword")
-                .build();
-        
-        userRepository.save(user1);
-        userRepository.save(user2);
+        when(service.getByCreatedAtBetween(any(OffsetDateTime.class), any(OffsetDateTime.class), any()))
+                .thenReturn(page);
 
-        // When & Then
         mvc.perform(get("/api/v1/users/by-created_at")
                         .param("start", start.toString())
                         .param("end", end.toString())
                         .param("page", "0")
                         .param("size", "10"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content").isArray())
-                .andExpect(jsonPath("$.content", hasSize(greaterThanOrEqualTo(2))))
-                .andExpect(jsonPath("$.totalElements").value(greaterThanOrEqualTo(2)));
+                .andExpect(jsonPath("$.totalElements").value(2))
+                .andExpect(jsonPath("$.content[0].id").value(1))
+                .andExpect(jsonPath("$.content[1].id").value(2));
+
+        verify(service).getByCreatedAtBetween(any(OffsetDateTime.class), any(OffsetDateTime.class), any());
     }
 
     @Test
-    void testGetByRole_Success() throws Exception {
-        // Given
-        User driver1 = User.builder()
-                .userName("driver1")
-                .email("driver1@example.com")
-                .phone("3009999999")
-                .role(Role.ROLE_DRIVER)
-                .status(true)
-                .passwordHash("hashedPassword")
-                .build();
-        
-        User driver2 = User.builder()
-                .userName("driver2")
-                .email("driver2@example.com")
-                .phone("3000000000")
-                .role(Role.ROLE_DRIVER)
-                .status(true)
-                .passwordHash("hashedPassword")
-                .build();
-        
-        User passenger = User.builder()
-                .userName("passenger1")
-                .email("passenger1@example.com")
-                .phone("3001111112")
-                .role(Role.ROLE_PASSENGER)
-                .status(true)
-                .passwordHash("hashedPassword")
-                .build();
-        
-        userRepository.save(driver1);
-        userRepository.save(driver2);
-        userRepository.save(passenger);
+    void getByRole_shouldReturn200() throws Exception {
+        var users = List.of(
+                new UserResponse(1L, "johndoe", "john@example.com", 
+                        "+573001234567", Role.ROLE_PASSENGER, true, OffsetDateTime.now()),
+                new UserResponse(2L, "janedoe", "jane@example.com", 
+                        "+573007654321", Role.ROLE_PASSENGER, true, OffsetDateTime.now())
+        );
 
-        // When & Then
+        when(service.getByRole(Role.ROLE_PASSENGER)).thenReturn(users);
+
         mvc.perform(get("/api/v1/users/by-role")
-                        .param("role", "ROLE_DRIVER"))
+                        .param("role", "PASSENGER"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$", hasSize(2)))
-                .andExpect(jsonPath("$[*].role", everyItem(is("ROLE_DRIVER"))));
+                .andExpect(jsonPath("$[0].role").value("PASSENGER"))
+                .andExpect(jsonPath("$[1].role").value("PASSENGER"))
+                .andExpect(jsonPath("$.length()").value(2));
+
+        verify(service).getByRole(Role.ROLE_PASSENGER);
     }
 
     @Test
-    void testGetByStatus_Success() throws Exception {
-        // Given
-        User activeUser1 = User.builder()
-                .userName("active1")
-                .email("active1@example.com")
-                .phone("3002222223")
-                .role(Role.ROLE_PASSENGER)
-                .status(true)
-                .passwordHash("hashedPassword")
-                .build();
-        
-        User activeUser2 = User.builder()
-                .userName("active2")
-                .email("active2@example.com")
-                .phone("3003333334")
-                .role(Role.ROLE_DRIVER)
-                .status(true)
-                .passwordHash("hashedPassword")
-                .build();
-        
-        User inactiveUser = User.builder()
-                .userName("inactive1")
-                .email("inactive1@example.com")
-                .phone("3004444445")
-                .role(Role.ROLE_PASSENGER)
-                .status(false)
-                .passwordHash("hashedPassword")
-                .build();
-        
-        userRepository.save(activeUser1);
-        userRepository.save(activeUser2);
-        userRepository.save(inactiveUser);
+    void getByStatus_shouldReturn200() throws Exception {
+        var users = List.of(
+                new UserResponse(1L, "johndoe", "john@example.com", 
+                        "+573001234567", Role.ROLE_PASSENGER, true, OffsetDateTime.now()),
+                new UserResponse(2L, "janedoe", "jane@example.com", 
+                        "+573007654321", Role.ROLE_DRIVER, true, OffsetDateTime.now())
+        );
+        var page = new PageImpl<>(users, PageRequest.of(0, 10), 2);
 
-        // When & Then
+        when(service.getByStatus(eq(true), any())).thenReturn(page);
+
         mvc.perform(get("/api/v1/users/by-status")
                         .param("status", "true")
                         .param("page", "0")
                         .param("size", "10"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content").isArray())
-                .andExpect(jsonPath("$.content", hasSize(2)))
-                .andExpect(jsonPath("$.content[*].status", everyItem(is(true))))
-                .andExpect(jsonPath("$.totalElements").value(2));
+                .andExpect(jsonPath("$.totalElements").value(2))
+                .andExpect(jsonPath("$.content[0].status").value(true))
+                .andExpect(jsonPath("$.content[1].status").value(true));
+
+        verify(service).getByStatus(eq(true), any());
     }
 }

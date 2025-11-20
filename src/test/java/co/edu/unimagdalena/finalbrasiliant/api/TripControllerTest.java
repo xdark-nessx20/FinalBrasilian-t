@@ -1,530 +1,304 @@
 package co.edu.unimagdalena.finalbrasiliant.api;
 
 import co.edu.unimagdalena.finalbrasiliant.api.dto.TripDTO.*;
-import co.edu.unimagdalena.finalbrasiliant.domain.entities.Bus;
-import co.edu.unimagdalena.finalbrasiliant.domain.entities.Route;
-import co.edu.unimagdalena.finalbrasiliant.domain.entities.Trip;
-import co.edu.unimagdalena.finalbrasiliant.domain.enums.BusStatus;
 import co.edu.unimagdalena.finalbrasiliant.domain.enums.TripStatus;
-import co.edu.unimagdalena.finalbrasiliant.domain.repositories.BusRepository;
-import co.edu.unimagdalena.finalbrasiliant.domain.repositories.RouteRepository;
-import co.edu.unimagdalena.finalbrasiliant.domain.repositories.TripRepository;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.BeforeEach;
+import co.edu.unimagdalena.finalbrasiliant.services.TripService;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.util.List;
 
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.endsWith;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@SpringBootTest
-@AutoConfigureMockMvc
-@ActiveProfiles("test")
-@Transactional
-class TripControllerIntegrationTest extends BaseTest{
-    @Autowired
-    private TripRepository tripRepository;
-
-    @Autowired
-    private RouteRepository routeRepository;
-
-    @Autowired
-    private BusRepository busRepository;
-
-    private Route testRoute;
-    private Bus testBus;
-
-    @BeforeEach
-    void setUp() {
-        tripRepository.deleteAll();
-        busRepository.deleteAll();
-        routeRepository.deleteAll();
-
-        // Create test route
-        testRoute = Route.builder()
-                .code("RT001")
-                .routeName("Santa Marta - Barranquilla")
-                .origin("Santa Marta")
-                .destination("Barranquilla")
-                .distanceKM(new BigDecimal("95.50"))
-                .durationMin(120)
-                .build();
-        testRoute = routeRepository.save(testRoute);
-
-        // Create test bus
-        testBus = Bus.builder()
-                .plate("ABC123")
-                .capacity(40)
-                .status(BusStatus.AVAILABLE)
-                .build();
-        testBus = busRepository.save(testBus);
-    }
+@WebMvcTest(TripController.class)
+class TripControllerTest extends BaseTest {
+    
+    @MockitoBean
+    TripService service;
 
     @Test
-    void testCreateTrip_Success() throws Exception {
-        // Given
-        LocalDate tripDate = LocalDate.now().plusDays(1);
-        OffsetDateTime departure = OffsetDateTime.now().plusDays(1).withHour(8).withMinute(0);
-        OffsetDateTime arrival = departure.plusHours(2);
+    void createTrip_shouldReturn201AndLocation() throws Exception {
+        var date = LocalDate.of(2025, 12, 1);
+        var departure = OffsetDateTime.now().plusDays(1);
+        var arrival = departure.plusHours(2);
+        var req = new TripCreateRequest(50L, date, departure, arrival);
+        var resp = new TripResponse(1L, 10L, 50L, date, departure, arrival, TripStatus.SCHEDULED);
 
-        TripCreateRequest request = new TripCreateRequest(
-                testBus.getId(),
-                tripDate,
-                departure,
-                arrival
-        );
+        when(service.create(eq(10L), any(TripCreateRequest.class))).thenReturn(resp);
 
-        // When & Then
-        mvc.perform(post("/api/v1/routes/{routeId}/trips", testRoute.getId())
+        mvc.perform(post("/api/v1/routes/10/trips")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(om.writeValueAsString(request)))
+                        .content(om.writeValueAsString(req)))
                 .andExpect(status().isCreated())
-                .andExpect(header().exists("Location"))
-                .andExpect(jsonPath("$.id").exists())
-                .andExpect(jsonPath("$.route_id").value(testRoute.getId()))
-                .andExpect(jsonPath("$.bus_id").value(testBus.getId()))
-                .andExpect(jsonPath("$.date").value(tripDate.toString()))
+                .andExpect(header().string("Location", endsWith("/api/v1/routes/10/trips/1")))
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.route_id").value(10))
+                .andExpect(jsonPath("$.bus_id").value(50))
                 .andExpect(jsonPath("$.status").value("SCHEDULED"));
+
+        verify(service).create(eq(10L), any(TripCreateRequest.class));
     }
 
     @Test
-    void testGetTrip_Success() throws Exception {
-        // Given
-        LocalDate tripDate = LocalDate.now();
-        OffsetDateTime departure = OffsetDateTime.now().withHour(10).withMinute(0);
-        OffsetDateTime arrival = departure.plusHours(2);
+    void get_shouldReturn200() throws Exception {
+        var date = LocalDate.of(2025, 12, 1);
+        var departure = OffsetDateTime.now().plusDays(1);
+        var arrival = departure.plusHours(2);
+        var resp = new TripResponse(1L, 10L, 50L, date, departure, arrival, TripStatus.SCHEDULED);
 
-        Trip trip = Trip.builder()
-                .route(testRoute)
-                .bus(testBus)
-                .date(tripDate)
-                .departureAt(departure)
-                .arrivalETA(arrival)
-                .status(TripStatus.SCHEDULED)
-                .build();
-        Trip savedTrip = tripRepository.save(trip);
+        when(service.get(1L)).thenReturn(resp);
 
-        // When & Then
-        mvc.perform(get("/api/v1/trips/{tripId}", savedTrip.getId()))
+        mvc.perform(get("/api/v1/trips/1"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(savedTrip.getId()))
-                .andExpect(jsonPath("$.route_id").value(testRoute.getId()))
-                .andExpect(jsonPath("$.bus_id").value(testBus.getId()))
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.route_id").value(10))
+                .andExpect(jsonPath("$.bus_id").value(50))
                 .andExpect(jsonPath("$.status").value("SCHEDULED"));
+
+        verify(service).get(1L);
     }
 
     @Test
-    void testUpdateTrip_Success() throws Exception {
-        // Given
-        LocalDate tripDate = LocalDate.now();
-        OffsetDateTime departure = OffsetDateTime.now().withHour(10).withMinute(0);
-        OffsetDateTime arrival = departure.plusHours(2);
+    void update_shouldReturn200() throws Exception {
+        var date = LocalDate.of(2025, 12, 1);
+        var departure = OffsetDateTime.now().plusDays(1);
+        var arrival = departure.plusHours(2);
+        var req = new TripUpdateRequest(10L, 50L, date, departure, arrival, TripStatus.DEPARTED);
+        var resp = new TripResponse(1L, 10L, 50L, date, departure, arrival, TripStatus.DEPARTED);
 
-        Trip trip = Trip.builder()
-                .route(testRoute)
-                .bus(testBus)
-                .date(tripDate)
-                .departureAt(departure)
-                .arrivalETA(arrival)
-                .status(TripStatus.SCHEDULED)
-                .build();
-        Trip savedTrip = tripRepository.save(trip);
+        when(service.update(eq(1L), any(TripUpdateRequest.class))).thenReturn(resp);
 
-        LocalDate newDate = LocalDate.now().plusDays(1);
-        OffsetDateTime newDeparture = OffsetDateTime.now().plusDays(1).withHour(14).withMinute(0);
-        OffsetDateTime newArrival = newDeparture.plusHours(2);
-
-        TripUpdateRequest updateRequest = new TripUpdateRequest(
-                null,
-                testBus.getId(),
-                newDate,
-                newDeparture,
-                newArrival,
-                TripStatus.BOARDING
-        );
-
-        // When & Then
-        mvc.perform(patch("/api/v1/trips/{tripId}", savedTrip.getId())
+        mvc.perform(patch("/api/v1/trips/1")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(om.writeValueAsString(updateRequest)))
+                        .content(om.writeValueAsString(req)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(savedTrip.getId()))
-                .andExpect(jsonPath("$.date").value(newDate.toString()))
-                .andExpect(jsonPath("$.status").value("BOARDING"));
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.status").value("DEPARTED"));
+
+        verify(service).update(eq(1L), any(TripUpdateRequest.class));
     }
 
     @Test
-    void testDeleteTrip_Success() throws Exception {
-        // Given
-        Trip trip = Trip.builder()
-                .route(testRoute)
-                .bus(testBus)
-                .date(LocalDate.now())
-                .departureAt(OffsetDateTime.now())
-                .arrivalETA(OffsetDateTime.now().plusHours(2))
-                .status(TripStatus.SCHEDULED)
-                .build();
-        Trip savedTrip = tripRepository.save(trip);
-
-        // When & Then
-        mvc.perform(delete("/api/v1/trips/{tripId}", savedTrip.getId()))
+    void delete_shouldReturn204() throws Exception {
+        mvc.perform(delete("/api/v1/trips/1"))
                 .andExpect(status().isNoContent());
+
+        verify(service).delete(1L);
     }
 
     @Test
-    void testGetByRouteId_Success() throws Exception {
-        // Given
-        Trip trip1 = Trip.builder()
-                .route(testRoute)
-                .bus(testBus)
-                .date(LocalDate.now())
-                .departureAt(OffsetDateTime.now())
-                .arrivalETA(OffsetDateTime.now().plusHours(2))
-                .status(TripStatus.SCHEDULED)
-                .build();
+    void getByRouteId_shouldReturn200() throws Exception {
+        var date1 = LocalDate.of(2025, 12, 1);
+        var date2 = LocalDate.of(2025, 12, 2);
+        var departure1 = OffsetDateTime.now().plusDays(1);
+        var departure2 = OffsetDateTime.now().plusDays(2);
+        var trips = List.of(
+                new TripResponse(1L, 10L, 50L, date1, departure1, departure1.plusHours(2), TripStatus.SCHEDULED),
+                new TripResponse(2L, 10L, 51L, date2, departure2, departure2.plusHours(2), TripStatus.SCHEDULED)
+        );
+        var page = new PageImpl<>(trips, PageRequest.of(0, 10), 2);
 
-        Trip trip2 = Trip.builder()
-                .route(testRoute)
-                .bus(testBus)
-                .date(LocalDate.now().plusDays(1))
-                .departureAt(OffsetDateTime.now().plusDays(1))
-                .arrivalETA(OffsetDateTime.now().plusDays(1).plusHours(2))
-                .status(TripStatus.SCHEDULED)
-                .build();
+        when(service.getAllByRouteId(eq(10L), any())).thenReturn(page);
 
-        tripRepository.save(trip1);
-        tripRepository.save(trip2);
-
-        // When & Then
-        mvc.perform(get("/api/v1/routes/{routeId}/trips", testRoute.getId())
+        mvc.perform(get("/api/v1/routes/10/trips")
                         .param("page", "0")
                         .param("size", "10"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content").isArray())
-                .andExpect(jsonPath("$.content", hasSize(2)))
-                .andExpect(jsonPath("$.content[*].route_id", everyItem(is(testRoute.getId().intValue()))))
-                .andExpect(jsonPath("$.totalElements").value(2));
+                .andExpect(jsonPath("$.totalElements").value(2))
+                .andExpect(jsonPath("$.content[0].route_id").value(10))
+                .andExpect(jsonPath("$.content[1].route_id").value(10));
+
+        verify(service).getAllByRouteId(eq(10L), any());
     }
 
     @Test
-    void testGetByBusId_Success() throws Exception {
-        // Given
-        Trip trip1 = Trip.builder()
-                .route(testRoute)
-                .bus(testBus)
-                .date(LocalDate.now())
-                .departureAt(OffsetDateTime.now())
-                .arrivalETA(OffsetDateTime.now().plusHours(2))
-                .status(TripStatus.SCHEDULED)
-                .build();
+    void getByBusId_shouldReturn200() throws Exception {
+        var date1 = LocalDate.of(2025, 12, 1);
+        var date2 = LocalDate.of(2025, 12, 3);
+        var departure1 = OffsetDateTime.now().plusDays(1);
+        var departure2 = OffsetDateTime.now().plusDays(3);
+        var trips = List.of(
+                new TripResponse(1L, 10L, 50L, date1, departure1, departure1.plusHours(2), TripStatus.SCHEDULED),
+                new TripResponse(3L, 11L, 50L, date2, departure2, departure2.plusHours(3), TripStatus.SCHEDULED)
+        );
+        var page = new PageImpl<>(trips, PageRequest.of(0, 10), 2);
 
-        Trip trip2 = Trip.builder()
-                .route(testRoute)
-                .bus(testBus)
-                .date(LocalDate.now().plusDays(1))
-                .departureAt(OffsetDateTime.now().plusDays(1))
-                .arrivalETA(OffsetDateTime.now().plusDays(1).plusHours(2))
-                .status(TripStatus.SCHEDULED)
-                .build();
+        when(service.getAllByBusId(eq(50L), any())).thenReturn(page);
 
-        tripRepository.save(trip1);
-        tripRepository.save(trip2);
-
-        // When & Then
-        mvc.perform(get("/api/v1/trips/by-bus/{busId}", testBus.getId())
+        mvc.perform(get("/api/v1/trips/by-bus")
+                        .param("busId", "50")
                         .param("page", "0")
                         .param("size", "10"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content").isArray())
-                .andExpect(jsonPath("$.content", hasSize(2)))
-                .andExpect(jsonPath("$.content[*].bus_id", everyItem(is(testBus.getId().intValue()))))
-                .andExpect(jsonPath("$.totalElements").value(2));
+                .andExpect(jsonPath("$.totalElements").value(2))
+                .andExpect(jsonPath("$.content[0].bus_id").value(50))
+                .andExpect(jsonPath("$.content[1].bus_id").value(50));
+
+        verify(service).getAllByBusId(eq(50L), any());
     }
 
     @Test
-    void testGetByDepartureBetween_Success() throws Exception {
-        // Given
-        OffsetDateTime start = OffsetDateTime.now().minusHours(1);
-        OffsetDateTime end = OffsetDateTime.now().plusDays(2);
+    void getByDepartureBetween_shouldReturn200() throws Exception {
+        var start = OffsetDateTime.now();
+        var end = start.plusDays(7);
+        var date = LocalDate.of(2025, 12, 1);
+        var departure = start.plusDays(1);
+        var trips = List.of(
+                new TripResponse(1L, 10L, 50L, date, departure, departure.plusHours(2), TripStatus.SCHEDULED)
+        );
+        var page = new PageImpl<>(trips, PageRequest.of(0, 10), 1);
 
-        Trip trip1 = Trip.builder()
-                .route(testRoute)
-                .bus(testBus)
-                .date(LocalDate.now())
-                .departureAt(OffsetDateTime.now())
-                .arrivalETA(OffsetDateTime.now().plusHours(2))
-                .status(TripStatus.SCHEDULED)
-                .build();
+        when(service.getByDepartureBetween(any(OffsetDateTime.class), any(OffsetDateTime.class), any()))
+                .thenReturn(page);
 
-        Trip trip2 = Trip.builder()
-                .route(testRoute)
-                .bus(testBus)
-                .date(LocalDate.now().plusDays(1))
-                .departureAt(OffsetDateTime.now().plusDays(1))
-                .arrivalETA(OffsetDateTime.now().plusDays(1).plusHours(2))
-                .status(TripStatus.SCHEDULED)
-                .build();
-
-        tripRepository.save(trip1);
-        tripRepository.save(trip2);
-
-        // When & Then
         mvc.perform(get("/api/v1/trips/by-departure")
                         .param("start", start.toString())
                         .param("end", end.toString())
                         .param("page", "0")
                         .param("size", "10"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content").isArray())
-                .andExpect(jsonPath("$.content", hasSize(greaterThanOrEqualTo(2))))
-                .andExpect(jsonPath("$.totalElements").value(greaterThanOrEqualTo(2)));
+                .andExpect(jsonPath("$.totalElements").value(1))
+                .andExpect(jsonPath("$.content[0].id").value(1));
+
+        verify(service).getByDepartureBetween(any(OffsetDateTime.class), any(OffsetDateTime.class), any());
     }
 
     @Test
-    void testGetByArrivalBetween_Success() throws Exception {
-        // Given
-        OffsetDateTime start = OffsetDateTime.now();
-        OffsetDateTime end = OffsetDateTime.now().plusDays(2);
+    void getByArrivalBetween_shouldReturn200() throws Exception {
+        var start = OffsetDateTime.now().plusHours(2);
+        var end = start.plusDays(7);
+        var date = LocalDate.of(2025, 12, 1);
+        var departure = OffsetDateTime.now().plusDays(1);
+        var arrival = departure.plusHours(2);
+        var trips = List.of(
+                new TripResponse(1L, 10L, 50L, date, departure, arrival, TripStatus.SCHEDULED)
+        );
+        var page = new PageImpl<>(trips, PageRequest.of(0, 10), 1);
 
-        Trip trip1 = Trip.builder()
-                .route(testRoute)
-                .bus(testBus)
-                .date(LocalDate.now())
-                .departureAt(OffsetDateTime.now())
-                .arrivalETA(OffsetDateTime.now().plusHours(2))
-                .status(TripStatus.SCHEDULED)
-                .build();
+        when(service.getByArrivalBetween(any(OffsetDateTime.class), any(OffsetDateTime.class), any()))
+                .thenReturn(page);
 
-        Trip trip2 = Trip.builder()
-                .route(testRoute)
-                .bus(testBus)
-                .date(LocalDate.now().plusDays(1))
-                .departureAt(OffsetDateTime.now().plusDays(1))
-                .arrivalETA(OffsetDateTime.now().plusDays(1).plusHours(2))
-                .status(TripStatus.SCHEDULED)
-                .build();
-
-        tripRepository.save(trip1);
-        tripRepository.save(trip2);
-
-        // When & Then
         mvc.perform(get("/api/v1/trips/by-arrival")
                         .param("start", start.toString())
                         .param("end", end.toString())
                         .param("page", "0")
                         .param("size", "10"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content").isArray())
-                .andExpect(jsonPath("$.content", hasSize(greaterThanOrEqualTo(2))))
-                .andExpect(jsonPath("$.totalElements").value(greaterThanOrEqualTo(2)));
+                .andExpect(jsonPath("$.totalElements").value(1))
+                .andExpect(jsonPath("$.content[0].id").value(1));
+
+        verify(service).getByArrivalBetween(any(OffsetDateTime.class), any(OffsetDateTime.class), any());
     }
 
     @Test
-    void testGetByStatus_Success() throws Exception {
-        // Given
-        Trip scheduledTrip1 = Trip.builder()
-                .route(testRoute)
-                .bus(testBus)
-                .date(LocalDate.now())
-                .departureAt(OffsetDateTime.now())
-                .arrivalETA(OffsetDateTime.now().plusHours(2))
-                .status(TripStatus.SCHEDULED)
-                .build();
+    void getByStatus_shouldReturn200() throws Exception {
+        var date1 = LocalDate.of(2025, 12, 1);
+        var date2 = LocalDate.of(2025, 12, 2);
+        var departure1 = OffsetDateTime.now().plusDays(1);
+        var departure2 = OffsetDateTime.now().plusDays(2);
+        var trips = List.of(
+                new TripResponse(1L, 10L, 50L, date1, departure1, departure1.plusHours(2), TripStatus.DEPARTED),
+                new TripResponse(2L, 11L, 51L, date2, departure2, departure2.plusHours(3), TripStatus.DEPARTED)
+        );
+        var page = new PageImpl<>(trips, PageRequest.of(0, 10), 2);
 
-        Trip scheduledTrip2 = Trip.builder()
-                .route(testRoute)
-                .bus(testBus)
-                .date(LocalDate.now().plusDays(1))
-                .departureAt(OffsetDateTime.now().plusDays(1))
-                .arrivalETA(OffsetDateTime.now().plusDays(1).plusHours(2))
-                .status(TripStatus.SCHEDULED)
-                .build();
+        when(service.getByStatus(eq(TripStatus.DEPARTED), any())).thenReturn(page);
 
-        Trip departedTrip = Trip.builder()
-                .route(testRoute)
-                .bus(testBus)
-                .date(LocalDate.now())
-                .departureAt(OffsetDateTime.now().minusHours(1))
-                .arrivalETA(OffsetDateTime.now().plusHours(1))
-                .status(TripStatus.DEPARTED)
-                .build();
-
-        tripRepository.save(scheduledTrip1);
-        tripRepository.save(scheduledTrip2);
-        tripRepository.save(departedTrip);
-
-        // When & Then
         mvc.perform(get("/api/v1/trips/by-status")
-                        .param("status", "SCHEDULED")
+                        .param("status", "DEPARTED")
                         .param("page", "0")
                         .param("size", "10"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content").isArray())
-                .andExpect(jsonPath("$.content", hasSize(2)))
-                .andExpect(jsonPath("$.content[*].status", everyItem(is("SCHEDULED"))))
-                .andExpect(jsonPath("$.totalElements").value(2));
+                .andExpect(jsonPath("$.totalElements").value(2))
+                .andExpect(jsonPath("$.content[0].status").value("DEPARTED"))
+                .andExpect(jsonPath("$.content[1].status").value("DEPARTED"));
+
+        verify(service).getByStatus(eq(TripStatus.DEPARTED), any());
     }
 
     @Test
-    void testGetByRouteIdAndStatus_Success() throws Exception {
-        // Given
-        Trip scheduledTrip = Trip.builder()
-                .route(testRoute)
-                .bus(testBus)
-                .date(LocalDate.now())
-                .departureAt(OffsetDateTime.now())
-                .arrivalETA(OffsetDateTime.now().plusHours(2))
-                .status(TripStatus.SCHEDULED)
-                .build();
+    void getByRouteIdAndStatus_shouldReturn200() throws Exception {
+        var date1 = LocalDate.of(2025, 12, 1);
+        var date2 = LocalDate.of(2025, 12, 2);
+        var departure1 = OffsetDateTime.now().plusDays(1);
+        var departure2 = OffsetDateTime.now().plusDays(2);
+        var trips = List.of(
+                new TripResponse(1L, 10L, 50L, date1, departure1, departure1.plusHours(2), TripStatus.SCHEDULED),
+                new TripResponse(2L, 10L, 51L, date2, departure2, departure2.plusHours(2), TripStatus.SCHEDULED)
+        );
 
-        Trip departedTrip = Trip.builder()
-                .route(testRoute)
-                .bus(testBus)
-                .date(LocalDate.now())
-                .departureAt(OffsetDateTime.now().minusHours(1))
-                .arrivalETA(OffsetDateTime.now().plusHours(1))
-                .status(TripStatus.DEPARTED)
-                .build();
+        when(service.getByRouteIdAndStatus(10L, TripStatus.SCHEDULED)).thenReturn(trips);
 
-        tripRepository.save(scheduledTrip);
-        tripRepository.save(departedTrip);
-
-        // When & Then
         mvc.perform(get("/api/v1/trips/search")
-                        .param("routeId", testRoute.getId().toString())
+                        .param("routeId", "10")
                         .param("status", "SCHEDULED"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$", hasSize(1)))
-                .andExpect(jsonPath("$[0].route_id").value(testRoute.getId().intValue()))
-                .andExpect(jsonPath("$[0].status").value("SCHEDULED"));
+                .andExpect(jsonPath("$[0].route_id").value(10))
+                .andExpect(jsonPath("$[0].status").value("SCHEDULED"))
+                .andExpect(jsonPath("$[1].route_id").value(10))
+                .andExpect(jsonPath("$[1].status").value("SCHEDULED"))
+                .andExpect(jsonPath("$.length()").value(2));
+
+        verify(service).getByRouteIdAndStatus(10L, TripStatus.SCHEDULED);
     }
 
     @Test
-    void testGetByDate_Success() throws Exception {
-        // Given
-        LocalDate targetDate = LocalDate.now();
+    void getByDate_shouldReturn200() throws Exception {
+        var date = LocalDate.of(2025, 12, 1);
+        var departure1 = OffsetDateTime.now().plusDays(1).withHour(8).withMinute(0);
+        var departure2 = OffsetDateTime.now().plusDays(1).withHour(14).withMinute(0);
+        var trips = List.of(
+                new TripResponse(1L, 10L, 50L, date, departure1, departure1.plusHours(2), TripStatus.SCHEDULED),
+                new TripResponse(2L, 11L, 51L, date, departure2, departure2.plusHours(3), TripStatus.SCHEDULED)
+        );
+        var page = new PageImpl<>(trips, PageRequest.of(0, 10), 2);
 
-        Trip trip1 = Trip.builder()
-                .route(testRoute)
-                .bus(testBus)
-                .date(targetDate)
-                .departureAt(OffsetDateTime.now())
-                .arrivalETA(OffsetDateTime.now().plusHours(2))
-                .status(TripStatus.SCHEDULED)
-                .build();
+        when(service.getByDate(eq(date), any())).thenReturn(page);
 
-        Trip trip2 = Trip.builder()
-                .route(testRoute)
-                .bus(testBus)
-                .date(targetDate)
-                .departureAt(OffsetDateTime.now().plusHours(4))
-                .arrivalETA(OffsetDateTime.now().plusHours(6))
-                .status(TripStatus.SCHEDULED)
-                .build();
-
-        Trip trip3 = Trip.builder()
-                .route(testRoute)
-                .bus(testBus)
-                .date(LocalDate.now().plusDays(1))
-                .departureAt(OffsetDateTime.now().plusDays(1))
-                .arrivalETA(OffsetDateTime.now().plusDays(1).plusHours(2))
-                .status(TripStatus.SCHEDULED)
-                .build();
-
-        tripRepository.save(trip1);
-        tripRepository.save(trip2);
-        tripRepository.save(trip3);
-
-        // When & Then
         mvc.perform(get("/api/v1/trips/by-date")
-                        .param("date", targetDate.toString())
+                        .param("date", date.toString())
                         .param("page", "0")
                         .param("size", "10"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content").isArray())
-                .andExpect(jsonPath("$.content", hasSize(2)))
-                .andExpect(jsonPath("$.content[*].date", everyItem(is(targetDate.toString()))))
-                .andExpect(jsonPath("$.totalElements").value(2));
+                .andExpect(jsonPath("$.totalElements").value(2))
+                .andExpect(jsonPath("$.content[0].date").value(date.toString()))
+                .andExpect(jsonPath("$.content[1].date").value(date.toString()));
+
+        verify(service).getByDate(eq(date), any());
     }
-    
+
     @Test
-    void testGetByRouteIdAndDate_Success() throws Exception {
-        // Given
-        LocalDate targetDate = LocalDate.now();
+    void getByRouteIdAndDate_shouldReturn200() throws Exception {
+        var date = LocalDate.of(2025, 12, 1);
+        var departure1 = OffsetDateTime.now().plusDays(1).withHour(8).withMinute(0);
+        var departure2 = OffsetDateTime.now().plusDays(1).withHour(14).withMinute(0);
+        var trips = List.of(
+                new TripResponse(1L, 10L, 50L, date, departure1, departure1.plusHours(2), TripStatus.SCHEDULED),
+                new TripResponse(2L, 10L, 51L, date, departure2, departure2.plusHours(2), TripStatus.SCHEDULED)
+        );
 
-        Trip trip1 = Trip.builder()
-                .route(testRoute)
-                .bus(testBus)
-                .date(targetDate)
-                .departureAt(OffsetDateTime.now())
-                .arrivalETA(OffsetDateTime.now().plusHours(2))
-                .status(TripStatus.SCHEDULED)
-                .build();
+        when(service.getByRouteIdAndDate(10L, date)).thenReturn(trips);
 
-        Trip trip2 = Trip.builder()
-                .route(testRoute)
-                .bus(testBus)
-                .date(targetDate)
-                .departureAt(OffsetDateTime.now().plusHours(4))
-                .arrivalETA(OffsetDateTime.now().plusHours(6))
-                .status(TripStatus.DEPARTED)
-                .build();
-
-        // Trip with different route (should not be included)
-        Route otherRoute = Route.builder()
-                .code("RT002")
-                .routeName("Barranquilla - Cartagena")
-                .origin("Barranquilla")
-                .destination("Cartagena")
-                .distanceKM(new BigDecimal("120.00"))
-                .durationMin(90)
-                .build();
-        otherRoute = routeRepository.save(otherRoute);
-
-        Trip trip3 = Trip.builder()
-                .route(otherRoute)
-                .bus(testBus)
-                .date(targetDate)
-                .departureAt(OffsetDateTime.now())
-                .arrivalETA(OffsetDateTime.now().plusHours(2))
-                .status(TripStatus.SCHEDULED)
-                .build();
-
-        // Trip with different date (should not be included)
-        Trip trip4 = Trip.builder()
-                .route(testRoute)
-                .bus(testBus)
-                .date(LocalDate.now().plusDays(1))
-                .departureAt(OffsetDateTime.now().plusDays(1))
-                .arrivalETA(OffsetDateTime.now().plusDays(1).plusHours(2))
-                .status(TripStatus.SCHEDULED)
-                .build();
-
-        tripRepository.save(trip1);
-        tripRepository.save(trip2);
-        tripRepository.save(trip3);
-        tripRepository.save(trip4);
-
-        // When & Then
         mvc.perform(get("/api/v1/trips/search")
-                        .param("routeId", testRoute.getId().toString())
-                        .param("date", targetDate.toString()))
+                        .param("routeId", "10")
+                        .param("date", date.toString()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$", hasSize(2)))
-                .andExpect(jsonPath("$[*].route_id", everyItem(is(testRoute.getId().intValue()))))
-                .andExpect(jsonPath("$[*].date", everyItem(is(targetDate.toString()))));
+                .andExpect(jsonPath("$[0].route_id").value(10))
+                .andExpect(jsonPath("$[0].date").value(date.toString()))
+                .andExpect(jsonPath("$[1].route_id").value(10))
+                .andExpect(jsonPath("$[1].date").value(date.toString()))
+                .andExpect(jsonPath("$.length()").value(2));
+
+        verify(service).getByRouteIdAndDate(10L, date);
     }
 }
