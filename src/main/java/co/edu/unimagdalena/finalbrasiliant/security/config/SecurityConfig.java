@@ -47,8 +47,11 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/actuator/health").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/fare-rules/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/routes/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/v1/trips/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/v1/routes/*/trips/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/stops/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/parcels/by-code").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/v1/parcels").permitAll()
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);

@@ -9,6 +9,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -23,6 +24,7 @@ import java.util.List;
 public class BaggageController {
     private final BaggageService service;
 
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_DISPATCHER')")
     @PostMapping("/tickets/{ticketId}/baggages")
     public ResponseEntity<BaggageResponse> createBaggage(@PathVariable Long ticketId, @Valid @RequestBody BaggageCreateRequest request,
                                                          UriComponentsBuilder uriBuilder) {
@@ -41,11 +43,13 @@ public class BaggageController {
         return ResponseEntity.ok(service.get(id));
     }
 
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_DISPATCHER')")
     @PatchMapping("/baggages/{id}")
     public ResponseEntity<BaggageResponse> update(@PathVariable Long id, @Valid @RequestBody BaggageUpdateRequest request){
         return ResponseEntity.ok(service.update(id, request));
     }
 
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_DISPATCHER')")
     @DeleteMapping("/baggages/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         service.delete(id);

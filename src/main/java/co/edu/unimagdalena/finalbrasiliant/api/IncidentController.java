@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -20,6 +21,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @Validated
 @RequestMapping("/api/v1/incidents")
+@PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_DISPATCHER', 'ROLE_DRIVER', 'ROLE_CLERK')")
 public class IncidentController {
     private final IncidentService service;
 

@@ -5,6 +5,8 @@ import co.edu.unimagdalena.finalbrasiliant.services.ConfigService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -13,6 +15,8 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/admin/configs")
+@Validated
+@PreAuthorize("hasRole('ROLE_ADMIN')")
 public class ConfigController {
     private final ConfigService service;
 

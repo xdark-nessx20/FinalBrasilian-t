@@ -6,6 +6,7 @@ import co.edu.unimagdalena.finalbrasiliant.services.SeatHoldService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -20,6 +21,8 @@ import java.util.List;
 public class SeatHoldController {
 
     private final SeatHoldService service;
+
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_CLERK', 'ROLE_PASSENGER')")
     @PostMapping("/trips/{tripId}/seats-hold")
     public ResponseEntity<SeatHoldResponse> createSeatHold(@PathVariable Long tripId,
                                                            @Valid @RequestBody SeatHoldCreateRequest request,
@@ -34,12 +37,14 @@ public class SeatHoldController {
         return ResponseEntity.ok(service.get(id));
     }
 
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_CLERK', 'ROLE_PASSENGER')")
     @PatchMapping("/seat-holds/{id}")
     public ResponseEntity<SeatHoldResponse> update(@PathVariable Long id,
                                                    @Valid @RequestBody SeatHoldUpdateRequest request) {
         return ResponseEntity.ok(service.update(id, request));
     }
 
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_CLERK', 'ROLE_PASSENGER')")
     @DeleteMapping("/seat-holds/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         service.delete(id);
