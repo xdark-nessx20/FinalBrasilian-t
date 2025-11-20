@@ -16,13 +16,12 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @Validated
-@RequestMapping("/api/v1/seat-holds")
+@RequestMapping("/api/v1")
 public class SeatHoldController {
 
     private final SeatHoldService service;
-    @PostMapping("/trips/{tripId}/seats/{seatNumber}/hold")
+    @PostMapping("/trips/{tripId}/seats-hold")
     public ResponseEntity<SeatHoldResponse> createSeatHold(@PathVariable Long tripId,
-                                                           @PathVariable String seatNumber,
                                                            @Valid @RequestBody SeatHoldCreateRequest request,
                                                            UriComponentsBuilder uriBuilder) {
         var body = service.create(request);
@@ -62,18 +61,12 @@ public class SeatHoldController {
         return ResponseEntity.ok(service.listByStatus(status));
     }
 
-    @GetMapping("/seat-holds/by-trip-and-passenger")
-    public ResponseEntity<List<SeatHoldResponse>> listByTripAndPassenger(@RequestParam Long tripId,
+    @GetMapping("/trips/{tripId}/seat-holds/by-passenger")
+    public ResponseEntity<List<SeatHoldResponse>> listByTripAndPassenger(@PathVariable Long tripId,
                                                                          @RequestParam Long passengerId,
                                                                          @RequestParam SeatHoldStatus status) {
         return ResponseEntity.ok(service.listByTripAndPassenger(tripId, passengerId, status));
     }
-
-    /*@GetMapping("/trips/{tripId}/seats/{seatNumber}/active")
-    public ResponseEntity<Boolean> existsActiveSeatHold(@PathVariable Long tripId,
-                                                        @PathVariable String seatNumber) {
-        return ResponseEntity.ok(service.existsActiveSeatHold(tripId, seatNumber));
-    }*/
 
     @GetMapping("/seat-holds/expired")
     public ResponseEntity<List<SeatHoldResponse>> listExpiredHolds() {

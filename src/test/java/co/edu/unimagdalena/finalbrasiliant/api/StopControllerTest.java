@@ -20,14 +20,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(StopController.class)
-public class StopControllerTest {
-
-    @Autowired
-    MockMvc mvc;
-
-    @Autowired
-    ObjectMapper om;
-
+public class StopControllerTest extends BaseTest{
     @MockitoBean
     StopService service;
 

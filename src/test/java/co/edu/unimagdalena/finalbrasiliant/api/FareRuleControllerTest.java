@@ -24,14 +24,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(FareRuleController.class)
-public class FareRuleControllerTest {
-
-    @Autowired
-    MockMvc mvc;
-
-    @Autowired
-    ObjectMapper om;
-
+public class FareRuleControllerTest extends BaseTest{
     @MockitoBean
     FareRuleService service;
 
@@ -49,7 +42,7 @@ public class FareRuleControllerTest {
         fromStop = new StopSummary(10L, "Terminal Barranquilla", 1);
         toStop = new StopSummary(20L, "Terminal Santa Marta", 5);
         midStop = new StopSummary(15L, "Ciénaga", 3);
-        discounts = new HashMap<>(Map.of("STUDENT", BigDecimal.valueOf(15), "SENIOR", BigDecimal.valueOf(15)));
+        discounts = new HashMap<>(Map.of("STUDENT", BigDecimal.valueOf(15), "SENIOR", BigDecimal.valueOf(20)));
 
         fareResponse1 = new FareRuleResponse(100L, routeSummary, fromStop, toStop,
                 new BigDecimal("50000"), discounts, DynamicPricing.ON);
@@ -114,7 +107,7 @@ public class FareRuleControllerTest {
         var req = new FareRuleUpdateRequest(new BigDecimal("55000"),
                 new HashMap<>(Map.of("STUDENT", BigDecimal.valueOf(20), "SENIOR", BigDecimal.valueOf(25))), DynamicPricing.OFF);
         var updated = new FareRuleResponse(100L, routeSummary, fromStop, toStop,
-                new BigDecimal("55000"), Map.of("STUDENT", BigDecimal.valueOf(15), "SENIOR", BigDecimal.valueOf(20)), DynamicPricing.OFF);
+                new BigDecimal("55000"), Map.of("STUDENT", BigDecimal.valueOf(20), "SENIOR", BigDecimal.valueOf(25)), DynamicPricing.OFF);
 
         when(service.update(eq(100L), any())).thenReturn(updated);
 

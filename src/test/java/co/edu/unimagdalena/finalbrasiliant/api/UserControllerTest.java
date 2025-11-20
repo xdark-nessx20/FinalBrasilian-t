@@ -25,14 +25,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Transactional
-class UserControllerIntegrationTest {
-
-    @Autowired
-    private MockMvc mockMvc;
-
-    @Autowired
-    private ObjectMapper objectMapper;
-
+class UserControllerIntegrationTest extends BaseTest{
     @Autowired
     private UserRepository userRepository;
 
@@ -53,9 +46,9 @@ class UserControllerIntegrationTest {
         );
 
         // When & Then
-        mockMvc.perform(post("/api/v1/users")
+        mvc.perform(post("/api/v1/users")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+                        .content(om.writeValueAsString(request)))
                 .andExpect(status().isCreated())
                 .andExpect(header().exists("Location"))
                 .andExpect(jsonPath("$.id").exists())
@@ -80,7 +73,7 @@ class UserControllerIntegrationTest {
         User savedUser = userRepository.save(user);
 
         // When & Then
-        mockMvc.perform(get("/api/v1/users/{id}", savedUser.getId()))
+        mvc.perform(get("/api/v1/users/{id}", savedUser.getId()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(savedUser.getId()))
                 .andExpect(jsonPath("$.userName").value("janedoe"))
@@ -112,9 +105,9 @@ class UserControllerIntegrationTest {
         );
 
         // When & Then
-        mockMvc.perform(patch("/api/v1/users/{id}", savedUser.getId())
+        mvc.perform(patch("/api/v1/users/{id}", savedUser.getId())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(updateRequest)))
+                        .content(om.writeValueAsString(updateRequest)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(savedUser.getId()))
                 .andExpect(jsonPath("$.userName").value("newname"))
@@ -138,7 +131,7 @@ class UserControllerIntegrationTest {
         User savedUser = userRepository.save(user);
 
         // When & Then
-        mockMvc.perform(delete("/api/v1/users/{id}", savedUser.getId()))
+        mvc.perform(delete("/api/v1/users/{id}", savedUser.getId()))
                 .andExpect(status().isNoContent());
     }
 
@@ -156,7 +149,7 @@ class UserControllerIntegrationTest {
         userRepository.save(user);
 
         // When & Then
-        mockMvc.perform(get("/api/v1/users/by-name")
+        mvc.perform(get("/api/v1/users/by-name")
                         .param("userName", "uniqueuser"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.userName").value("uniqueuser"))
@@ -177,7 +170,7 @@ class UserControllerIntegrationTest {
         userRepository.save(user);
 
         // When & Then
-        mockMvc.perform(get("/api/v1/users/by-email")
+        mvc.perform(get("/api/v1/users/by-email")
                         .param("email", "findme@example.com"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.email").value("findme@example.com"))
@@ -198,7 +191,7 @@ class UserControllerIntegrationTest {
         userRepository.save(user);
 
         // When & Then
-        mockMvc.perform(get("/api/v1/users/by-phone")
+        mvc.perform(get("/api/v1/users/by-phone")
                         .param("phone", "3006666666"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.phone").value("3006666666"))
@@ -233,7 +226,7 @@ class UserControllerIntegrationTest {
         userRepository.save(user2);
 
         // When & Then
-        mockMvc.perform(get("/api/v1/users/by-created_at")
+        mvc.perform(get("/api/v1/users/by-created_at")
                         .param("start", start.toString())
                         .param("end", end.toString())
                         .param("page", "0")
@@ -279,7 +272,7 @@ class UserControllerIntegrationTest {
         userRepository.save(passenger);
 
         // When & Then
-        mockMvc.perform(get("/api/v1/users/by-role")
+        mvc.perform(get("/api/v1/users/by-role")
                         .param("role", "ROLE_DRIVER"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
@@ -322,7 +315,7 @@ class UserControllerIntegrationTest {
         userRepository.save(inactiveUser);
 
         // When & Then
-        mockMvc.perform(get("/api/v1/users/by-status")
+        mvc.perform(get("/api/v1/users/by-status")
                         .param("status", "true")
                         .param("page", "0")
                         .param("size", "10"))

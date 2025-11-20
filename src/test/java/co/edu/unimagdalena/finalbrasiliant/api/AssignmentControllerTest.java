@@ -2,15 +2,12 @@ package co.edu.unimagdalena.finalbrasiliant.api;
 
 import co.edu.unimagdalena.finalbrasiliant.services.AssignmentService;
 import co.edu.unimagdalena.finalbrasiliant.api.dto.AssignmentDTOs.*;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -22,14 +19,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(AssignmentController.class)
-class AssignmentControllerTest {
-
-    @Autowired
-    MockMvc mvc;
-
-    @Autowired
-    ObjectMapper om;
-
+class AssignmentControllerTest extends BaseTest{
     @MockitoBean
     AssignmentService service;
 

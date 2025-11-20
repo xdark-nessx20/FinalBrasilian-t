@@ -3,16 +3,13 @@ package co.edu.unimagdalena.finalbrasiliant.api;
 import co.edu.unimagdalena.finalbrasiliant.domain.enums.ParcelStatus;
 import co.edu.unimagdalena.finalbrasiliant.services.ParcelService;
 import co.edu.unimagdalena.finalbrasiliant.api.dto.ParcelDTOs.*;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -24,14 +21,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(ParcelController.class)
-class ParcelControllerTest {
-
-    @Autowired
-    MockMvc mvc;
-
-    @Autowired
-    ObjectMapper om;
-
+class ParcelControllerTest extends BaseTest{
     @MockitoBean
     ParcelService service;
 

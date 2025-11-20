@@ -14,7 +14,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @Validated
-@RequestMapping("/api/v1/stops")
+@RequestMapping("/api/v1")
 public class StopController {
 
     private final StopService service;

@@ -32,14 +32,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Transactional
-class TripControllerIntegrationTest {
-
-    @Autowired
-    private MockMvc mockMvc;
-
-    @Autowired
-    private ObjectMapper objectMapper;
-
+class TripControllerIntegrationTest extends BaseTest{
     @Autowired
     private TripRepository tripRepository;
 
@@ -93,9 +86,9 @@ class TripControllerIntegrationTest {
         );
 
         // When & Then
-        mockMvc.perform(post("/api/v1/routes/{routeId}/trips", testRoute.getId())
+        mvc.perform(post("/api/v1/routes/{routeId}/trips", testRoute.getId())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+                        .content(om.writeValueAsString(request)))
                 .andExpect(status().isCreated())
                 .andExpect(header().exists("Location"))
                 .andExpect(jsonPath("$.id").exists())
@@ -123,7 +116,7 @@ class TripControllerIntegrationTest {
         Trip savedTrip = tripRepository.save(trip);
 
         // When & Then
-        mockMvc.perform(get("/api/v1/trips/{tripId}", savedTrip.getId()))
+        mvc.perform(get("/api/v1/trips/{tripId}", savedTrip.getId()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(savedTrip.getId()))
                 .andExpect(jsonPath("$.route_id").value(testRoute.getId()))
@@ -162,9 +155,9 @@ class TripControllerIntegrationTest {
         );
 
         // When & Then
-        mockMvc.perform(patch("/api/v1/trips/{tripId}", savedTrip.getId())
+        mvc.perform(patch("/api/v1/trips/{tripId}", savedTrip.getId())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(updateRequest)))
+                        .content(om.writeValueAsString(updateRequest)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(savedTrip.getId()))
                 .andExpect(jsonPath("$.date").value(newDate.toString()))
@@ -185,7 +178,7 @@ class TripControllerIntegrationTest {
         Trip savedTrip = tripRepository.save(trip);
 
         // When & Then
-        mockMvc.perform(delete("/api/v1/trips/{tripId}", savedTrip.getId()))
+        mvc.perform(delete("/api/v1/trips/{tripId}", savedTrip.getId()))
                 .andExpect(status().isNoContent());
     }
 
@@ -214,7 +207,7 @@ class TripControllerIntegrationTest {
         tripRepository.save(trip2);
 
         // When & Then
-        mockMvc.perform(get("/api/v1/routes/{routeId}/trips", testRoute.getId())
+        mvc.perform(get("/api/v1/routes/{routeId}/trips", testRoute.getId())
                         .param("page", "0")
                         .param("size", "10"))
                 .andExpect(status().isOk())
@@ -249,7 +242,7 @@ class TripControllerIntegrationTest {
         tripRepository.save(trip2);
 
         // When & Then
-        mockMvc.perform(get("/api/v1/trips/by-bus/{busId}", testBus.getId())
+        mvc.perform(get("/api/v1/trips/by-bus/{busId}", testBus.getId())
                         .param("page", "0")
                         .param("size", "10"))
                 .andExpect(status().isOk())
@@ -287,7 +280,7 @@ class TripControllerIntegrationTest {
         tripRepository.save(trip2);
 
         // When & Then
-        mockMvc.perform(get("/api/v1/trips/by-departure")
+        mvc.perform(get("/api/v1/trips/by-departure")
                         .param("start", start.toString())
                         .param("end", end.toString())
                         .param("page", "0")
@@ -326,7 +319,7 @@ class TripControllerIntegrationTest {
         tripRepository.save(trip2);
 
         // When & Then
-        mockMvc.perform(get("/api/v1/trips/by-arrival")
+        mvc.perform(get("/api/v1/trips/by-arrival")
                         .param("start", start.toString())
                         .param("end", end.toString())
                         .param("page", "0")
@@ -372,7 +365,7 @@ class TripControllerIntegrationTest {
         tripRepository.save(departedTrip);
 
         // When & Then
-        mockMvc.perform(get("/api/v1/trips/by-status")
+        mvc.perform(get("/api/v1/trips/by-status")
                         .param("status", "SCHEDULED")
                         .param("page", "0")
                         .param("size", "10"))
@@ -408,7 +401,7 @@ class TripControllerIntegrationTest {
         tripRepository.save(departedTrip);
 
         // When & Then
-        mockMvc.perform(get("/api/v1/trips/search")
+        mvc.perform(get("/api/v1/trips/search")
                         .param("routeId", testRoute.getId().toString())
                         .param("status", "SCHEDULED"))
                 .andExpect(status().isOk())
@@ -455,7 +448,7 @@ class TripControllerIntegrationTest {
         tripRepository.save(trip3);
 
         // When & Then
-        mockMvc.perform(get("/api/v1/trips/by-date")
+        mvc.perform(get("/api/v1/trips/by-date")
                         .param("date", targetDate.toString())
                         .param("page", "0")
                         .param("size", "10"))
@@ -525,7 +518,7 @@ class TripControllerIntegrationTest {
         tripRepository.save(trip4);
 
         // When & Then
-        mockMvc.perform(get("/api/v1/trips/search")
+        mvc.perform(get("/api/v1/trips/search")
                         .param("routeId", testRoute.getId().toString())
                         .param("date", targetDate.toString()))
                 .andExpect(status().isOk())

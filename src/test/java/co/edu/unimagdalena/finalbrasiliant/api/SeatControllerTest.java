@@ -26,14 +26,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Transactional
-class SeatControllerIntegrationTest {
-
-    @Autowired
-    private MockMvc mockMvc;
-
-    @Autowired
-    private ObjectMapper objectMapper;
-
+class SeatControllerIntegrationTest extends BaseTest{
     @Autowired
     private SeatRepository seatRepository;
 
@@ -66,9 +59,9 @@ class SeatControllerIntegrationTest {
         );
 
         // When & Then
-        mockMvc.perform(post("/api/v1/buses/{busId}/seats", testBus.getId())
+        mvc.perform(post("/api/v1/buses/{busId}/seats", testBus.getId())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+                        .content(om.writeValueAsString(request)))
                 .andExpect(status().isCreated())
                 .andExpect(header().exists("Location"))
                 .andExpect(jsonPath("$.id").exists())
@@ -88,7 +81,7 @@ class SeatControllerIntegrationTest {
         Seat savedSeat = seatRepository.save(seat);
 
         // When & Then
-        mockMvc.perform(get("/api/v1/seats/{id}", savedSeat.getId()))
+        mvc.perform(get("/api/v1/seats/{id}", savedSeat.getId()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(savedSeat.getId()))
                 .andExpect(jsonPath("$.bus_id").value(testBus.getId()))
@@ -113,9 +106,9 @@ class SeatControllerIntegrationTest {
         );
 
         // When & Then
-        mockMvc.perform(patch("/api/v1/seats/{id}", savedSeat.getId())
+        mvc.perform(patch("/api/v1/seats/{id}", savedSeat.getId())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(updateRequest)))
+                        .content(om.writeValueAsString(updateRequest)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(savedSeat.getId()))
                 .andExpect(jsonPath("$.number").value("C4"))
@@ -133,7 +126,7 @@ class SeatControllerIntegrationTest {
         Seat savedSeat = seatRepository.save(seat);
 
         // When & Then
-        mockMvc.perform(delete("/api/v1/seats/{id}", savedSeat.getId()))
+        mvc.perform(delete("/api/v1/seats/{id}", savedSeat.getId()))
                 .andExpect(status().isNoContent());
     }
 
@@ -163,7 +156,7 @@ class SeatControllerIntegrationTest {
         seatRepository.save(seat3);
 
         // When & Then
-        mockMvc.perform(get("/api/v1/buses/{busId}/seats", testBus.getId()))
+        mvc.perform(get("/api/v1/buses/{busId}/seats", testBus.getId()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$", hasSize(3)))
@@ -182,7 +175,7 @@ class SeatControllerIntegrationTest {
         seatRepository.save(seat);
 
         // When & Then
-        mockMvc.perform(get("/api/v1/buses/{busId}/seats/by-number/{number}", 
+        mvc.perform(get("/api/v1/buses/{busId}/seats/by-number/{number}",
                         testBus.getId(), "E5"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.bus_id").value(testBus.getId()))
@@ -230,7 +223,7 @@ class SeatControllerIntegrationTest {
         seatRepository.save(standardSeat);
 
         // When & Then
-        mockMvc.perform(get("/api/v1/seats/by-type/{type}", "PREFERENTIAL"))
+        mvc.perform(get("/api/v1/seats/by-type/{type}", "PREFERENTIAL"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$", hasSize(3)))
@@ -264,7 +257,7 @@ class SeatControllerIntegrationTest {
         seatRepository.save(preferentialSeat);
 
         // When & Then
-        mockMvc.perform(get("/api/v1/seats/by-type/{type}", "STANDARD"))
+        mvc.perform(get("/api/v1/seats/by-type/{type}", "STANDARD"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$", hasSize(2)))

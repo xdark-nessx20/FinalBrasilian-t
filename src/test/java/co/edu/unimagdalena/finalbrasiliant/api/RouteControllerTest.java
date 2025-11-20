@@ -24,14 +24,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Transactional
-class RouteControllerIntegrationTest {
-
-    @Autowired
-    private MockMvc mockMvc;
-
-    @Autowired
-    private ObjectMapper objectMapper;
-
+class RouteControllerIntegrationTest extends BaseTest{
     @Autowired
     private RouteRepository routeRepository;
 
@@ -53,9 +46,9 @@ class RouteControllerIntegrationTest {
         );
 
         // When & Then
-        mockMvc.perform(post("/api/v1/routes")
+        mvc.perform(post("/api/v1/routes")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+                        .content(om.writeValueAsString(request)))
                 .andExpect(status().isCreated())
                 .andExpect(header().exists("Location"))
                 .andExpect(jsonPath("$.id").exists())
@@ -81,7 +74,7 @@ class RouteControllerIntegrationTest {
         Route savedRoute = routeRepository.save(route);
 
         // When & Then
-        mockMvc.perform(get("/api/v1/routes/{id}", savedRoute.getId()))
+        mvc.perform(get("/api/v1/routes/{id}", savedRoute.getId()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(savedRoute.getId()))
                 .andExpect(jsonPath("$.code").value("RT002"))
@@ -115,9 +108,9 @@ class RouteControllerIntegrationTest {
         );
 
         // When & Then
-        mockMvc.perform(patch("/api/v1/routes/{id}", savedRoute.getId())
+        mvc.perform(patch("/api/v1/routes/{id}", savedRoute.getId())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(updateRequest)))
+                        .content(om.writeValueAsString(updateRequest)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(savedRoute.getId()))
                 .andExpect(jsonPath("$.code").value("RT003-UPD"))
@@ -140,7 +133,7 @@ class RouteControllerIntegrationTest {
         Route savedRoute = routeRepository.save(route);
 
         // When & Then
-        mockMvc.perform(delete("/api/v1/routes/{id}", savedRoute.getId()))
+        mvc.perform(delete("/api/v1/routes/{id}", savedRoute.getId()))
                 .andExpect(status().isNoContent());
     }
 
@@ -158,7 +151,7 @@ class RouteControllerIntegrationTest {
         routeRepository.save(route);
 
         // When & Then
-        mockMvc.perform(get("/api/v1/routes/by-code")
+        mvc.perform(get("/api/v1/routes/by-code")
                         .param("Code", "RT005"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value("RT005"))
@@ -179,7 +172,7 @@ class RouteControllerIntegrationTest {
         routeRepository.save(route);
 
         // When & Then
-        mockMvc.perform(get("/api/v1/routes/by-route-name")
+        mvc.perform(get("/api/v1/routes/by-route-name")
                         .param("name", "Pasto - Ipiales"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value("RT006"))
@@ -221,7 +214,7 @@ class RouteControllerIntegrationTest {
         routeRepository.save(route3);
 
         // When & Then
-        mockMvc.perform(get("/api/v1/routes/by-origin")
+        mvc.perform(get("/api/v1/routes/by-origin")
                         .param("origin", "Bogotá"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
@@ -265,7 +258,7 @@ class RouteControllerIntegrationTest {
         routeRepository.save(route3);
 
         // When & Then
-        mockMvc.perform(get("/api/v1/routes/by-destination")
+        mvc.perform(get("/api/v1/routes/by-destination")
                         .param("destination", "Barranquilla"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
@@ -309,7 +302,7 @@ class RouteControllerIntegrationTest {
         routeRepository.save(route3);
 
         // When & Then
-        mockMvc.perform(get("/api/v1/routes/by-duration-greater")
+        mvc.perform(get("/api/v1/routes/by-duration-greater")
                         .param("minDuration", "300"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
@@ -352,7 +345,7 @@ class RouteControllerIntegrationTest {
         routeRepository.save(route3);
 
         // When & Then
-        mockMvc.perform(get("/api/v1/routes/by-duration-between")
+        mvc.perform(get("/api/v1/routes/by-duration-between")
                         .param("min", "150")
                         .param("max", "350"))
                 .andExpect(status().isOk())
@@ -396,7 +389,7 @@ class RouteControllerIntegrationTest {
         routeRepository.save(route3);
 
         // When & Then
-        mockMvc.perform(get("/api/v1/routes/by-distance-lesser")
+        mvc.perform(get("/api/v1/routes/by-distance-lesser")
                         .param("maxDistance", "100.00"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
@@ -439,7 +432,7 @@ class RouteControllerIntegrationTest {
         routeRepository.save(route3);
 
         // When & Then
-        mockMvc.perform(get("/api/v1/routes/by-distance-between")
+        mvc.perform(get("/api/v1/routes/by-distance-between")
                         .param("min", "90.00")
                         .param("max", "200.00"))
                 .andExpect(status().isOk())
@@ -483,7 +476,7 @@ class RouteControllerIntegrationTest {
         routeRepository.save(route3);
 
         // When & Then
-        mockMvc.perform(get("/api/v1/routes/by-origin-and-destination")
+        mvc.perform(get("/api/v1/routes/by-origin-and-destination")
                         .param("origin", "Santa Marta")
                         .param("destination", "Cartagena")
                         .param("page", "0")
@@ -531,7 +524,7 @@ class RouteControllerIntegrationTest {
         routeRepository.save(route3);
 
         // When & Then
-        mockMvc.perform(get("/api/v1/routes")
+        mvc.perform(get("/api/v1/routes")
                         .param("page", "0")
                         .param("size", "10"))
                 .andExpect(status().isOk())

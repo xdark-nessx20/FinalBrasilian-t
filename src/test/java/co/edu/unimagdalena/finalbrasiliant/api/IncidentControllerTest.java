@@ -24,14 +24,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(IncidentController.class)
-class IncidentControllerTest {
-
-    @Autowired
-    MockMvc mvc;
-
-    @Autowired
-    ObjectMapper om;
-
+class IncidentControllerTest extends BaseTest{
     @MockitoBean
     IncidentService service;
 
@@ -153,7 +146,7 @@ class IncidentControllerTest {
         when(service.listByTypeAndEntityType(IncidentType.VEHICLE, EntityType.TICKET)).thenReturn(incidents);
 
         mvc.perform(get("/api/v1/incidents/by-typeAndEntity")
-                        .param("type", "DELAY")
+                        .param("type", "VEHICLE")
                         .param("entity", "TICKET"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].type").value("VEHICLE"))
@@ -174,7 +167,7 @@ class IncidentControllerTest {
         when(service.listByTypeAndEntityType(IncidentType.DELIVERY_FAIL, null)).thenReturn(incidents);
 
         mvc.perform(get("/api/v1/incidents/by-typeAndEntity")
-                        .param("type", "DAMAGE"))
+                        .param("type", "DELIVERY_FAIL"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].type").value("DELIVERY_FAIL"))
                 .andExpect(jsonPath("$[1].type").value("DELIVERY_FAIL"))

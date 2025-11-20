@@ -22,14 +22,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(BusController.class)
-public class BusControllerTest {
-
-    @Autowired
-    MockMvc mvc;
-
-    @Autowired
-    ObjectMapper om;
-
+public class BusControllerTest extends BaseTest{
     @MockitoBean
     BusService service;
 
@@ -129,9 +122,9 @@ public class BusControllerTest {
         var req = new BusUpdateRequest("AB", 45, Set.of("WiFi"), BusStatus.MAINTENANCE);
 
         mvc.perform(patch("/api/v1/buses/1")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(om.writeValueAsString(req)))
-                .andExpect(status().isBadRequest());
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(om.writeValueAsString(req)))
+            .andExpect(status().isBadRequest());
 
         verify(service, never()).update(anyLong(), any());
     }
