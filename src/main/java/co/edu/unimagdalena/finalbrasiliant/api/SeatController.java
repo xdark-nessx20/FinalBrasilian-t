@@ -66,8 +66,8 @@ public class SeatController {
     
     @GetMapping("/buses/{busId}/seats/by-number")
     public ResponseEntity<SeatResponse> getSeatByNumberAndBus(
-            @RequestParam Long busId,
-            @PathVariable String number) {
+            @PathVariable Long busId,
+            @RequestParam String number) {
         return ResponseEntity.ok(service.getSeatByNumberAndBus(number, busId));
     }
     

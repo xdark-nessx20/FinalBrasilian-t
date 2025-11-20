@@ -112,7 +112,6 @@ class SeatControllerTest extends BaseTest {
         when(service.getSeatByNumberAndBus("A12", 100L)).thenReturn(resp);
 
         mvc.perform(get("/api/v1/buses/100/seats/by-number")
-                        .param("busId", "100")
                         .param("number", "A12"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1))

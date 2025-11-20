@@ -21,7 +21,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(TripController.class)
-class TripControllerTest extends BaseTest {
+public class TripControllerTest extends BaseTest {
     
     @MockitoBean
     TripService service;
@@ -239,8 +239,7 @@ class TripControllerTest extends BaseTest {
 
         when(service.getByRouteIdAndStatus(10L, TripStatus.SCHEDULED)).thenReturn(trips);
 
-        mvc.perform(get("/api/v1/trips/search")
-                        .param("routeId", "10")
+        mvc.perform(get("/api/v1/routes/10/trips/search/by-status")
                         .param("status", "SCHEDULED"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].route_id").value(10))
@@ -289,8 +288,7 @@ class TripControllerTest extends BaseTest {
 
         when(service.getByRouteIdAndDate(10L, date)).thenReturn(trips);
 
-        mvc.perform(get("/api/v1/trips/search")
-                        .param("routeId", "10")
+        mvc.perform(get("/api/v1/routes/10/trips/search")
                         .param("date", date.toString()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].route_id").value(10))

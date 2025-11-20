@@ -54,7 +54,6 @@ public class TripController {
 
 	 @PatchMapping("/trips/{tripId}")
 	 public ResponseEntity<TripResponse> update(
-	            @PathVariable Long routeId,
 	            @PathVariable Long tripId,
 	            @Valid @RequestBody TripUpdateRequest request) {
 		 return ResponseEntity.ok(service.update(tripId, request));
@@ -100,8 +99,8 @@ public class TripController {
 	     return ResponseEntity.ok(page);
 	    }
 
-	 @GetMapping("/trips/search")
-	 public ResponseEntity<List<TripResponse>> getByRouteIdAndStatus(@RequestParam Long routeId, 
+	 @GetMapping("/routes/{routeId}/trips/search/by-status")
+	 public ResponseEntity<List<TripResponse>> getByRouteIdAndStatus(@PathVariable Long routeId,
 			 @RequestParam TripStatus status) {
 	     return ResponseEntity.ok(service.getByRouteIdAndStatus(routeId, status));
 	    }
@@ -112,8 +111,8 @@ public class TripController {
 	     return ResponseEntity.ok(page);
 	    }
 	 
-	 @GetMapping("/trips/search")
-	 public ResponseEntity<List<TripResponse>> getByRouteIdAndDate(@RequestParam Long routeId, 
+	 @GetMapping("/routes/{routeId}/trips/search")
+	 public ResponseEntity<List<TripResponse>> getByRouteIdAndDate(@PathVariable Long routeId,
 			 @RequestParam LocalDate date) {
 	     return ResponseEntity.ok(service.getByRouteIdAndDate(routeId, date));
 	    }

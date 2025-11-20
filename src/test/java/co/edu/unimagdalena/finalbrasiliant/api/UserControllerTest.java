@@ -43,7 +43,7 @@ class UserControllerTest extends BaseTest {
                 .andExpect(jsonPath("$.userName").value("johndoe"))
                 .andExpect(jsonPath("$.email").value("john@example.com"))
                 .andExpect(jsonPath("$.phone").value("+573001234567"))
-                .andExpect(jsonPath("$.role").value("PASSENGER"))
+                .andExpect(jsonPath("$.role").value("ROLE_PASSENGER"))
                 .andExpect(jsonPath("$.status").value(true));
 
         verify(service).create(any(UserCreateRequest.class));
@@ -61,7 +61,7 @@ class UserControllerTest extends BaseTest {
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.userName").value("johndoe"))
                 .andExpect(jsonPath("$.email").value("john@example.com"))
-                .andExpect(jsonPath("$.role").value("PASSENGER"));
+                .andExpect(jsonPath("$.role").value("ROLE_PASSENGER"));
 
         verify(service).get(1L);
     }
@@ -83,7 +83,7 @@ class UserControllerTest extends BaseTest {
                 .andExpect(jsonPath("$.userName").value("johndoe_updated"))
                 .andExpect(jsonPath("$.email").value("john.new@example.com"))
                 .andExpect(jsonPath("$.phone").value("+573009876543"))
-                .andExpect(jsonPath("$.role").value("DRIVER"))
+                .andExpect(jsonPath("$.role").value("ROLE_DRIVER"))
                 .andExpect(jsonPath("$.status").value(false));
 
         verify(service).update(eq(1L), any(UserUpdateRequest.class));
@@ -185,10 +185,10 @@ class UserControllerTest extends BaseTest {
         when(service.getByRole(Role.ROLE_PASSENGER)).thenReturn(users);
 
         mvc.perform(get("/api/v1/users/by-role")
-                        .param("role", "PASSENGER"))
+                        .param("role", "ROLE_PASSENGER"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].role").value("PASSENGER"))
-                .andExpect(jsonPath("$[1].role").value("PASSENGER"))
+                .andExpect(jsonPath("$[0].role").value("ROLE_PASSENGER"))
+                .andExpect(jsonPath("$[1].role").value("ROLE_PASSENGER"))
                 .andExpect(jsonPath("$.length()").value(2));
 
         verify(service).getByRole(Role.ROLE_PASSENGER);
