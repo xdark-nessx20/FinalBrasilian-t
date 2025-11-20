@@ -21,7 +21,7 @@ class UserMapperTest {
                 "Juan Pérez",
                 "juan.perez@email.com",
                 "3001234567",
-                Role.DRIVER,
+                Role.ROLE_DRIVER,
                 "$2a$10$hashedPassword"
         );
 
@@ -32,7 +32,7 @@ class UserMapperTest {
         assertThat(entity.getUserName()).isEqualTo("Juan Pérez");
         assertThat(entity.getEmail()).isEqualTo("juan.perez@email.com");
         assertThat(entity.getPhone()).isEqualTo("3001234567");
-        assertThat(entity.getRole()).isEqualTo(Role.DRIVER);
+        assertThat(entity.getRole()).isEqualTo(Role.ROLE_DRIVER);
         assertThat(entity.getPasswordHash()).isEqualTo("$2a$10$hashedPassword");
         assertThat(entity.getId()).isNull(); // Ignored by mapper
         assertThat(entity.getCreatedAt()).isNull(); // Ignored by mapper
@@ -45,7 +45,7 @@ class UserMapperTest {
                 "María García",
                 "maria.garcia@email.com",
                 "3109876543",
-                Role.PASSENGER,
+                Role.ROLE_PASSENGER,
                 "$2a$10$anotherHash"
         );
 
@@ -56,7 +56,7 @@ class UserMapperTest {
         assertThat(entity.getUserName()).isEqualTo("María García");
         assertThat(entity.getEmail()).isEqualTo("maria.garcia@email.com");
         assertThat(entity.getPhone()).isEqualTo("3109876543");
-        assertThat(entity.getRole()).isEqualTo(Role.PASSENGER);
+        assertThat(entity.getRole()).isEqualTo(Role.ROLE_PASSENGER);
         assertThat(entity.getPasswordHash()).isEqualTo("$2a$10$anotherHash");
     }
 
@@ -69,7 +69,7 @@ class UserMapperTest {
                 .userName("Carlos Rodríguez")
                 .email("carlos.rodriguez@email.com")
                 .phone("3201234567")
-                .role(Role.ADMIN)
+                .role(Role.ROLE_ADMIN)
                 .status(true)
                 .passwordHash("$2a$10$hashedPassword")
                 .createdAt(createdAt)
@@ -83,7 +83,7 @@ class UserMapperTest {
         assertThat(response.userName()).isEqualTo("Carlos Rodríguez");
         assertThat(response.email()).isEqualTo("carlos.rodriguez@email.com");
         assertThat(response.phone()).isEqualTo("3201234567");
-        assertThat(response.role()).isEqualTo(Role.ADMIN);
+        assertThat(response.role()).isEqualTo(Role.ROLE_ADMIN);
         assertThat(response.status()).isTrue();
         assertThat(response.createdAt()).isEqualTo(createdAt);
     }
@@ -97,7 +97,7 @@ class UserMapperTest {
                 .userName("Ana López")
                 .email("ana.lopez@email.com")
                 .phone("3157654321")
-                .role(Role.DRIVER)
+                .role(Role.ROLE_DRIVER)
                 .status(false)
                 .passwordHash("$2a$10$hash")
                 .createdAt(createdAt)
@@ -109,7 +109,7 @@ class UserMapperTest {
         // Then
         assertThat(response.id()).isEqualTo(5L);
         assertThat(response.status()).isFalse();
-        assertThat(response.role()).isEqualTo(Role.DRIVER);
+        assertThat(response.role()).isEqualTo(Role.ROLE_DRIVER);
     }
 
     @Test
@@ -120,7 +120,7 @@ class UserMapperTest {
                 .userName("Nombre Original")
                 .email("original@email.com")
                 .phone("3001111111")
-                .role(Role.PASSENGER)
+                .role(Role.ROLE_PASSENGER)
                 .status(true)
                 .passwordHash("$2a$10$oldHash")
                 .createdAt(OffsetDateTime.now())
@@ -130,7 +130,7 @@ class UserMapperTest {
                 "Nombre Actualizado",
                 "actualizado@email.com",
                 "3009999999",
-                Role.DRIVER,
+                Role.ROLE_DRIVER,
                 false,
                 "$2a$10$newHash"
         );
@@ -142,7 +142,7 @@ class UserMapperTest {
         assertThat(user.getUserName()).isEqualTo("Nombre Actualizado");
         assertThat(user.getEmail()).isEqualTo("actualizado@email.com");
         assertThat(user.getPhone()).isEqualTo("3009999999");
-        assertThat(user.getRole()).isEqualTo(Role.DRIVER);
+        assertThat(user.getRole()).isEqualTo(Role.ROLE_DRIVER);
         assertThat(user.getStatus()).isFalse();
         assertThat(user.getPasswordHash()).isEqualTo("$2a$10$newHash");
         assertThat(user.getId()).isEqualTo(10L); // No cambió
@@ -156,7 +156,7 @@ class UserMapperTest {
                 .userName("Nombre Original")
                 .email("original@email.com")
                 .phone("3001111111")
-                .role(Role.PASSENGER)
+                .role(Role.ROLE_PASSENGER)
                 .status(true)
                 .passwordHash("$2a$10$oldHash")
                 .build();
@@ -170,7 +170,7 @@ class UserMapperTest {
         assertThat(user.getUserName()).isEqualTo("Nombre Original"); // No cambió
         assertThat(user.getEmail()).isEqualTo("original@email.com"); // No cambió
         assertThat(user.getPhone()).isEqualTo("3001111111"); // No cambió
-        assertThat(user.getRole()).isEqualTo(Role.PASSENGER); // No cambió
+        assertThat(user.getRole()).isEqualTo(Role.ROLE_PASSENGER); // No cambió
         assertThat(user.getStatus()).isTrue(); // No cambió
         assertThat(user.getPasswordHash()).isEqualTo("$2a$10$oldHash"); // No cambió
     }
@@ -183,7 +183,7 @@ class UserMapperTest {
                 .userName("Nombre Viejo")
                 .email("email@test.com")
                 .phone("3001234567")
-                .role(Role.DRIVER)
+                .role(Role.ROLE_DRIVER)
                 .status(true)
                 .passwordHash("$2a$10$hash")
                 .build();
@@ -197,7 +197,7 @@ class UserMapperTest {
         assertThat(user.getUserName()).isEqualTo("Nombre Nuevo"); // Cambió
         assertThat(user.getEmail()).isEqualTo("email@test.com"); // No cambió
         assertThat(user.getPhone()).isEqualTo("3001234567"); // No cambió
-        assertThat(user.getRole()).isEqualTo(Role.DRIVER); // No cambió
+        assertThat(user.getRole()).isEqualTo(Role.ROLE_DRIVER); // No cambió
         assertThat(user.getStatus()).isTrue(); // No cambió
     }
 
@@ -209,7 +209,7 @@ class UserMapperTest {
                 .userName("Usuario Test")
                 .email("test@email.com")
                 .phone("3001234567")
-                .role(Role.PASSENGER)
+                .role(Role.ROLE_PASSENGER)
                 .status(true)
                 .passwordHash("$2a$10$hash")
                 .build();
@@ -233,7 +233,7 @@ class UserMapperTest {
                 .userName("Usuario")
                 .email("user@test.com")
                 .phone("3001234567")
-                .role(Role.ADMIN)
+                .role(Role.ROLE_ADMIN)
                 .status(true)
                 .passwordHash("$2a$10$oldPassword")
                 .build();
@@ -246,7 +246,7 @@ class UserMapperTest {
         // Then
         assertThat(user.getPasswordHash()).isEqualTo("$2a$10$newPassword"); // Cambió
         assertThat(user.getUserName()).isEqualTo("Usuario"); // No cambió
-        assertThat(user.getRole()).isEqualTo(Role.ADMIN); // No cambió
+        assertThat(user.getRole()).isEqualTo(Role.ROLE_ADMIN); // No cambió
     }
 
     @Test
@@ -258,7 +258,7 @@ class UserMapperTest {
                 .userName("Original")
                 .email("original@email.com")
                 .phone("3001234567")
-                .role(Role.PASSENGER)
+                .role(Role.ROLE_PASSENGER)
                 .status(true)
                 .passwordHash("$2a$10$hash")
                 .createdAt(createdAt)
@@ -268,7 +268,7 @@ class UserMapperTest {
                 "Actualizado",
                 "actualizado@email.com",
                 "3009999999",
-                Role.DRIVER,
+                Role.ROLE_DRIVER,
                 false,
                 "$2a$10$newHash"
         );

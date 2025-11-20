@@ -48,7 +48,7 @@ class UserControllerIntegrationTest {
                 "johndoe",
                 "john.doe@example.com",
                 "3001234567",
-                Role.PASSENGER,
+                Role.ROLE_PASSENGER,
                 "securePassword123"
         );
 
@@ -62,7 +62,7 @@ class UserControllerIntegrationTest {
                 .andExpect(jsonPath("$.userName").value("johndoe"))
                 .andExpect(jsonPath("$.email").value("john.doe@example.com"))
                 .andExpect(jsonPath("$.phone").value("3001234567"))
-                .andExpect(jsonPath("$.role").value("PASSENGER"))
+                .andExpect(jsonPath("$.role").value("ROLE_PASSENGER"))
                 .andExpect(jsonPath("$.status").value(true));
     }
 
@@ -73,7 +73,7 @@ class UserControllerIntegrationTest {
                 .userName("janedoe")
                 .email("jane.doe@example.com")
                 .phone("3009876543")
-                .role(Role.DRIVER)
+                .role(Role.ROLE_DRIVER)
                 .status(true)
                 .passwordHash("hashedPassword")
                 .build();
@@ -86,7 +86,7 @@ class UserControllerIntegrationTest {
                 .andExpect(jsonPath("$.userName").value("janedoe"))
                 .andExpect(jsonPath("$.email").value("jane.doe@example.com"))
                 .andExpect(jsonPath("$.phone").value("3009876543"))
-                .andExpect(jsonPath("$.role").value("DRIVER"));
+                .andExpect(jsonPath("$.role").value("ROLE_DRIVER"));
     }
 
     @Test
@@ -96,7 +96,7 @@ class UserControllerIntegrationTest {
                 .userName("oldname")
                 .email("old@example.com")
                 .phone("3001111111")
-                .role(Role.PASSENGER)
+                .role(Role.ROLE_PASSENGER)
                 .status(true)
                 .passwordHash("hashedPassword")
                 .build();
@@ -106,7 +106,7 @@ class UserControllerIntegrationTest {
                 "newname",
                 "new@example.com",
                 "3002222222",
-                Role.ADMIN,
+                Role.ROLE_ADMIN,
                 false,
                 "hashedPassword"
         );
@@ -120,7 +120,7 @@ class UserControllerIntegrationTest {
                 .andExpect(jsonPath("$.userName").value("newname"))
                 .andExpect(jsonPath("$.email").value("new@example.com"))
                 .andExpect(jsonPath("$.phone").value("3002222222"))
-                .andExpect(jsonPath("$.role").value("ADMIN"))
+                .andExpect(jsonPath("$.role").value("ROLE_ADMIN"))
                 .andExpect(jsonPath("$.status").value(false));
     }
 
@@ -131,7 +131,7 @@ class UserControllerIntegrationTest {
                 .userName("deleteMe")
                 .email("delete@example.com")
                 .phone("3003333333")
-                .role(Role.PASSENGER)
+                .role(Role.ROLE_PASSENGER)
                 .status(true)
                 .passwordHash("hashedPassword")
                 .build();
@@ -149,7 +149,7 @@ class UserControllerIntegrationTest {
                 .userName("uniqueuser")
                 .email("unique@example.com")
                 .phone("3004444444")
-                .role(Role.PASSENGER)
+                .role(Role.ROLE_PASSENGER)
                 .status(true)
                 .passwordHash("hashedPassword")
                 .build();
@@ -170,7 +170,7 @@ class UserControllerIntegrationTest {
                 .userName("emailuser")
                 .email("findme@example.com")
                 .phone("3005555555")
-                .role(Role.DRIVER)
+                .role(Role.ROLE_DRIVER)
                 .status(true)
                 .passwordHash("hashedPassword")
                 .build();
@@ -191,7 +191,7 @@ class UserControllerIntegrationTest {
                 .userName("phoneuser")
                 .email("phone@example.com")
                 .phone("3006666666")
-                .role(Role.PASSENGER)
+                .role(Role.ROLE_PASSENGER)
                 .status(true)
                 .passwordHash("hashedPassword")
                 .build();
@@ -215,7 +215,7 @@ class UserControllerIntegrationTest {
                 .userName("user1")
                 .email("user1@example.com")
                 .phone("3007777777")
-                .role(Role.PASSENGER)
+                .role(Role.ROLE_PASSENGER)
                 .status(true)
                 .passwordHash("hashedPassword")
                 .build();
@@ -224,7 +224,7 @@ class UserControllerIntegrationTest {
                 .userName("user2")
                 .email("user2@example.com")
                 .phone("3008888888")
-                .role(Role.DRIVER)
+                .role(Role.ROLE_DRIVER)
                 .status(true)
                 .passwordHash("hashedPassword")
                 .build();
@@ -251,7 +251,7 @@ class UserControllerIntegrationTest {
                 .userName("driver1")
                 .email("driver1@example.com")
                 .phone("3009999999")
-                .role(Role.DRIVER)
+                .role(Role.ROLE_DRIVER)
                 .status(true)
                 .passwordHash("hashedPassword")
                 .build();
@@ -260,7 +260,7 @@ class UserControllerIntegrationTest {
                 .userName("driver2")
                 .email("driver2@example.com")
                 .phone("3000000000")
-                .role(Role.DRIVER)
+                .role(Role.ROLE_DRIVER)
                 .status(true)
                 .passwordHash("hashedPassword")
                 .build();
@@ -269,7 +269,7 @@ class UserControllerIntegrationTest {
                 .userName("passenger1")
                 .email("passenger1@example.com")
                 .phone("3001111112")
-                .role(Role.PASSENGER)
+                .role(Role.ROLE_PASSENGER)
                 .status(true)
                 .passwordHash("hashedPassword")
                 .build();
@@ -280,11 +280,11 @@ class UserControllerIntegrationTest {
 
         // When & Then
         mockMvc.perform(get("/api/v1/users/by-role")
-                        .param("role", "DRIVER"))
+                        .param("role", "ROLE_DRIVER"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$", hasSize(2)))
-                .andExpect(jsonPath("$[*].role", everyItem(is("DRIVER"))));
+                .andExpect(jsonPath("$[*].role", everyItem(is("ROLE_DRIVER"))));
     }
 
     @Test
@@ -294,7 +294,7 @@ class UserControllerIntegrationTest {
                 .userName("active1")
                 .email("active1@example.com")
                 .phone("3002222223")
-                .role(Role.PASSENGER)
+                .role(Role.ROLE_PASSENGER)
                 .status(true)
                 .passwordHash("hashedPassword")
                 .build();
@@ -303,7 +303,7 @@ class UserControllerIntegrationTest {
                 .userName("active2")
                 .email("active2@example.com")
                 .phone("3003333334")
-                .role(Role.DRIVER)
+                .role(Role.ROLE_DRIVER)
                 .status(true)
                 .passwordHash("hashedPassword")
                 .build();
@@ -312,7 +312,7 @@ class UserControllerIntegrationTest {
                 .userName("inactive1")
                 .email("inactive1@example.com")
                 .phone("3004444445")
-                .role(Role.PASSENGER)
+                .role(Role.ROLE_PASSENGER)
                 .status(false)
                 .passwordHash("hashedPassword")
                 .build();

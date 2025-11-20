@@ -59,7 +59,7 @@ public class UserServiceImpl implements UserService {
 	
 	@Override
 	public UserResponse getByEmail(String email) {
-		return userRepo.findByEmail(email).map(userMapper::toResponse).orElseThrow(
+		return userRepo.findByEmailIgnoreCase(email).map(userMapper::toResponse).orElseThrow(
 				()-> new NotFoundException("user with the e-mail %s not found".formatted(email)));
 	}
 	

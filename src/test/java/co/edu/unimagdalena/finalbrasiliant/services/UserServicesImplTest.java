@@ -44,7 +44,7 @@ class UserServiceImplTest {
                 "juan_perez",
                 "juan.perez@example.com",
                 "3001234567",
-                Role.PASSENGER,
+                Role.ROLE_PASSENGER,
                 "hashedPassword123"
         );
 
@@ -64,7 +64,7 @@ class UserServiceImplTest {
         assertThat(response.userName()).isEqualTo("juan_perez");
         assertThat(response.email()).isEqualTo("juan.perez@example.com");
         assertThat(response.phone()).isEqualTo("3001234567");
-        assertThat(response.role()).isEqualTo(Role.PASSENGER);
+        assertThat(response.role()).isEqualTo(Role.ROLE_PASSENGER);
         assertThat(response.status()).isTrue();
         assertThat(response.createdAt()).isNotNull();
 
@@ -79,7 +79,7 @@ class UserServiceImplTest {
                 .userName("maria_lopez")
                 .email("maria.lopez@example.com")
                 .phone("3009876543")
-                .role(Role.DRIVER)
+                .role(Role.ROLE_DRIVER)
                 .status(true)
                 .passwordHash("hashedPassword456")
                 .createdAt(OffsetDateTime.now())
@@ -95,7 +95,7 @@ class UserServiceImplTest {
         assertThat(response.userName()).isEqualTo("maria_lopez");
         assertThat(response.email()).isEqualTo("maria.lopez@example.com");
         assertThat(response.phone()).isEqualTo("3009876543");
-        assertThat(response.role()).isEqualTo(Role.DRIVER);
+        assertThat(response.role()).isEqualTo(Role.ROLE_DRIVER);
         assertThat(response.status()).isTrue();
     }
 
@@ -107,7 +107,7 @@ class UserServiceImplTest {
                 .userName("carlos_gomez")
                 .email("carlos.gomez@example.com")
                 .phone("3001111111")
-                .role(Role.PASSENGER)
+                .role(Role.ROLE_PASSENGER)
                 .status(true)
                 .passwordHash("hashedPassword789")
                 .createdAt(OffsetDateTime.now())
@@ -117,7 +117,7 @@ class UserServiceImplTest {
                 "carlos_gomez_updated",
                 "carlos.nuevo@example.com",
                 "3002222222",
-                Role.ADMIN,
+                Role.ROLE_ADMIN,
                 false,
                 "newHashedPassword"
         );
@@ -132,7 +132,7 @@ class UserServiceImplTest {
         assertThat(response.userName()).isEqualTo("carlos_gomez_updated");
         assertThat(response.email()).isEqualTo("carlos.nuevo@example.com");
         assertThat(response.phone()).isEqualTo("3002222222");
-        assertThat(response.role()).isEqualTo(Role.ADMIN);
+        assertThat(response.role()).isEqualTo(Role.ROLE_ADMIN);
         assertThat(response.status()).isFalse();
         verify(userRepo).save(any(User.class));
     }
@@ -154,7 +154,7 @@ class UserServiceImplTest {
                 .userName("pedro_martinez")
                 .email("pedro.martinez@example.com")
                 .phone("3003333333")
-                .role(Role.PASSENGER)
+                .role(Role.ROLE_PASSENGER)
                 .status(true)
                 .passwordHash("hashedPassword111")
                 .createdAt(OffsetDateTime.now())
@@ -179,13 +179,13 @@ class UserServiceImplTest {
                 .userName("ana_rodriguez")
                 .email("ana.rodriguez@example.com")
                 .phone("3004444444")
-                .role(Role.DRIVER)
+                .role(Role.ROLE_DRIVER)
                 .status(true)
                 .passwordHash("hashedPassword222")
                 .createdAt(OffsetDateTime.now())
                 .build();
 
-        when(userRepo.findByEmail("ana.rodriguez@example.com")).thenReturn(Optional.of(user));
+        when(userRepo.findByEmailIgnoreCase("ana.rodriguez@example.com")).thenReturn(Optional.of(user));
 
         // When
         var response = service.getByEmail("ana.rodriguez@example.com");
@@ -204,7 +204,7 @@ class UserServiceImplTest {
                 .userName("luis_fernandez")
                 .email("luis.fernandez@example.com")
                 .phone("3005555555")
-                .role(Role.ADMIN)
+                .role(Role.ROLE_ADMIN)
                 .status(true)
                 .passwordHash("hashedPassword333")
                 .createdAt(OffsetDateTime.now())
@@ -233,7 +233,7 @@ class UserServiceImplTest {
                 .userName("user1")
                 .email("user1@example.com")
                 .phone("3001111111")
-                .role(Role.PASSENGER)
+                .role(Role.ROLE_PASSENGER)
                 .status(true)
                 .passwordHash("hash1")
                 .createdAt(start.plusDays(2))
@@ -244,7 +244,7 @@ class UserServiceImplTest {
                 .userName("user2")
                 .email("user2@example.com")
                 .phone("3002222222")
-                .role(Role.DRIVER)
+                .role(Role.ROLE_DRIVER)
                 .status(true)
                 .passwordHash("hash2")
                 .createdAt(start.plusDays(5))
@@ -271,7 +271,7 @@ class UserServiceImplTest {
                 .userName("driver1")
                 .email("driver1@example.com")
                 .phone("3001111111")
-                .role(Role.DRIVER)
+                .role(Role.ROLE_DRIVER)
                 .status(true)
                 .passwordHash("hash1")
                 .createdAt(OffsetDateTime.now())
@@ -282,20 +282,20 @@ class UserServiceImplTest {
                 .userName("driver2")
                 .email("driver2@example.com")
                 .phone("3002222222")
-                .role(Role.DRIVER)
+                .role(Role.ROLE_DRIVER)
                 .status(true)
                 .passwordHash("hash2")
                 .createdAt(OffsetDateTime.now())
                 .build();
 
-        when(userRepo.findAllByRole(Role.DRIVER)).thenReturn(List.of(user1, user2));
+        when(userRepo.findAllByRole(Role.ROLE_DRIVER)).thenReturn(List.of(user1, user2));
 
         // When
-        var result = service.getByRole(Role.DRIVER);
+        var result = service.getByRole(Role.ROLE_DRIVER);
 
         // Then
         assertThat(result).hasSize(2);
-        assertThat(result).allMatch(u -> u.role() == Role.DRIVER);
+        assertThat(result).allMatch(u -> u.role() == Role.ROLE_DRIVER);
         assertThat(result.get(0).userName()).isEqualTo("driver1");
         assertThat(result.get(1).userName()).isEqualTo("driver2");
     }
@@ -310,7 +310,7 @@ class UserServiceImplTest {
                 .userName("active_user1")
                 .email("active1@example.com")
                 .phone("3001111111")
-                .role(Role.PASSENGER)
+                .role(Role.ROLE_PASSENGER)
                 .status(true)
                 .passwordHash("hash1")
                 .createdAt(OffsetDateTime.now())
@@ -321,7 +321,7 @@ class UserServiceImplTest {
                 .userName("active_user2")
                 .email("active2@example.com")
                 .phone("3002222222")
-                .role(Role.DRIVER)
+                .role(Role.ROLE_DRIVER)
                 .status(true)
                 .passwordHash("hash2")
                 .createdAt(OffsetDateTime.now())
