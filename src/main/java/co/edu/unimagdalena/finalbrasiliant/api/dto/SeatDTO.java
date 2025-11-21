@@ -14,7 +14,6 @@ public class SeatDTO {
 	    ) implements Serializable {}
 
 	    public record SeatUpdateRequest(
-	        Long bus_id,
 	        String number,
 	        SeatType type
 	    ) implements Serializable {}

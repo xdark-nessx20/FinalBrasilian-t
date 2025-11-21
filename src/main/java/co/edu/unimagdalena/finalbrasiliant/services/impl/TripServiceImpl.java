@@ -148,25 +148,31 @@ public class TripServiceImpl implements TripService {
     public TripResponse openBoarding(Long id) {
         var trip = tripRepo.findById(id).orElseThrow(() -> new NotFoundException("Trip %d not found.".formatted(id)));
         if (!trip.getStatus().equals(TripStatus.SCHEDULED))
-            throw new ItCantBeException("Just is allowed to open SCHEDULED trips");
+            throw new ItCantBeException("Is only allowed to open SCHEDULED trips");
         trip.setStatus(TripStatus.BOARDING);
         return tripMapper.toResponse(tripRepo.save(trip));
     }
 
     @Override
+    @Transactional
     public TripResponse closeBoarding(Long id) {
         var trip = tripRepo.findById(id).orElseThrow(() -> new NotFoundException("Trip %d not found.".formatted(id)));
         if (!trip.getStatus().equals(TripStatus.BOARDING))
-            throw new ItCantBeException("Just is allowed to close BOARDING trips");
+            throw new ItCantBeException("Is only allowed to close BOARDING trips");
         trip.setStatus(TripStatus.BOARDING_CLOSED);
         return tripMapper.toResponse(tripRepo.save(trip));
     }
 
     @Override
+    @Transactional
     public TripResponse depart(Long id) {
         var trip = tripRepo.findById(id).orElseThrow(() -> new NotFoundException("Trip %d not found.".formatted(id)));
+        var assign = assignRepo.findByTrip_Id(id).orElseThrow(() -> new NotFoundException("Trip %d has not assignment yet.".formatted(id)));
         if (!trip.getStatus().equals(TripStatus.BOARDING_CLOSED))
-            throw new ItCantBeException("Just is allowed to open BOARDING_CLOSED trips");
+            throw new ItCantBeException("Is only allowed to open BOARDING_CLOSED trips");
+        if (!assign.getCheckListOk())
+            throw new ItCantBeException("The checklist doesn't pass all the checks.");
+
         trip.setStatus(TripStatus.DEPARTED);
         return tripMapper.toResponse(tripRepo.save(trip));
     }

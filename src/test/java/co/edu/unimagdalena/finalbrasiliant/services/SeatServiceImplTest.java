@@ -58,7 +58,7 @@ class SeatServiceImplTest {
         });
 
         // When
-        var response = service.create(10L, request);
+        var response = service.create(1L, request);
 
         // Then
         assertThat(response.id()).isEqualTo(10L);
@@ -98,7 +98,6 @@ class SeatServiceImplTest {
     void shouldUpdateSeatViaPatch() {
         // Given
         var bus = Bus.builder().id(1L).build();
-        var newBus = Bus.builder().id(2L).build();
 
         var seat = Seat.builder()
                 .id(10L)
@@ -108,23 +107,20 @@ class SeatServiceImplTest {
                 .build();
 
         var updateRequest = new SeatUpdateRequest(
-                2L,
                 "C3",
                 SeatType.PREFERENTIAL
         );
 
         when(seatRepo.findById(10L)).thenReturn(Optional.of(seat));
-        when(busRepo.findById(2L)).thenReturn(Optional.of(newBus));
         when(seatRepo.save(any(Seat.class))).thenAnswer(inv -> inv.getArgument(0));
 
         // When
         var response = service.update(10L, updateRequest);
 
         // Then
-        assertThat(response.bus_id()).isEqualTo(2L);
+        assertThat(response.bus_id()).isEqualTo(1L);
         assertThat(response.number()).isEqualTo("C3");
         assertThat(response.type()).isEqualTo(SeatType.PREFERENTIAL);
-        verify(busRepo).findById(2L);
         verify(seatRepo).save(any(Seat.class));
     }
 

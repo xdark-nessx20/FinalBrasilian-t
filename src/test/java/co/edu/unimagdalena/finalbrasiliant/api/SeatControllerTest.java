@@ -60,7 +60,7 @@ class SeatControllerTest extends BaseTest {
 
     @Test
     void update_shouldReturn200() throws Exception {
-        var req = new SeatUpdateRequest(100L, "B15", SeatType.PREFERENTIAL);
+        var req = new SeatUpdateRequest( "B15", SeatType.PREFERENTIAL);
         var resp = new SeatResponse(1L, 100L, "B15", SeatType.PREFERENTIAL);
 
         when(service.update(eq(1L), any(SeatUpdateRequest.class))).thenReturn(resp);
