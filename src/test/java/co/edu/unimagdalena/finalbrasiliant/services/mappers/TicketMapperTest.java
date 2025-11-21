@@ -86,7 +86,6 @@ class TicketMapperTest {
                 .price(new BigDecimal("50000.00"))
                 .createdAt(createdAt)
                 .paymentMethod(PaymentMethod.CARD)
-                .status(TicketStatus.SOLD)
                 .build();
 
         // When
@@ -98,7 +97,7 @@ class TicketMapperTest {
         assertThat(response.price()).isEqualByComparingTo(new BigDecimal("50000.00"));
         assertThat(response.createdAt()).isEqualTo(createdAt);
         assertThat(response.paymentMethod()).isEqualTo(PaymentMethod.CARD);
-        assertThat(response.status()).isEqualTo(TicketStatus.SOLD);
+        assertThat(response.status()).isEqualTo(TicketStatus.CREATED);
 
         // Trip summary
         assertThat(response.trip().id()).isEqualTo(1L);
