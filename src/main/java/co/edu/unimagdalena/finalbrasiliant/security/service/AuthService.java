@@ -7,7 +7,6 @@ import co.edu.unimagdalena.finalbrasiliant.exceptions.NotFoundException;
 import co.edu.unimagdalena.finalbrasiliant.security.dto.AuthDTOs.*;
 import co.edu.unimagdalena.finalbrasiliant.security.jwt.JwtService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
