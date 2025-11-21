@@ -185,7 +185,7 @@ class UserControllerTest extends BaseTest {
         when(service.getByRole(Role.ROLE_PASSENGER)).thenReturn(users);
 
         mvc.perform(get("/api/v1/users/by-role")
-                        .param("role", "ROLE_PASSENGER"))
+                        .param("expirationInSeconds", "ROLE_PASSENGER"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].role").value("ROLE_PASSENGER"))
                 .andExpect(jsonPath("$[1].role").value("ROLE_PASSENGER"))
