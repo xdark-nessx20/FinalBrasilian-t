@@ -11,7 +11,7 @@ import co.edu.unimagdalena.finalbrasiliant.domain.enums.TripStatus;
 public class TripDTO {
 
     public record TripCreateRequest(
-        @NotNull Long bus_id,
+        Long bus_id,
         @NotNull LocalDate date,
         @NotNull OffsetDateTime departureAt,
         @NotNull OffsetDateTime arrivalETA

@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface SeatHoldService {
 
-    SeatHoldResponse create(SeatHoldCreateRequest request);
+    SeatHoldResponse create(Long tripId, SeatHoldCreateRequest request);
     SeatHoldResponse get(Long id);
     SeatHoldResponse update(Long id, SeatHoldUpdateRequest request);
     void delete(Long id);

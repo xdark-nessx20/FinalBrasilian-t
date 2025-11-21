@@ -23,11 +23,11 @@ public class SeatHoldController {
     private final SeatHoldService service;
 
     @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_CLERK', 'ROLE_PASSENGER')")
-    @PostMapping("/trips/{tripId}/seats-hold")
+    @PostMapping("/trips/{tripId}/seat-holds")
     public ResponseEntity<SeatHoldResponse> createSeatHold(@PathVariable Long tripId,
                                                            @Valid @RequestBody SeatHoldCreateRequest request,
                                                            UriComponentsBuilder uriBuilder) {
-        var body = service.create(request);
+        var body = service.create(tripId, request);
         var location = uriBuilder.path("/api/v1/seat-holds/{id}").buildAndExpand(body.id()).toUri();
         return ResponseEntity.created(location).body(body);
     }

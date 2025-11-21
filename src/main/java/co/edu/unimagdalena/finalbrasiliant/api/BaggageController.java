@@ -56,7 +56,7 @@ public class BaggageController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/baggages")
+    @GetMapping("/baggages/by-tag")
     public ResponseEntity<BaggageResponse> getByTagCode(@RequestParam String tagCode) {
         return ResponseEntity.ok(service.getByTagCode(tagCode));
     }

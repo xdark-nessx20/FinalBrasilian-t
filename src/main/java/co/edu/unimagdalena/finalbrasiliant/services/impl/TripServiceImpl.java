@@ -4,6 +4,8 @@ import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.List;
 
+import co.edu.unimagdalena.finalbrasiliant.domain.repositories.AssignmentRepository;
+import co.edu.unimagdalena.finalbrasiliant.exceptions.ItCantBeException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -27,6 +29,7 @@ public class TripServiceImpl implements TripService {
 	private final TripMapper tripMapper;
 	private final RouteRepository routeRepo;
 	private final BusRepository busRepo;
+    private final AssignmentRepository assignRepo;
 	
 	@Transactional
 	@Override
@@ -139,4 +142,32 @@ public class TripServiceImpl implements TripService {
 		}
 		return trips.stream().map(tripMapper::toResponse).toList();
 	}
+
+    @Override
+    @Transactional
+    public TripResponse openBoarding(Long id) {
+        var trip = tripRepo.findById(id).orElseThrow(() -> new NotFoundException("Trip %d not found.".formatted(id)));
+        if (!trip.getStatus().equals(TripStatus.SCHEDULED))
+            throw new ItCantBeException("Just is allowed to open SCHEDULED trips");
+        trip.setStatus(TripStatus.BOARDING);
+        return tripMapper.toResponse(tripRepo.save(trip));
+    }
+
+    @Override
+    public TripResponse closeBoarding(Long id) {
+        var trip = tripRepo.findById(id).orElseThrow(() -> new NotFoundException("Trip %d not found.".formatted(id)));
+        if (!trip.getStatus().equals(TripStatus.BOARDING))
+            throw new ItCantBeException("Just is allowed to close BOARDING trips");
+        trip.setStatus(TripStatus.BOARDING_CLOSED);
+        return tripMapper.toResponse(tripRepo.save(trip));
+    }
+
+    @Override
+    public TripResponse depart(Long id) {
+        var trip = tripRepo.findById(id).orElseThrow(() -> new NotFoundException("Trip %d not found.".formatted(id)));
+        if (!trip.getStatus().equals(TripStatus.BOARDING_CLOSED))
+            throw new ItCantBeException("Just is allowed to open BOARDING_CLOSED trips");
+        trip.setStatus(TripStatus.DEPARTED);
+        return tripMapper.toResponse(tripRepo.save(trip));
+    }
 }

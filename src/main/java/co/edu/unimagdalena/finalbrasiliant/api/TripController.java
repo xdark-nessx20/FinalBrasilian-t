@@ -37,10 +37,8 @@ public class TripController {
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PostMapping("/routes/{routeId}/trips")
-    public ResponseEntity<TripResponse> createTrip(
-            @PathVariable Long routeId,
-            @Valid @RequestBody TripCreateRequest request,
-            UriComponentsBuilder uriBuilder) {
+    public ResponseEntity<TripResponse> createTrip(@PathVariable Long routeId, @Valid @RequestBody TripCreateRequest request,
+                                                   UriComponentsBuilder uriBuilder) {
         var body = service.create(routeId, request);
         var location = uriBuilder.path("/api/v1/routes/{routeId}/trips/{id}")
                 .buildAndExpand(routeId, body.id())
@@ -48,17 +46,14 @@ public class TripController {
         return ResponseEntity.created(location).body(body);
     }
 
-
     @GetMapping("/trips/{tripId}")
     public ResponseEntity<TripResponse> get(@PathVariable Long tripId) {
         return ResponseEntity.ok(service.get(tripId));
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_DISPATCHER')")
     @PatchMapping("/trips/{tripId}")
-    public ResponseEntity<TripResponse> update(
-            @PathVariable Long tripId,
-            @Valid @RequestBody TripUpdateRequest request) {
+    public ResponseEntity<TripResponse> update(@PathVariable Long tripId, @Valid @RequestBody TripUpdateRequest request) {
         return ResponseEntity.ok(service.update(tripId, request));
     }
 
@@ -83,16 +78,13 @@ public class TripController {
     }
 
     @GetMapping("/trips/by-departure")
-    public ResponseEntity<Page<TripResponse>> getByDepartureBetween(@RequestParam OffsetDateTime start,
-                                                                    @RequestParam OffsetDateTime end,
-                                                                    Pageable pageable) {
+    public ResponseEntity<Page<TripResponse>> getByDepartureBetween(@RequestParam OffsetDateTime start, @RequestParam OffsetDateTime end, Pageable pageable) {
         var page = service.getByDepartureBetween(start, end, pageable);
         return ResponseEntity.ok(page);
     }
 
     @GetMapping("/trips/by-arrival")
-    public ResponseEntity<Page<TripResponse>> getByArrivalBetween(@RequestParam OffsetDateTime start,
-                                                                  @RequestParam OffsetDateTime end,
+    public ResponseEntity<Page<TripResponse>> getByArrivalBetween(@RequestParam OffsetDateTime start, @RequestParam OffsetDateTime end,
                                                                   Pageable pageable) {
         var page = service.getByArrivalBetween(start, end, pageable);
         return ResponseEntity.ok(page);
@@ -105,8 +97,7 @@ public class TripController {
     }
 
     @GetMapping("/routes/{routeId}/trips/search/by-status")
-    public ResponseEntity<List<TripResponse>> getByRouteIdAndStatus(@PathVariable Long routeId,
-                                                                    @RequestParam TripStatus status) {
+    public ResponseEntity<List<TripResponse>> getByRouteIdAndStatus(@PathVariable Long routeId, @RequestParam TripStatus status) {
         return ResponseEntity.ok(service.getByRouteIdAndStatus(routeId, status));
     }
 
@@ -117,8 +108,25 @@ public class TripController {
     }
 
     @GetMapping("/routes/{routeId}/trips/search")
-    public ResponseEntity<List<TripResponse>> getByRouteIdAndDate(@PathVariable Long routeId,
-                                                                  @RequestParam LocalDate date) {
+    public ResponseEntity<List<TripResponse>> getByRouteIdAndDate(@PathVariable Long routeId, @RequestParam LocalDate date) {
         return ResponseEntity.ok(service.getByRouteIdAndDate(routeId, date));
+    }
+
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_DRIVER', 'ROLE_DISPATCHER')")
+    @PatchMapping("/trips/{id}/boarding/open")
+    public ResponseEntity<TripResponse> openBoarding(@PathVariable Long id) {
+        return ResponseEntity.ok(service.openBoarding(id));
+    }
+
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_DRIVER', 'ROLE_DISPATCHER')")
+    @PatchMapping("/trips/{id}/boarding/close")
+    public ResponseEntity<TripResponse> closeBoarding(@PathVariable Long id) {
+        return ResponseEntity.ok(service.closeBoarding(id));
+    }
+
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_DRIVER', 'ROLE_DISPATCHER')")
+    @PatchMapping("/trips/{id}/depart")
+    public ResponseEntity<TripResponse> depart(@PathVariable Long id) {
+        return ResponseEntity.ok(service.depart(id));
     }
 }

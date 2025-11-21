@@ -103,27 +103,14 @@ public class TicketServiceImpl implements TicketService {
     @Override
     @Transactional
     public TicketResponse update(Long id, TicketUpdateRequest request) {
-        var ticket = ticketRepo.findByIdWithAll(id).orElseThrow(() -> new NotFoundException("Ticket %d not found".formatted(id)));
-        if (request.status() != null && ticket.getTrip().getStatus().equals(TripStatus.DEPARTED)
-                && request.status().equals(TicketStatus.CANCELLED))
-            throw new ItCantBeException("You can't cancel your ticket 'cause the trip already departed.");
-
+        var ticket = ticketRepo.findByIdWithAll(id).orElseThrow(
+                () -> new NotFoundException("Ticket %d not found".formatted(id))
+        );
         mapper.patch(ticket, request);
         var updated = ticketRepo.save(ticket);
         var passenger = updated.getPassenger();
 
-        if (updated.getStatus().equals(TicketStatus.CANCELLED)){
-            var tripDeparture = updated.getTrip().getDepartureAt();
-            var diff = Duration.between(OffsetDateTime.now(), tripDeparture).toHours();
-            BigDecimal percentToRefund;
-            if (diff < 3) percentToRefund = configs.getValue("last.refund.percent");
-            else if (diff < 12) percentToRefund = configs.getValue("third.refund.percent");
-            else if (diff < 24) percentToRefund = configs.getValue("second.refund.percent");
-            else percentToRefund = configs.getValue("initial.refund.percent");
-
-            notif.sendTicketCancellation(passenger.getPhone(), passenger.getUserName(),
-                    id, updated.getPrice().multiply(percentToRefund), updated.getPaymentMethod());
-        } else if (updated.getStatus().equals(TicketStatus.USED))
+        if (updated.getStatus().equals(TicketStatus.USED))
             notif.sendTicketUsed(passenger.getPhone(), passenger.getUserName(), id, updated.getTrip().getRoute().getRouteName());
 
         return mapper.toResponse(updated, false);
@@ -205,5 +192,33 @@ public class TicketServiceImpl implements TicketService {
 
         noShow.forEach(t -> t.setStatus(TicketStatus.NO_SHOW));
         ticketRepo.saveAll(noShow);
+    }
+
+    @Override
+    @Transactional
+    public TicketResponse cancelTicket(Long id) {
+        var ticket = ticketRepo.findByIdWithAll(id).orElseThrow(() -> new NotFoundException("Ticket %d not found".formatted(id)));
+        if (ticket.getTrip().getStatus().equals(TripStatus.DEPARTED))
+            throw new ItCantBeException("You can't cancel your ticket 'cause the trip already departed.");
+        if (ticket.getStatus().equals(TicketStatus.CANCELLED))
+            throw new AlreadyExistsException("Ticket %d is already cancelled");
+
+        ticket.setStatus(TicketStatus.CANCELLED);
+        var updated = ticketRepo.save(ticket);
+        var passenger = updated.getPassenger();
+
+        var tripDeparture = updated.getTrip().getDepartureAt();
+        var diff = Duration.between(OffsetDateTime.now(), tripDeparture).toHours();
+        var percentToRefund = refundPolicy(diff);
+        notif.sendTicketCancellation(passenger.getPhone(), passenger.getUserName(),
+                id, updated.getPrice().multiply(percentToRefund), updated.getPaymentMethod());
+        return mapper.toResponse(updated, false);
+    }
+
+    private BigDecimal refundPolicy(long hoursBeforeDepart){
+        if (hoursBeforeDepart < 3) return configs.getValue("last.refund.percent");
+        else if (hoursBeforeDepart < 12) return configs.getValue("third.refund.percent");
+        else if (hoursBeforeDepart < 24) return configs.getValue("second.refund.percent");
+        else return configs.getValue("initial.refund.percent");
     }
 }

@@ -100,4 +100,10 @@ public class TicketController {
                                                               @RequestParam(value = "toStop", required = false) Long toStopId){
         return ResponseEntity.ok(service.listByStretch(fromStopId, toStopId));
     }
+
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_CLERK', 'ROLE_PASSENGER')")
+    @PatchMapping("/tickets{id}/cancel")
+    public ResponseEntity<TicketResponse> cancel(@PathVariable Long id){
+        return ResponseEntity.ok(service.cancelTicket(id));
+    }
 }

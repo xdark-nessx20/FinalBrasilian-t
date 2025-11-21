@@ -113,7 +113,7 @@ class BaggageControllerTest extends BaseTest{
 
         when(service.getByTagCode("BAG-ABC12345")).thenReturn(resp);
 
-        mvc.perform(get("/api/v1/baggages")
+        mvc.perform(get("/api/v1/baggages/by-tag")
                         .param("tagCode", "BAG-ABC12345"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(15))

@@ -23,7 +23,7 @@ import java.util.List;
 public class AssignmentController {
     private final AssignmentService service;
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_DISPATCHER')")
     @PostMapping("/trips/{tripId}/assignment")
     public ResponseEntity<AssignmentResponse> createAssignment(@PathVariable Long tripId, @Valid @RequestBody AssignmentCreateRequest request,
                                                                UriComponentsBuilder uriBuilder) {
@@ -32,6 +32,7 @@ public class AssignmentController {
         return ResponseEntity.created(location).body(body);
     }
 
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_DISPATCHER', 'ROLE_DRIVER', 'ROLE_CLERK')")
     @GetMapping("/trips/{tripId}/assignment")
     public ResponseEntity<AssignmentResponse> getByTrip(@PathVariable Long tripId) {
         var body = service.getByTrip(tripId);

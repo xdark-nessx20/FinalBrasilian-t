@@ -31,21 +31,21 @@ public class SeatHoldServiceImpl implements SeatHoldService {
 
     @Override
     @Transactional
-    public SeatHoldResponse create(SeatHoldCreateRequest request) {
-        var trip = tripRepo.findById(request.tripId())
-                .orElseThrow(() -> new NotFoundException("Trip %d not found".formatted(request.tripId())));
+    public SeatHoldResponse create(Long tripId, SeatHoldCreateRequest request) {
+        var trip = tripRepo.findById(tripId)
+                .orElseThrow(() -> new NotFoundException("Trip %d not found".formatted(tripId)));
 
         var passenger = userRepo.findById(request.passengerId())
                 .orElseThrow(() -> new NotFoundException("Passenger %d not found".formatted(request.passengerId())));
 
-        if (seatHoldRepo.existsByTripIdAndSeatNumberAndStatus(request.tripId(), request.seatNumber(), SeatHoldStatus.HOLD)) {
+        if (seatHoldRepo.existsByTripIdAndSeatNumberAndStatus(tripId, request.seatNumber(), SeatHoldStatus.HOLD)) {
             throw new AlreadyExistsException("Seat %s already reserved by another passenger on trip %d"
-                    .formatted(request.seatNumber(), request.tripId()));
+                    .formatted(request.seatNumber(), tripId));
         }
 
-        if (seatHoldRepo.existsByTripIdAndSeatNumberAndStatus(request.tripId(), request.seatNumber(), SeatHoldStatus.SOLD)) {
+        if (seatHoldRepo.existsByTripIdAndSeatNumberAndStatus(tripId, request.seatNumber(), SeatHoldStatus.SOLD)) {
             throw new AlreadyExistsException("Seat %s sold on trip %d"
-                    .formatted(request.seatNumber(), request.tripId()));
+                    .formatted(request.seatNumber(), tripId));
         }
 
         var seatHold = mapper.toEntity(request);

@@ -55,7 +55,7 @@ public class SeatHoldServiceImplTest {
         var trip = Trip.builder().id(1L).departureAt(OffsetDateTime.now()).status(TripStatus.SCHEDULED).build();
         var passenger = User.builder().id(2L).userName("Juan").build();
 
-        var request = new SeatHoldCreateRequest(1L, "A12", 2L, SeatHoldStatus.HOLD);
+        var request = new SeatHoldCreateRequest( "A12", 2L);
 
         when(tripRepo.findById(1L)).thenReturn(Optional.of(trip));
         when(userRepo.findById(2L)).thenReturn(Optional.of(passenger));
@@ -70,7 +70,7 @@ public class SeatHoldServiceImplTest {
         });
 
         // When
-        var response = service.create(request);
+        var response = service.create(1L, request);
 
         // Then
         assertThat(response.id()).isEqualTo(10L);
@@ -87,7 +87,7 @@ public class SeatHoldServiceImplTest {
         var trip = Trip.builder().id(1L).build();
         var passenger = User.builder().id(2L).build();
 
-        var request = new SeatHoldCreateRequest(1L, "A12", 2L, SeatHoldStatus.HOLD);
+        var request = new SeatHoldCreateRequest( "A12", 2L);
 
         when(tripRepo.findById(1L)).thenReturn(Optional.of(trip));
         when(userRepo.findById(2L)).thenReturn(Optional.of(passenger));
@@ -95,7 +95,7 @@ public class SeatHoldServiceImplTest {
                 .thenReturn(true);
 
         // When / Then
-        assertThatThrownBy(() -> service.create(request))
+        assertThatThrownBy(() -> service.create(1L, request))
                 .isInstanceOf(AlreadyExistsException.class)
                 .hasMessageContaining("Seat A12 already reserved");
 
@@ -108,7 +108,7 @@ public class SeatHoldServiceImplTest {
         var trip = Trip.builder().id(1L).build();
         var passenger = User.builder().id(2L).build();
 
-        var request = new SeatHoldCreateRequest(1L, "A12", 2L, SeatHoldStatus.HOLD);
+        var request = new SeatHoldCreateRequest( "A12", 2L);
 
         when(tripRepo.findById(1L)).thenReturn(Optional.of(trip));
         when(userRepo.findById(2L)).thenReturn(Optional.of(passenger));
@@ -118,7 +118,7 @@ public class SeatHoldServiceImplTest {
                 .thenReturn(true);
 
         // When / Then
-        assertThatThrownBy(() -> service.create(request))
+        assertThatThrownBy(() -> service.create(1L, request))
                 .isInstanceOf(AlreadyExistsException.class)
                 .hasMessageContaining("Seat A12 sold on trip 1");
 
