@@ -102,7 +102,7 @@ class TicketServiceImplTest {
             Ticket t = inv.getArgument(0);
             t.setId(10L);
             t.setCreatedAt(OffsetDateTime.now());
-            t.setStatus(TicketStatus.SOLD);
+            t.setStatus(TicketStatus.CREATED);
             return t;
         });
 
@@ -328,7 +328,7 @@ class TicketServiceImplTest {
 
         when(ticketRepo.findByIdWithAll(10L)).thenReturn(Optional.of(ticket));
         when(ticketRepo.save(any(Ticket.class))).thenAnswer(inv -> inv.getArgument(0));
-        when(configService.getValue("second.refund.percent")).thenReturn(BigDecimal.valueOf(.60));
+        //when(configService.getValue("second.refund.percent")).thenReturn(BigDecimal.valueOf(.60));
 
         // When
         var response = service.update(10L, updateRequest);
@@ -346,7 +346,7 @@ class TicketServiceImplTest {
     void shouldThrowNotFoundExceptionWhenUpdateNonExistentTicket() {
         // Given
         var updateRequest = new TicketUpdateRequest("B15", null, null, null);
-        when(ticketRepo.findById(99L)).thenReturn(Optional.empty());
+        //when(ticketRepo.findById(99L)).thenReturn(Optional.empty());
 
         // When / Then
         assertThatThrownBy(() -> service.update(99L, updateRequest))

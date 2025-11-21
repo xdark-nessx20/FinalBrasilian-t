@@ -4,15 +4,12 @@ import co.edu.unimagdalena.finalbrasiliant.domain.enums.PaymentMethod;
 import co.edu.unimagdalena.finalbrasiliant.domain.enums.TicketStatus;
 import co.edu.unimagdalena.finalbrasiliant.services.TicketService;
 import co.edu.unimagdalena.finalbrasiliant.api.dto.TicketDTOs.*;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
@@ -38,7 +35,7 @@ class TicketControllerTest extends BaseTest{
         var toStop = new StopSummary(5L, "Terminal Sur", 5);
         var resp = new TicketResponse(10L, tripSummary, userSummary, "A12", fromStop, toStop,
                 new BigDecimal("45000"), OffsetDateTime.now(), PaymentMethod.CARD,
-                TicketStatus.SOLD, "TKT-ABC1234567");
+                TicketStatus.CREATED, "TKT-ABC1234567");
 
         when(service.create(eq(50L), any())).thenReturn(resp);
 
@@ -51,7 +48,7 @@ class TicketControllerTest extends BaseTest{
                 .andExpect(jsonPath("$.trip.id").value(50))
                 .andExpect(jsonPath("$.passenger.id").value(100))
                 .andExpect(jsonPath("$.seatNumber").value("A12"))
-                .andExpect(jsonPath("$.status").value("SOLD"))
+                .andExpect(jsonPath("$.status").value("CREATED"))
                 .andExpect(jsonPath("$.qrCode").value("TKT-ABC1234567"));
 
         verify(service).create(eq(50L), any(TicketCreateRequest.class));

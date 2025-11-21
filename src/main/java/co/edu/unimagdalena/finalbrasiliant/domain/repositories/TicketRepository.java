@@ -26,6 +26,9 @@ public interface TicketRepository extends JpaRepository<Ticket,Long> {
     @Query("SELECT T FROM Ticket T WHERE T.qrCode = :qrCode")
     Optional<Ticket> findByQrCode(String qrCode);
 
+    @Query("SELECT T FROM Ticket T JOIN FETCH User U ON U.id = T.passenger.id")
+    Optional<Ticket> findByIdWithPassenger(Long id);
+
     Page<Ticket> findByPaymentMethod(PaymentMethod paymentMethod, Pageable pageable);
     Page<Ticket> findByStatus(TicketStatus status, Pageable pageable);
     Page<Ticket> findByCreatedAtBetween(OffsetDateTime start, OffsetDateTime end, Pageable pageable);

@@ -143,7 +143,6 @@ class SeatMapperTest {
                 .build();
 
         var updateRequest = new SeatUpdateRequest(
-                2L,
                 "B5",
                 SeatType.PREFERENTIAL
         );
@@ -152,7 +151,7 @@ class SeatMapperTest {
         mapper.patch(seat, updateRequest);
 
         // Then
-        assertThat(seat.getBus().getId()).isEqualTo(2L);
+        assertThat(seat.getBus().getId()).isEqualTo(1L);
         assertThat(seat.getNumber()).isEqualTo("B5");
         assertThat(seat.getType()).isEqualTo(SeatType.PREFERENTIAL);
         assertThat(seat.getId()).isEqualTo(10L); // No cambió
@@ -169,35 +168,13 @@ class SeatMapperTest {
                 .type(SeatType.STANDARD)
                 .build();
 
-        var updateRequest = new SeatUpdateRequest(null, null, null);
+        var updateRequest = new SeatUpdateRequest(null, null);
 
         // When
         mapper.patch(seat, updateRequest);
 
         // Then
         assertThat(seat.getBus().getId()).isEqualTo(1L); // No cambió
-        assertThat(seat.getNumber()).isEqualTo("A1"); // No cambió
-        assertThat(seat.getType()).isEqualTo(SeatType.STANDARD); // No cambió
-    }
-
-    @Test
-    void patch_shouldUpdateOnlyBusId() {
-        // Given
-        var bus = Bus.builder().id(1L).build();
-        var seat = Seat.builder()
-                .id(10L)
-                .bus(bus)
-                .number("A1")
-                .type(SeatType.STANDARD)
-                .build();
-
-        var updateRequest = new SeatUpdateRequest(99L, null, null);
-
-        // When
-        mapper.patch(seat, updateRequest);
-
-        // Then
-        assertThat(seat.getBus().getId()).isEqualTo(99L); // Cambió
         assertThat(seat.getNumber()).isEqualTo("A1"); // No cambió
         assertThat(seat.getType()).isEqualTo(SeatType.STANDARD); // No cambió
     }
@@ -213,7 +190,7 @@ class SeatMapperTest {
                 .type(SeatType.STANDARD)
                 .build();
 
-        var updateRequest = new SeatUpdateRequest(null, "C10", null);
+        var updateRequest = new SeatUpdateRequest( "C10", null);
 
         // When
         mapper.patch(seat, updateRequest);
@@ -235,7 +212,7 @@ class SeatMapperTest {
                 .type(SeatType.STANDARD)
                 .build();
 
-        var updateRequest = new SeatUpdateRequest(null, null, SeatType.PREFERENTIAL);
+        var updateRequest = new SeatUpdateRequest( null, SeatType.PREFERENTIAL);
 
         // When
         mapper.patch(seat, updateRequest);
@@ -257,7 +234,7 @@ class SeatMapperTest {
                 .type(SeatType.STANDARD)
                 .build();
 
-        var updateRequest = new SeatUpdateRequest(null, "D15", SeatType.PREFERENTIAL);
+        var updateRequest = new SeatUpdateRequest("D15", SeatType.PREFERENTIAL);
 
         // When
         mapper.patch(seat, updateRequest);
@@ -279,13 +256,13 @@ class SeatMapperTest {
                 .type(SeatType.PREFERENTIAL)
                 .build();
 
-        var updateRequest = new SeatUpdateRequest(7L, "F20", null);
+        var updateRequest = new SeatUpdateRequest( "F20", null);
 
         // When
         mapper.patch(seat, updateRequest);
 
         // Then
-        assertThat(seat.getBus().getId()).isEqualTo(7L); // Cambió
+        assertThat(seat.getBus().getId()).isEqualTo(1L); //NO Cambió
         assertThat(seat.getNumber()).isEqualTo("F20"); // Cambió
         assertThat(seat.getType()).isEqualTo(SeatType.PREFERENTIAL); // No cambió
     }
@@ -302,7 +279,6 @@ class SeatMapperTest {
                 .build();
 
         var updateRequest = new SeatUpdateRequest(
-                2L,
                 "B5",
                 SeatType.PREFERENTIAL
         );
@@ -325,7 +301,7 @@ class SeatMapperTest {
                 .type(SeatType.STANDARD)
                 .build();
 
-        var updateRequest = new SeatUpdateRequest(null, null, SeatType.PREFERENTIAL);
+        var updateRequest = new SeatUpdateRequest( null, SeatType.PREFERENTIAL);
 
         // When
         mapper.patch(seat, updateRequest);
@@ -347,7 +323,7 @@ class SeatMapperTest {
                 .type(SeatType.PREFERENTIAL)
                 .build();
 
-        var updateRequest = new SeatUpdateRequest(null, null, SeatType.STANDARD);
+        var updateRequest = new SeatUpdateRequest( null, SeatType.STANDARD);
 
         // When
         mapper.patch(seat, updateRequest);
