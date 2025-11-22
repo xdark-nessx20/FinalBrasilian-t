@@ -50,7 +50,7 @@ public class ConfigServiceImpl implements ConfigService {
 
     @Override
     public void delete(String key) {
-        configRepo.delete(key);
+        configRepo.deleteByKey(key);
         if (!configRepo.existsByKeyIgnoreCase(key)) cache.remove(key);
     }
 

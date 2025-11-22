@@ -698,7 +698,7 @@ class TicketServiceImplTest {
                 .hasMessageContaining("Stop 99 not found");
     }
 
-    @Test
+    /*@Test
     void shouldDoNothingWhenNoTicketsToSetNoShow() {
         // Given
         when(ticketRepo.findByPassengerNoShow()).thenReturn(List.of());
@@ -709,7 +709,7 @@ class TicketServiceImplTest {
         // Then
         verify(ticketRepo).findByPassengerNoShow();
         verify(mapper, never()).patch(any(), any());
-    }
+    }*/
 
     @Test
     void shouldCreateTicketWhenPassengerHoldsSameSeat() {

@@ -55,6 +55,7 @@ public class Ticket {
     private PaymentMethod paymentMethod;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "ticket_status")
     @Builder.Default
     private TicketStatus status = TicketStatus.CREATED;
 

@@ -7,6 +7,6 @@ import java.util.Optional;
 
 public interface ConfigRepository extends JpaRepository<Config, String> {
     Optional<Config> findByKeyIgnoreCase(String key);
-    void delete(String key);
+    void deleteByKey(String key);
     boolean existsByKeyIgnoreCase(String key);
 }
