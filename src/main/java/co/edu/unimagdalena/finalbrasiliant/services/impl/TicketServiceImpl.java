@@ -39,7 +39,7 @@ public class TicketServiceImpl implements TicketService {
     private final SeatHoldRepository seatHoldRepo;
     private final FareRuleRepository fareRuleRepo;
     private final TicketMapper mapper;
-    private final NotificationService notif;
+    //private final NotificationService notif;
     private final ConfigService configs;
 
     @Override
@@ -85,7 +85,7 @@ public class TicketServiceImpl implements TicketService {
             ));
 
         var saved = ticketRepo.save(ticket);
-        notif.sendTicketConfirmation(passenger.getPhone(), passenger.getUserName(), saved.getId(), saved.getSeatNumber(), saved.getQrCode());
+        //notif.sendTicketConfirmation(passenger.getPhone(), passenger.getUserName(), saved.getId(), saved.getSeatNumber(), saved.getQrCode());
 
         return mapper.toResponse(saved, true);
     }
@@ -110,8 +110,8 @@ public class TicketServiceImpl implements TicketService {
         var updated = ticketRepo.save(ticket);
         var passenger = updated.getPassenger();
 
-        if (updated.getStatus().equals(TicketStatus.USED))
-            notif.sendTicketUsed(passenger.getPhone(), passenger.getUserName(), id, updated.getTrip().getRoute().getRouteName());
+        /*if (updated.getStatus().equals(TicketStatus.USED))
+            notif.sendTicketUsed(passenger.getPhone(), passenger.getUserName(), id, updated.getTrip().getRoute().getRouteName());*/
 
         return mapper.toResponse(updated, false);
     }
@@ -187,11 +187,18 @@ public class TicketServiceImpl implements TicketService {
     @Scheduled(fixedRate = 60000, initialDelay = 30000)
     @Transactional
     public void setTicketsNoShow() {
-        var noShow = ticketRepo.findByPassengerNoShow();
+        var now = OffsetDateTime.now();
+        var noShow = ticketRepo.findAll().stream().filter(ticket -> ticket.getStatus().equals(TicketStatus.SOLD) &&
+                (parseToMinutes(ticket.getTrip().getDepartureAt()) - parseToMinutes(now)) <= 5).toList();
+
         if (noShow.isEmpty()) return;
 
         noShow.forEach(t -> t.setStatus(TicketStatus.NO_SHOW));
         ticketRepo.saveAll(noShow);
+    }
+
+    private long parseToMinutes(OffsetDateTime date) {
+        return date.toEpochSecond()/60;
     }
 
     @Override
@@ -210,8 +217,8 @@ public class TicketServiceImpl implements TicketService {
         var tripDeparture = updated.getTrip().getDepartureAt();
         var diff = Duration.between(OffsetDateTime.now(), tripDeparture).toHours();
         var percentToRefund = refundPolicy(diff);
-        notif.sendTicketCancellation(passenger.getPhone(), passenger.getUserName(),
-                id, updated.getPrice().multiply(percentToRefund), updated.getPaymentMethod());
+        /*notif.sendTicketCancellation(passenger.getPhone(), passenger.getUserName(),
+                id, updated.getPrice().multiply(percentToRefund), updated.getPaymentMethod());*/
         return mapper.toResponse(updated, false);
     }
 

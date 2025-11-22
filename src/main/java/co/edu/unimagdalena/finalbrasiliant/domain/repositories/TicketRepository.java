@@ -67,12 +67,6 @@ public interface TicketRepository extends JpaRepository<Ticket,Long> {
     boolean existsOverlap(@Param("tripId") Long tripId, @Param("seatNumber") String seatNumber,
                           @Param("fromStopOrder") Integer fromStopOrder, @Param("toStopOrder") Integer toStopOrder);
 
-    @Query("""
-        SELECT T FROM Ticket T JOIN Trip Tr ON Tr.id = T.id
-        WHERE T.status = 'SOLD' AND (FUNCTION('EXTRACT', 'EPOCH', (CURRENT_TIMESTAMP - Tr.departureAt)) /60) <= 5
-    """)
-    List<Ticket> findByPassengerNoShow();
-
     @Query(value = """
         SELECT EXISTS(
             SELECT 1 FROM Ticket T 
