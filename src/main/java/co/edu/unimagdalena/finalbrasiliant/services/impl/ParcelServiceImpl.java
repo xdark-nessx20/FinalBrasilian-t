@@ -28,7 +28,7 @@ public class ParcelServiceImpl implements ParcelService {
     private final ParcelRepository parcelRepo;
     private final StopRepository stopRepo;
     private final ParcelMapper mapper;
-    private final NotificationService notif;
+    //private final NotificationService notif;
     private final IncidentService incidents;
 
     @Override
@@ -45,7 +45,7 @@ public class ParcelServiceImpl implements ParcelService {
         parcel.setToStop(toStop);
         parcel.setCode(generateCode());
 
-        notif.sendParcelCreated(parcel.getReceiverPhone(), parcel.getSenderName(), parcel.getCode(), parcel.getReceiverName());
+        //notif.sendParcelCreated(parcel.getReceiverPhone(), parcel.getSenderName(), parcel.getCode(), parcel.getReceiverName());
 
         return mapper.toResponse(parcelRepo.save(parcel));
     }
@@ -69,7 +69,7 @@ public class ParcelServiceImpl implements ParcelService {
         mapper.patch(parcel, request);
         var updated = parcelRepo.save(parcel);
 
-        switch (updated.getStatus()) {
+        /*switch (updated.getStatus()) {
             case IN_TRANSIT -> notif.sendParcelInTransit(updated.getReceiverPhone(), updated.getReceiverName(),  updated.getCode());
             case READY_FOR_PICKUP -> {
                 updated.setDeliveryOTP(UUID.randomUUID().toString().substring(0, 10).toUpperCase());
@@ -83,7 +83,7 @@ public class ParcelServiceImpl implements ParcelService {
                 notif.sendParcelDeliveryFailed(updated.getReceiverPhone(), updated.getReceiverName(), updated.getCode(), updated.getId());
             }
             default -> {}
-        }
+        }*/
 
         return mapper.toResponse(updated);
     }

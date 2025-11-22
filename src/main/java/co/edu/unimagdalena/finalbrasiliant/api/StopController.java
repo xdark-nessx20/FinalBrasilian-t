@@ -5,6 +5,7 @@ import co.edu.unimagdalena.finalbrasiliant.services.StopService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -14,11 +15,12 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @Validated
-@RequestMapping("/api/v1/stops")
+@RequestMapping("/api/v1")
 public class StopController {
 
     private final StopService service;
 
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_DISPATCHER')")
     @PostMapping("/routes/{routeId}/stops")
     public ResponseEntity<StopResponse> createStop(@PathVariable Long routeId,
                                                    @Valid @RequestBody StopCreateRequest request,
@@ -38,12 +40,14 @@ public class StopController {
         return ResponseEntity.ok(service.get(id));
     }
 
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_DISPATCHER')")
     @PatchMapping("/stops/{id}")
     public ResponseEntity<StopResponse> update(@PathVariable Long id,
                                                @Valid @RequestBody StopUpdateRequest request) {
         return ResponseEntity.ok(service.update(id, request));
     }
 
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_DISPATCHER')")
     @DeleteMapping("/stops/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         service.delete(id);
@@ -77,15 +81,4 @@ public class StopController {
                                                                        @RequestParam Integer endOrder) {
         return ResponseEntity.ok(service.listByRouteAndOrderRange(routeId, startOrder, endOrder));
     }
-
-    /*@GetMapping("/routes/{routeId}/stops/count")
-    public ResponseEntity<Long> countByRoute(@PathVariable Long routeId) {
-        return ResponseEntity.ok(service.countByRoute(routeId));
-    }
-
-    @GetMapping("/routes/{routeId}/stops/exists")
-    public ResponseEntity<Boolean> existsByRouteAndName(@PathVariable Long routeId,
-                                                        @RequestParam String name) {
-        return ResponseEntity.ok(service.existsByRouteAndName(routeId, name));
-    }*/
 }

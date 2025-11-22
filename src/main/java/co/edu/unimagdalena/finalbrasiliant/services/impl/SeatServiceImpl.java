@@ -45,11 +45,6 @@ public class SeatServiceImpl implements SeatService {
     @Transactional
     public SeatResponse update(Long id, SeatUpdateRequest request) {
         var seat = seatRepo.findById(id).orElseThrow(() -> new NotFoundException("seat %d not found.".formatted(id)));
-        if (request.bus_id() != null) {
-            var bus = busRepo.findById(request.bus_id())
-                .orElseThrow(() -> new NotFoundException("Bus %d not found".formatted(request.bus_id())));
-            seat.setBus(bus);
-        }
         seatMapper.patch(seat, request);
         return seatMapper.toResponse(seatRepo.save(seat));
     }

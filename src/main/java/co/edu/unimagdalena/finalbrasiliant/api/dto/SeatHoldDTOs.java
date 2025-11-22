@@ -9,10 +9,7 @@ import java.time.OffsetDateTime;
 
 public class SeatHoldDTOs {
 
-    public record SeatHoldCreateRequest(@NotNull Long tripId,
-                                        @NotBlank String seatNumber,
-                                        @NotNull Long passengerId,
-                                        @NotNull SeatHoldStatus status) implements Serializable {}
+    public record SeatHoldCreateRequest(@NotBlank String seatNumber, @NotNull Long passengerId) implements Serializable {}
 
     public record SeatHoldUpdateRequest(Long tripId, String seatNumber,
                                         Long passengerId, SeatHoldStatus status) implements Serializable {}

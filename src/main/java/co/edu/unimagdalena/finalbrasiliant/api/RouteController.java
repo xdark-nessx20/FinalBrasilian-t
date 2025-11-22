@@ -6,6 +6,7 @@ import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -31,7 +32,8 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/api/v1/routes")
 public class RouteController {
 	private final RouteService service;
-	
+
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
 	@PostMapping
     public ResponseEntity<RouteResponse> createRoute(
             @Valid @RequestBody RouteCreateRequest request,
@@ -48,6 +50,7 @@ public class RouteController {
         return ResponseEntity.ok(service.get(id));
     }
 
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PatchMapping("/{id}")
     public ResponseEntity<RouteResponse> update(
             @PathVariable Long id,
@@ -55,6 +58,7 @@ public class RouteController {
         return ResponseEntity.ok(service.update(id, request));
     }
 
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         service.delete(id);

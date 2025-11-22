@@ -5,8 +5,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
 
-public interface ConfigRepository extends JpaRepository<Config, Long> {
+public interface ConfigRepository extends JpaRepository<Config, String> {
     Optional<Config> findByKeyIgnoreCase(String key);
-    void delete(String key);
+    void deleteByKey(String key);
     boolean existsByKeyIgnoreCase(String key);
 }

@@ -2,16 +2,13 @@ package co.edu.unimagdalena.finalbrasiliant.api;
 
 import co.edu.unimagdalena.finalbrasiliant.services.BaggageService;
 import co.edu.unimagdalena.finalbrasiliant.api.dto.BaggageDTOs.*;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -23,14 +20,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(BaggageController.class)
-class BaggageControllerTest {
-
-    @Autowired
-    MockMvc mvc;
-
-    @Autowired
-    ObjectMapper om;
-
+class BaggageControllerTest extends BaseTest{
     @MockitoBean
     BaggageService service;
 
@@ -123,7 +113,7 @@ class BaggageControllerTest {
 
         when(service.getByTagCode("BAG-ABC12345")).thenReturn(resp);
 
-        mvc.perform(get("/api/v1/baggages")
+        mvc.perform(get("/api/v1/baggages/by-tag")
                         .param("tagCode", "BAG-ABC12345"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(15))

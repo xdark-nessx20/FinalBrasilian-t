@@ -22,14 +22,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(SeatHoldController.class)
-public class SeatHoldControllerTest {
-
-    @Autowired
-    MockMvc mvc;
-
-    @Autowired
-    ObjectMapper om;
-
+public class SeatHoldControllerTest extends BaseTest{
     @MockitoBean
     SeatHoldService service;
 
@@ -55,11 +48,11 @@ public class SeatHoldControllerTest {
 
     @Test
     void createSeatHold_shouldReturn201AndLocation() throws Exception {
-        var req = new SeatHoldCreateRequest(50L, "A12", 100L, SeatHoldStatus.HOLD);
+        var req = new SeatHoldCreateRequest( "A12", 100L);
 
-        when(service.create(any())).thenReturn(holdResponse1);
+        when(service.create(eq(50L), any())).thenReturn(holdResponse1);
 
-        mvc.perform(post("/api/v1/trips/50/seats/A12/hold")
+        mvc.perform(post("/api/v1/trips/50/seat-holds")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(om.writeValueAsString(req)))
                 .andExpect(status().isCreated())
@@ -72,31 +65,31 @@ public class SeatHoldControllerTest {
                 .andExpect(jsonPath("$.status").value("HOLD"))
                 .andExpect(jsonPath("$.expiresAt").exists());
 
-        verify(service).create(any(SeatHoldCreateRequest.class));
+        verify(service).create(anyLong(), any(SeatHoldCreateRequest.class));
     }
 
     @Test
     void createSeatHold_withMissingRequiredFields_shouldReturn400() throws Exception {
-        var req = new SeatHoldCreateRequest(null, null, null, null);
+        var req = new SeatHoldCreateRequest( null, null);
 
-        mvc.perform(post("/api/v1/trips/50/seats/A12/hold")
+        mvc.perform(post("/api/v1/trips/50/seat-holds")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(om.writeValueAsString(req)))
                 .andExpect(status().isBadRequest());
 
-        verify(service, never()).create(any());
+        verify(service, never()).create(anyLong(), any());
     }
 
     @Test
     void createSeatHold_withBlankSeatNumber_shouldReturn400() throws Exception {
-        var req = new SeatHoldCreateRequest(50L, "", 100L, SeatHoldStatus.HOLD);
+        var req = new SeatHoldCreateRequest("", 100L);
 
-        mvc.perform(post("/api/v1/trips/50/seats/A12/hold")
+        mvc.perform(post("/api/v1/trips/50/seat-holds")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(om.writeValueAsString(req)))
                 .andExpect(status().isBadRequest());
 
-        verify(service, never()).create(any());
+        verify(service, never()).create(eq(50L), any());
     }
 
     @Test
@@ -235,8 +228,7 @@ public class SeatHoldControllerTest {
     void listByTripAndPassenger_shouldReturn200() throws Exception {
         when(service.listByTripAndPassenger(50L, 100L, SeatHoldStatus.HOLD)).thenReturn(List.of(holdResponse1));
 
-        mvc.perform(get("/api/v1/seat-holds/by-trip-and-passenger")
-                        .param("tripId", "50")
+        mvc.perform(get("/api/v1/trips/50/seat-holds/by-passenger")
                         .param("passengerId", "100")
                         .param("status", "HOLD"))
                 .andExpect(status().isOk())
@@ -255,7 +247,7 @@ public class SeatHoldControllerTest {
 
         when(service.listByTripAndPassenger(50L, 100L, SeatHoldStatus.SOLD)).thenReturn(List.of(sold1, sold2));
 
-        mvc.perform(get("/api/v1/seat-holds/by-trip-and-passenger")
+        mvc.perform(get("/api/v1/trips/50/seat-holds/by-passenger")
                         .param("tripId", "50")
                         .param("passengerId", "100")
                         .param("status", "SOLD"))
@@ -296,20 +288,20 @@ public class SeatHoldControllerTest {
 
     @Test
     void createSeatHold_forDifferentTrips_shouldReturn201() throws Exception {
-        var req = new SeatHoldCreateRequest(51L, "A01", 100L, SeatHoldStatus.HOLD);
+        var req = new SeatHoldCreateRequest( "A01", 100L);
         var tripSummary2 = new TripSummary(51L, OffsetDateTime.now().plusDays(2), "SCHEDULED");
         var resp = new SeatHoldResponse(5L, tripSummary2, "A01", userSummary1, expiresAt, SeatHoldStatus.HOLD);
 
-        when(service.create(any())).thenReturn(resp);
+        when(service.create(eq(51L), any())).thenReturn(resp);
 
-        mvc.perform(post("/api/v1/trips/51/seats/A01/hold")
+        mvc.perform(post("/api/v1/trips/51/seat-holds")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(om.writeValueAsString(req)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.trip.id").value(51))
                 .andExpect(jsonPath("$.seatNumber").value("A01"));
 
-        verify(service).create(any(SeatHoldCreateRequest.class));
+        verify(service).create(anyLong(), any(SeatHoldCreateRequest.class));
     }
 
 }

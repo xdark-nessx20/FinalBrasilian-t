@@ -38,6 +38,7 @@ public class SeatHold {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private SeatHoldStatus status;
+    @Builder.Default
+    private SeatHoldStatus status = SeatHoldStatus.HOLD;
 
 }

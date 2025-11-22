@@ -25,4 +25,5 @@ public interface TicketService {
     List<TicketResponse> listByStretch(Long fromId, Long toId);
 
     void setTicketsNoShow();
+    TicketResponse cancelTicket(Long id);
 }

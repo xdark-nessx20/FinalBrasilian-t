@@ -34,7 +34,7 @@ class UserRepositoryTest extends AbstractRepository {
                 "Juan Pérez",
                 "juan.perez@example.com",
                 "3001234567",
-                Role.PASSENGER,
+                Role.ROLE_PASSENGER,
                 true
         );
 
@@ -42,7 +42,7 @@ class UserRepositoryTest extends AbstractRepository {
                 "María García",
                 "maria.garcia@example.com",
                 "3007654321",
-                Role.DRIVER,
+                Role.ROLE_DRIVER,
                 true
         );
 
@@ -50,7 +50,7 @@ class UserRepositoryTest extends AbstractRepository {
                 "Carlos Rodríguez",
                 "carlos.rodriguez@example.com",
                 "3009876543",
-                Role.PASSENGER,
+                Role.ROLE_PASSENGER,
                 false
         );
 
@@ -58,7 +58,7 @@ class UserRepositoryTest extends AbstractRepository {
                 "Ana Martínez",
                 "ana.martinez@example.com",
                 "3005551234",
-                Role.ADMIN,
+                Role.ROLE_ADMIN,
                 true
         );
     }
@@ -83,20 +83,20 @@ class UserRepositoryTest extends AbstractRepository {
                     assertThat(user.getId()).isEqualTo(user1.getId());
                     assertThat(user.getUserName()).isEqualTo("Juan Pérez");
                     assertThat(user.getEmail()).isEqualTo("juan.perez@example.com");
-                    assertThat(user.getRole()).isEqualTo(Role.PASSENGER);
+                    assertThat(user.getRole()).isEqualTo(Role.ROLE_PASSENGER);
                 });
     }
 
     @Test
     void shouldFindUserByEmail() {
-        Optional<User> result = userRepository.findByEmail("maria.garcia@example.com");
+        Optional<User> result = userRepository.findByEmailIgnoreCase("maria.garcia@example.com");
 
         assertThat(result).isPresent()
                 .hasValueSatisfying(user -> {
                     assertThat(user.getId()).isEqualTo(user2.getId());
                     assertThat(user.getUserName()).isEqualTo("María García");
                     assertThat(user.getEmail()).isEqualTo("maria.garcia@example.com");
-                    assertThat(user.getRole()).isEqualTo(Role.DRIVER);
+                    assertThat(user.getRole()).isEqualTo(Role.ROLE_DRIVER);
                 });
     }
 
@@ -134,21 +134,21 @@ class UserRepositoryTest extends AbstractRepository {
 
     @Test
     void shouldFindAllUsersByRole() {
-        List<User> passengers = userRepository.findAllByRole(Role.PASSENGER);
+        List<User> passengers = userRepository.findAllByRole(Role.ROLE_PASSENGER);
 
         assertThat(passengers)
                 .hasSize(2)
                 .extracting(User::getId)
                 .containsExactlyInAnyOrder(user1.getId(), user3.getId());
 
-        List<User> drivers = userRepository.findAllByRole(Role.DRIVER);
+        List<User> drivers = userRepository.findAllByRole(Role.ROLE_DRIVER);
 
         assertThat(drivers)
                 .hasSize(1)
                 .extracting(User::getId)
                 .containsExactly(user2.getId());
 
-        List<User> admins = userRepository.findAllByRole(Role.ADMIN);
+        List<User> admins = userRepository.findAllByRole(Role.ROLE_ADMIN);
 
         assertThat(admins)
                 .hasSize(1)

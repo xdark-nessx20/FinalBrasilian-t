@@ -59,7 +59,7 @@ public class UserServiceImpl implements UserService {
 	
 	@Override
 	public UserResponse getByEmail(String email) {
-		return userRepo.findByEmail(email).map(userMapper::toResponse).orElseThrow(
+		return userRepo.findByEmailIgnoreCase(email).map(userMapper::toResponse).orElseThrow(
 				()-> new NotFoundException("user with the e-mail %s not found".formatted(email)));
 	}
 	
@@ -82,7 +82,7 @@ public class UserServiceImpl implements UserService {
     public List<UserResponse> getByRole(Role role){
     	List<User> users = userRepo.findAllByRole(role);
 		if (users.isEmpty()) {
-		    throw new NotFoundException("No users found with role  %s".formatted(role));
+		    throw new NotFoundException("No users found with expirationInSeconds  %s".formatted(role));
 		}
 		return users.stream().map(userMapper::toResponse).toList();
     }

@@ -6,6 +6,7 @@ import co.edu.unimagdalena.finalbrasiliant.services.BusService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -23,6 +24,7 @@ public class BusController {
 
     private final BusService service;
 
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PostMapping
     public ResponseEntity<BusResponse> createBus(@Valid @RequestBody BusCreateRequest request,
                                                  UriComponentsBuilder uriBuilder) {
@@ -36,12 +38,14 @@ public class BusController {
         return ResponseEntity.ok(service.get(id));
     }
 
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_DISPATCHER', 'ROLE_DRIVER')")
     @PatchMapping("/{id}")
     public ResponseEntity<BusResponse> update(@PathVariable Long id,
                                               @Valid @RequestBody BusUpdateRequest request) {
         return ResponseEntity.ok(service.update(id, request));
     }
 
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         service.delete(id);
@@ -53,6 +57,7 @@ public class BusController {
         return ResponseEntity.ok(service.getByPlate(plate));
     }
 
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_DISPATCHER', 'ROLE_DRIVER', 'ROLE_CLERK')")
     @GetMapping("/by-status")
     public ResponseEntity<List<BusResponse>> listByStatus(@RequestParam BusStatus status) {
         return ResponseEntity.ok(service.listByStatus(status));

@@ -15,8 +15,8 @@ public class BusDTOs {
                                    @Min(10) Integer capacity, Set<String> amenities,
                                    BusStatus status) implements Serializable {}
 
-    public record BusUpdateRequest(@NotBlank @Size(min = 6,max = 10) String plate,
-                                   @Size(min = 10) Integer capacity , Set<String> amenities,
+    public record BusUpdateRequest(@Size(min = 6,max = 10) String plate,
+                                   @Min(10) Integer capacity , Set<String> amenities,
                                    BusStatus status) implements Serializable {}
 
     public record BusResponse(Long id, String plate, Integer capacity, Set<String> amenities,

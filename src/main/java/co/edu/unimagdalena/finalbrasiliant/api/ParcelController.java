@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -33,6 +34,7 @@ public class ParcelController {
         return ResponseEntity.ok(service.get(id));
     }
 
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_DISPATCHER')")
     @PatchMapping("/{id}")
     public ResponseEntity<ParcelResponse> update(@PathVariable Long id, @Valid @RequestBody ParcelUpdateRequest request){
         return ResponseEntity.ok(service.update(id, request));

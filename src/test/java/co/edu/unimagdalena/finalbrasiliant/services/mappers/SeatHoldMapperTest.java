@@ -20,12 +20,7 @@ public class SeatHoldMapperTest {
     @Test
     void toEntity_shouldMapCreateRequest() {
         // Given
-        var request = new SeatHoldCreateRequest(
-                1L,
-                "A12",
-                2L,
-                SeatHoldStatus.HOLD
-        );
+        var request = new SeatHoldCreateRequest("A12", 2L);
 
         // When
         var entity = mapper.toEntity(request);

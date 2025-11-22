@@ -6,6 +6,7 @@ import co.edu.unimagdalena.finalbrasiliant.services.FareRuleService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -21,6 +22,7 @@ public class FareRuleController {
 
     private final FareRuleService service;
 
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PostMapping
     public ResponseEntity<FareRuleResponse> createFareRule(@Valid @RequestBody FareRuleCreateRequest request,
                                                            UriComponentsBuilder uriBuilder) {
@@ -34,12 +36,14 @@ public class FareRuleController {
         return ResponseEntity.ok(service.get(id));
     }
 
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PatchMapping("/{id}")
     public ResponseEntity<FareRuleResponse> update(@PathVariable Long id,
                                                    @Valid @RequestBody FareRuleUpdateRequest request) {
         return ResponseEntity.ok(service.update(id, request));
     }
 
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         service.delete(id);
@@ -78,11 +82,4 @@ public class FareRuleController {
                                                                                @RequestParam DynamicPricing dynamicPricing) {
         return ResponseEntity.ok(service.listByRouteAndDynamicPricing(routeId, dynamicPricing));
     }
-
-    /*@GetMapping("/exists")
-    public ResponseEntity<Boolean> existsByRouteAndStops(@RequestParam Long routeId,
-                                                         @RequestParam Long fromStopId,
-                                                         @RequestParam Long toStopId) {
-        return ResponseEntity.ok(service.existsByRouteAndStops(routeId, fromStopId, toStopId));
-    }*/
 }

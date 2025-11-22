@@ -1,9 +1,9 @@
 package co.edu.unimagdalena.finalbrasiliant.domain.enums;
 
 public enum Role {
-	PASSENGER,
-	CLERK,
-	DRIVER,
-	DISPATCHER,
-	ADMIN;
+    ROLE_PASSENGER,
+    ROLE_CLERK,
+    ROLE_DRIVER,
+    ROLE_DISPATCHER,
+    ROLE_ADMIN;
 }

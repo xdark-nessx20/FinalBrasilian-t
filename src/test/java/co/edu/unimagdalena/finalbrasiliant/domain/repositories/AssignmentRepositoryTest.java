@@ -75,9 +75,9 @@ class AssignmentRepositoryTest extends AbstractRepository {
                 .capacity(50)
                 .build());
 
-        driver1 = createUser("Juan Pérez", "juan@example.com", "3001234567", Role.DRIVER);
-        User driver2 = createUser("María García", "maria@example.com", "3007654321", Role.DRIVER);
-        User dispatcher1 = createUser("Carlos Admin", "carlos@example.com", "3009876543", Role.DISPATCHER);
+        driver1 = createUser("Juan Pérez", "juan@example.com", "3001234567", Role.ROLE_DRIVER);
+        User driver2 = createUser("María García", "maria@example.com", "3007654321", Role.ROLE_DRIVER);
+        User dispatcher1 = createUser("Carlos Admin", "carlos@example.com", "3009876543", Role.ROLE_DISPATCHER);
 
 
         trip1 = createTrip(route1, bus1, now.plusDays(1), TripStatus.SCHEDULED);

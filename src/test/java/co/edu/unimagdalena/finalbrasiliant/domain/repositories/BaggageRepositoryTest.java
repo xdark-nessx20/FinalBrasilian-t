@@ -103,7 +103,7 @@ class BaggageRepositoryTest extends AbstractRepository {
                 .userName(userName)
                 .email(email)
                 .phone(phone)
-                .role(Role.PASSENGER)
+                .role(Role.ROLE_PASSENGER)
                 .status(true)
                 .passwordHash("hashed_password")
                 .build());

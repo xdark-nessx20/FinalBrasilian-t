@@ -3,6 +3,7 @@ package co.edu.unimagdalena.finalbrasiliant.api;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -32,7 +33,8 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/api/v1")
 public class SeatController {
 	private final SeatService service;
-	
+
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
 	@PostMapping("/buses/{busId}/seats")
     public ResponseEntity<SeatResponse> createSeat(@PathVariable Long busId, @Valid @RequestBody SeatCreateRequest request,
                                                          UriComponentsBuilder uriBuilder) {
@@ -46,6 +48,7 @@ public class SeatController {
         return ResponseEntity.ok(service.get(id));
     }
 
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_DRIVER', 'ROLE_DISPATCHER')")
     @PatchMapping("/seats/{id}")
     public ResponseEntity<SeatResponse> update(
             @PathVariable Long id,
@@ -53,6 +56,7 @@ public class SeatController {
         return ResponseEntity.ok(service.update(id, request));
     }
 
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_DRIVER', 'ROLE_DISPATCHER')")
     @DeleteMapping("/seats/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         service.delete(id);
@@ -66,8 +70,8 @@ public class SeatController {
     
     @GetMapping("/buses/{busId}/seats/by-number")
     public ResponseEntity<SeatResponse> getSeatByNumberAndBus(
-            @RequestParam Long busId,
-            @PathVariable String number) {
+            @PathVariable Long busId,
+            @RequestParam String number) {
         return ResponseEntity.ok(service.getSeatByNumberAndBus(number, busId));
     }
     

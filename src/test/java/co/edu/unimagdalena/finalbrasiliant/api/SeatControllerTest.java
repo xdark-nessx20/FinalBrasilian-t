@@ -1,274 +1,144 @@
 package co.edu.unimagdalena.finalbrasiliant.api;
 
 import co.edu.unimagdalena.finalbrasiliant.api.dto.SeatDTO.*;
-import co.edu.unimagdalena.finalbrasiliant.domain.entities.Bus;
-import co.edu.unimagdalena.finalbrasiliant.domain.entities.Seat;
-import co.edu.unimagdalena.finalbrasiliant.domain.enums.BusStatus;
 import co.edu.unimagdalena.finalbrasiliant.domain.enums.SeatType;
-import co.edu.unimagdalena.finalbrasiliant.domain.repositories.BusRepository;
-import co.edu.unimagdalena.finalbrasiliant.domain.repositories.SeatRepository;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.BeforeEach;
+import co.edu.unimagdalena.finalbrasiliant.services.SeatService;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
-import static org.hamcrest.Matchers.*;
+import java.util.List;
+
+import static org.hamcrest.Matchers.endsWith;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@SpringBootTest
-@AutoConfigureMockMvc
-@ActiveProfiles("test")
-@Transactional
-class SeatControllerIntegrationTest {
-
-    @Autowired
-    private MockMvc mockMvc;
-
-    @Autowired
-    private ObjectMapper objectMapper;
-
-    @Autowired
-    private SeatRepository seatRepository;
-
-    @Autowired
-    private BusRepository busRepository;
-
-    private Bus testBus;
-
-    @BeforeEach
-    void setUp() {
-        seatRepository.deleteAll();
-        busRepository.deleteAll();
-
-        // Create test bus
-        testBus = Bus.builder()
-                .plate("ABC123")
-                .capacity(40)
-                .status(BusStatus.AVAILABLE)
-                .build();
-        testBus = busRepository.save(testBus);
-    }
+@WebMvcTest(SeatController.class)
+class SeatControllerTest extends BaseTest {
+    
+    @MockitoBean
+    SeatService service;
 
     @Test
-    void testCreateSeat_Success() throws Exception {
-        // Given
-        SeatCreateRequest request = new SeatCreateRequest(
-                testBus.getId(),
-                "A1",
-                SeatType.STANDARD
-        );
+    void createSeat_shouldReturn201AndLocation() throws Exception {
+        var req = new SeatCreateRequest(100L, "A12", SeatType.STANDARD);
+        var resp = new SeatResponse(1L, 100L, "A12", SeatType.STANDARD);
 
-        // When & Then
-        mockMvc.perform(post("/api/v1/buses/{busId}/seats", testBus.getId())
+        when(service.create(eq(100L), any(SeatCreateRequest.class))).thenReturn(resp);
+
+        mvc.perform(post("/api/v1/buses/100/seats")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+                        .content(om.writeValueAsString(req)))
                 .andExpect(status().isCreated())
-                .andExpect(header().exists("Location"))
-                .andExpect(jsonPath("$.id").exists())
-                .andExpect(jsonPath("$.bus_id").value(testBus.getId()))
-                .andExpect(jsonPath("$.number").value("A1"))
+                .andExpect(header().string("Location", endsWith("/api/v1/buses/100/seats/1")))
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.bus_id").value(100))
+                .andExpect(jsonPath("$.number").value("A12"))
                 .andExpect(jsonPath("$.type").value("STANDARD"));
+
+        verify(service).create(eq(100L), any(SeatCreateRequest.class));
     }
 
     @Test
-    void testGetSeat_Success() throws Exception {
-        // Given
-        Seat seat = Seat.builder()
-                .bus(testBus)
-                .number("B2")
-                .type(SeatType.PREFERENTIAL)
-                .build();
-        Seat savedSeat = seatRepository.save(seat);
+    void get_shouldReturn200() throws Exception {
+        var resp = new SeatResponse(1L, 100L, "A12", SeatType.STANDARD);
 
-        // When & Then
-        mockMvc.perform(get("/api/v1/seats/{id}", savedSeat.getId()))
+        when(service.get(1L)).thenReturn(resp);
+
+        mvc.perform(get("/api/v1/seats/1"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(savedSeat.getId()))
-                .andExpect(jsonPath("$.bus_id").value(testBus.getId()))
-                .andExpect(jsonPath("$.number").value("B2"))
-                .andExpect(jsonPath("$.type").value("PREFERENTIAL"));
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.bus_id").value(100))
+                .andExpect(jsonPath("$.number").value("A12"))
+                .andExpect(jsonPath("$.type").value("STANDARD"));
+
+        verify(service).get(1L);
     }
 
     @Test
-    void testUpdateSeat_Success() throws Exception {
-        // Given
-        Seat seat = Seat.builder()
-                .bus(testBus)
-                .number("C3")
-                .type(SeatType.STANDARD)
-                .build();
-        Seat savedSeat = seatRepository.save(seat);
+    void update_shouldReturn200() throws Exception {
+        var req = new SeatUpdateRequest( "B15", SeatType.PREFERENTIAL);
+        var resp = new SeatResponse(1L, 100L, "B15", SeatType.PREFERENTIAL);
 
-        SeatUpdateRequest updateRequest = new SeatUpdateRequest(
-                testBus.getId(),
-                "C4",
-                SeatType.PREFERENTIAL
+        when(service.update(eq(1L), any(SeatUpdateRequest.class))).thenReturn(resp);
+
+        mvc.perform(patch("/api/v1/seats/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(om.writeValueAsString(req)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.bus_id").value(100))
+                .andExpect(jsonPath("$.number").value("B15"))
+                .andExpect(jsonPath("$.type").value("PREFERENTIAL"));
+
+        verify(service).update(eq(1L), any(SeatUpdateRequest.class));
+    }
+
+    @Test
+    void delete_shouldReturn204() throws Exception {
+        mvc.perform(delete("/api/v1/seats/1"))
+                .andExpect(status().isNoContent());
+
+        verify(service).delete(1L);
+    }
+
+    @Test
+    void getByBus_shouldReturn200() throws Exception {
+        var seats = List.of(
+                new SeatResponse(1L, 100L, "A12", SeatType.STANDARD),
+                new SeatResponse(2L, 100L, "A13", SeatType.STANDARD),
+                new SeatResponse(3L, 100L, "B01", SeatType.PREFERENTIAL)
         );
 
-        // When & Then
-        mockMvc.perform(patch("/api/v1/seats/{id}", savedSeat.getId())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(updateRequest)))
+        when(service.getSeatsByBus(100L)).thenReturn(seats);
+
+        mvc.perform(get("/api/v1/buses/100/seats"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(savedSeat.getId()))
-                .andExpect(jsonPath("$.number").value("C4"))
-                .andExpect(jsonPath("$.type").value("PREFERENTIAL"));
+                .andExpect(jsonPath("$[0].bus_id").value(100))
+                .andExpect(jsonPath("$[1].bus_id").value(100))
+                .andExpect(jsonPath("$[2].bus_id").value(100))
+                .andExpect(jsonPath("$.length()").value(3));
+
+        verify(service).getSeatsByBus(100L);
     }
 
     @Test
-    void testDeleteSeat_Success() throws Exception {
-        // Given
-        Seat seat = Seat.builder()
-                .bus(testBus)
-                .number("D5")
-                .type(SeatType.STANDARD)
-                .build();
-        Seat savedSeat = seatRepository.save(seat);
+    void getSeatByNumberAndBus_shouldReturn200() throws Exception {
+        var resp = new SeatResponse(1L, 100L, "A12", SeatType.STANDARD);
 
-        // When & Then
-        mockMvc.perform(delete("/api/v1/seats/{id}", savedSeat.getId()))
-                .andExpect(status().isNoContent());
+        when(service.getSeatByNumberAndBus("A12", 100L)).thenReturn(resp);
+
+        mvc.perform(get("/api/v1/buses/100/seats/by-number")
+                        .param("number", "A12"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.bus_id").value(100))
+                .andExpect(jsonPath("$.number").value("A12"));
+
+        verify(service).getSeatByNumberAndBus("A12", 100L);
     }
 
     @Test
-    void testGetSeatsByBus_Success() throws Exception {
-        // Given
-        Seat seat1 = Seat.builder()
-                .bus(testBus)
-                .number("A1")
-                .type(SeatType.STANDARD)
-                .build();
+    void getByType_shouldReturn200() throws Exception {
+        var seats = List.of(
+                new SeatResponse(1L, 100L, "B01", SeatType.PREFERENTIAL),
+                new SeatResponse(2L, 100L, "B02", SeatType.PREFERENTIAL),
+                new SeatResponse(3L, 101L, "C01", SeatType.PREFERENTIAL)
+        );
 
-        Seat seat2 = Seat.builder()
-                .bus(testBus)
-                .number("A2")
-                .type(SeatType.STANDARD)
-                .build();
+        when(service.getSeatsByType(SeatType.PREFERENTIAL)).thenReturn(seats);
 
-        Seat seat3 = Seat.builder()
-                .bus(testBus)
-                .number("B1")
-                .type(SeatType.PREFERENTIAL)
-                .build();
-
-        seatRepository.save(seat1);
-        seatRepository.save(seat2);
-        seatRepository.save(seat3);
-
-        // When & Then
-        mockMvc.perform(get("/api/v1/buses/{busId}/seats", testBus.getId()))
+        mvc.perform(get("/api/v1/seats/by-tipe")
+                        .param("type", "PREFERENTIAL"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$", hasSize(3)))
-                .andExpect(jsonPath("$[*].bus_id", everyItem(is(testBus.getId().intValue()))))
-                .andExpect(jsonPath("$[*].number", containsInAnyOrder("A1", "A2", "B1")));
-    }
+                .andExpect(jsonPath("$[0].type").value("PREFERENTIAL"))
+                .andExpect(jsonPath("$[1].type").value("PREFERENTIAL"))
+                .andExpect(jsonPath("$[2].type").value("PREFERENTIAL"))
+                .andExpect(jsonPath("$.length()").value(3));
 
-    @Test
-    void testGetSeatByNumberAndBus_Success() throws Exception {
-        // Given
-        Seat seat = Seat.builder()
-                .bus(testBus)
-                .number("E5")
-                .type(SeatType.STANDARD)
-                .build();
-        seatRepository.save(seat);
-
-        // When & Then
-        mockMvc.perform(get("/api/v1/buses/{busId}/seats/by-number/{number}", 
-                        testBus.getId(), "E5"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.bus_id").value(testBus.getId()))
-                .andExpect(jsonPath("$.number").value("E5"))
-                .andExpect(jsonPath("$.type").value("STANDARD"));
-    }
-
-    @Test
-    void testGetSeatsByType_Success() throws Exception {
-        // Given
-        Bus bus2 = Bus.builder()
-                .plate("XYZ789")
-                .capacity(50)
-                .status(BusStatus.AVAILABLE)
-                .build();
-        bus2 = busRepository.save(bus2);
-
-        Seat preferentialSeat1 = Seat.builder()
-                .bus(testBus)
-                .number("P1")
-                .type(SeatType.PREFERENTIAL)
-                .build();
-
-        Seat preferentialSeat2 = Seat.builder()
-                .bus(testBus)
-                .number("P2")
-                .type(SeatType.PREFERENTIAL)
-                .build();
-
-        Seat preferentialSeat3 = Seat.builder()
-                .bus(bus2)
-                .number("P1")
-                .type(SeatType.PREFERENTIAL)
-                .build();
-
-        Seat standardSeat = Seat.builder()
-                .bus(testBus)
-                .number("S1")
-                .type(SeatType.STANDARD)
-                .build();
-
-        seatRepository.save(preferentialSeat1);
-        seatRepository.save(preferentialSeat2);
-        seatRepository.save(preferentialSeat3);
-        seatRepository.save(standardSeat);
-
-        // When & Then
-        mockMvc.perform(get("/api/v1/seats/by-type/{type}", "PREFERENTIAL"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$", hasSize(3)))
-                .andExpect(jsonPath("$[*].type", everyItem(is("PREFERENTIAL"))))
-                .andExpect(jsonPath("$[*].number", containsInAnyOrder("P1", "P2", "P1")));
-    }
-
-    @Test
-    void testGetSeatsByType_StandardSeats_Success() throws Exception {
-        // Given
-        Seat standardSeat1 = Seat.builder()
-                .bus(testBus)
-                .number("S1")
-                .type(SeatType.STANDARD)
-                .build();
-
-        Seat standardSeat2 = Seat.builder()
-                .bus(testBus)
-                .number("S2")
-                .type(SeatType.STANDARD)
-                .build();
-
-        Seat preferentialSeat = Seat.builder()
-                .bus(testBus)
-                .number("P1")
-                .type(SeatType.PREFERENTIAL)
-                .build();
-
-        seatRepository.save(standardSeat1);
-        seatRepository.save(standardSeat2);
-        seatRepository.save(preferentialSeat);
-
-        // When & Then
-        mockMvc.perform(get("/api/v1/seats/by-type/{type}", "STANDARD"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$", hasSize(2)))
-                .andExpect(jsonPath("$[*].type", everyItem(is("STANDARD"))))
-                .andExpect(jsonPath("$[*].number", containsInAnyOrder("S1", "S2")));
+        verify(service).getSeatsByType(SeatType.PREFERENTIAL);
     }
 }
